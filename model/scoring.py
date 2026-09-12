@@ -145,9 +145,16 @@ def risk_raw(row, dim_scores, weights):
     return (num / den if den else 0.0), den
 
 
-def score_all(rows, weights_by_type, finance=None, peer_key="institution_type"):
-    """回傳每園的四維度分數、R_raw、組內百分位。tier 由呼叫端依全市名次決定。"""
-    table = percentile_table(rows, peer_key)
+def score_all(rows, weights_by_type, finance=None,
+              indicator_peer_key="institution_type", score_peer_key="peer_group"):
+    """回傳每園的四維度分數、R_raw、組內百分位。tier 由呼叫端依全市名次決定。
+
+    **兩層同儕群刻意不同**（§5.2）：子指標百分位比的是設立別（違規／評鑑／輿情
+    三個維度的可得性不隨組織形態變化），最後的 `risk_score` ECDF 才用細分的
+    peer_group——因為營運維度的資料可得性確實隨組織形態變化，附設幼兒園
+    制度上就沒有獨立決算。
+    """
+    table = percentile_table(rows, indicator_peer_key)
     scored = []
     for row in rows:
         pcts = table[row["park_id"]]
@@ -156,6 +163,7 @@ def score_all(rows, weights_by_type, finance=None, peer_key="institution_type"):
         raw, weight_mass = risk_raw(row, dims, weights)
         scored.append({
             "park_id": row["park_id"],
+            "pcts": pcts,
             "institution_type": row["institution_type"],
             "peer_group": row["peer_group"],
             "is_active": row["is_active"],
@@ -165,11 +173,11 @@ def score_all(rows, weights_by_type, finance=None, peer_key="institution_type"):
             "coverage": round(weight_mass / sum(w for w in weights.values() if w), 4),
         })
 
-    # 組內百分位（同設立別），只用 is_active 的園當分母
+    # 組內百分位，只用 is_active 的園當分母
     peers = collections.defaultdict(list)
     for s in scored:
         if s["is_active"] == 1:
-            peers[s[peer_key]].append(s)
+            peers[s[score_peer_key]].append(s)
     for _, members in peers.items():
         pcts = pct_ecdf([m["raw"] for m in members])
         for m, p in zip(members, pcts):

@@ -248,6 +248,7 @@ def media_features(parks, media_tables):
         town = by_town.get(park["town"], {})
         out[park["park_id"]] = {
             "media_sri": l1["sri"] if l1 else None,
+            "media_event_count": l1["event_count"] if l1 else 0,
             "media_has_signal": bool(l1),
             "media_top_severity": l1["top_severity"] if l1 else None,
             "media_is_burst": l1["is_burst"] if l1 else False,
