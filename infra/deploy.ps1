@@ -1,7 +1,7 @@
 # 部署基礎設施。SPEC §7.4。
 #
-#   . $HOME\aws-env.ps1          # 先 source 競賽憑證（不在 repo 裡）
-#   .\infra\deploy.ps1
+#   . $HOME/aws-env.ps1          # 先 source 競賽憑證（不在 repo 裡）
+#   ./infra/deploy.ps1
 #
 # 不需要 SAM CLI：aws cloudformation package 做同樣的打包工作。
 
@@ -30,9 +30,43 @@ if ($LASTEXITCODE -ne 0) {
         "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true" | Out-Null
 }
 
-# 2. 打包：把 backend/ 上傳並改寫 CodeUri
+# 2. 建置 Lambda 套件。
+#
+#    backend/ 的程式用絕對匯入（from backend.x import y），這樣 uvicorn 與
+#    pytest 都能從 repo 根目錄執行。因此 zip 裡必須有一個真正的 backend/
+#    目錄，不能只是它的零散內容 —— 這就是 CodeUri 指向 out/lambda/ 的原因。
+#
+#    另外 aws cloudformation package 只打包不安裝相依。fastapi、mangum、
+#    pydantic 都不在 Lambda runtime 內，必須自己裝進去。
+$stage    = Join-Path $root "out/lambda"
+$stagePkg = Join-Path $stage "backend"
+if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
+New-Item -ItemType Directory -Force -Path $stagePkg | Out-Null
+
+Write-Output "建置 Lambda 套件 ..."
+Get-ChildItem (Join-Path $root "backend") -Filter "*.py" |
+    Where-Object { $_.Name -ne "local_server.py" } |
+    Copy-Item -Destination $stagePkg
+
+python -m pip install --quiet --target $stage --only-binary=:all: `
+    --platform manylinux2014_x86_64 --python-version 3.12 `
+    -r (Join-Path $root "backend/requirements.txt")
+if ($LASTEXITCODE -ne 0) { throw "pip install 失敗" }
+
+# boto3 / botocore 已在 Lambda runtime 內，移掉可省下約 15 MB 與冷啟時間
+Get-ChildItem $stage -Directory |
+    Where-Object {
+        $_.Name -match '^(boto3|botocore|s3transfer|dateutil|urllib3|jmespath|six)' -or
+        $_.Name -match '\.dist-info$'
+    } |
+    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue
+
+$mb = [math]::Round(((Get-ChildItem $stage -Recurse -File | Measure-Object Length -Sum).Sum / 1MB), 1)
+Write-Output "  套件大小 $mb MB"
+
+# 3. 打包並上傳
 $packaged = Join-Path $env:TEMP "watchdog-packaged.yaml"
-Write-Output "打包 backend/ ..."
+Write-Output "上傳 Lambda 套件 ..."
 aws cloudformation package `
     --template-file (Join-Path $PSScriptRoot "template.yaml") `
     --s3-bucket $artifactBucket `
@@ -40,7 +74,7 @@ aws cloudformation package `
     --region $Region
 if ($LASTEXITCODE -ne 0) { throw "package 失敗" }
 
-# 3. 部署
+# 4. 部署
 Write-Output "部署中（CloudFront 首次建立約 10-15 分鐘）..."
 aws cloudformation deploy `
     --template-file $packaged `
@@ -55,5 +89,5 @@ aws cloudformation describe-stacks --stack-name $StackName --region $Region `
     --query "Stacks[0].Outputs[].{Key:OutputKey,Value:OutputValue}" --output table
 
 Write-Output "`n下一步："
-Write-Output "  .\infra\upload.ps1     # 上傳 serving 資料與前端"
-Write-Output "  .\infra\verify.ps1     # 驗收 SPEC §14.4"
+Write-Output "  ./infra/upload.ps1     # 上傳 serving 資料與前端"
+Write-Output "  ./infra/verify.ps1     # 驗收 SPEC §14.4"

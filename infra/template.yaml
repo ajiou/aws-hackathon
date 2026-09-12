@@ -71,8 +71,13 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub "${ProjectName}-api"
-      CodeUri: ../backend/
-      Handler: app.handler
+      # Built by infra/deploy.ps1 into out/lambda/, which contains a real
+      # backend/ package plus its pip-installed dependencies. The backend
+      # code uses absolute "from backend.x import y" so that uvicorn and
+      # pytest both run from the repo root; the Lambda zip must therefore
+      # contain backend/ as a directory, not its loose contents.
+      CodeUri: ../out/lambda/
+      Handler: backend.app.handler
       ReservedConcurrentExecutions: 10
       Environment:
         Variables:
@@ -80,12 +85,28 @@ Resources:
       Policies:
         # Least privilege: read serving/ and the report PDFs only.
         # No writes, no curated/, no model/.
+        #
+        # ListBucket is required even though nothing lists the bucket.
+        # Without it, S3 answers AccessDenied instead of NoSuchKey for a
+        # missing object, so that it never reveals whether a key exists.
+        # The backend loads fees/finance/evaluations/briefs as optional
+        # artifacts and correctly refuses to treat AccessDenied as
+        # "absent" - a permission failure is not missing data. Granting
+        # ListBucket restores the honest 404 and keeps that distinction.
         - Statement:
             - Effect: Allow
               Action: s3:GetObject
               Resource:
                 - !Sub "${DataBucket.Arn}/serving/*"
                 - !Sub "${DataBucket.Arn}/raw/pdf/*"
+            - Effect: Allow
+              Action: s3:ListBucket
+              Resource: !GetAtt DataBucket.Arn
+              Condition:
+                StringLike:
+                  s3:prefix:
+                    - "serving/*"
+                    - "raw/pdf/*"
       Events:
         Api:
           Type: HttpApi
