@@ -1,0 +1,44 @@
+[
+ {
+  "table": "docs",
+  "rows": 2900,
+  "bytes": 1836034,
+  "note": "原始文件。刻意不含 body（新聞全文），SRI 只用得到標題與來源。"
+ },
+ {
+  "table": "doc_resolution",
+  "rows": 2900,
+  "bytes": 538457,
+  "note": "實體解析結果。level A 明文點名 / B 只到行政區 / C 只到全市 / X 非新北或非教保。"
+ },
+ {
+  "table": "doc_links",
+  "rows": 209,
+  "bytes": 42764,
+  "note": "A 級文件綁定到園所。park_id 與 preschools.json 的 id 相同。alias_kind=owner 的 matched_alias 已遮蔽為 null（那是自然人姓名）。"
+ },
+ {
+  "table": "doc_analysis",
+  "rows": 580,
+  "bytes": 201157,
+  "note": "LLM 抽取結果。只標了 580/2900，其餘待補（SPEC §5.5）。"
+ },
+ {
+  "table": "park_aliases",
+  "rows": 5068,
+  "bytes": 795038,
+  "note": "園所別名字典。已排除 kind='owner' 的列（那是自然人姓名）。"
+ },
+ {
+  "table": "park_risk",
+  "rows": 491,
+  "bytes": 137109,
+  "note": "既有 SRI 計算結果，供對照用。正式分數由 model/score.py 重算。"
+ },
+ {
+  "table": "district_heat",
+  "rows": 14,
+  "bytes": 2455,
+  "note": "行政區輿情熱度，SPEC §5.5 的 L2 層。"
+ }
+]

@@ -54,6 +54,17 @@ Repo：https://github.com/ajiou/aws-hackathon
 - docs/SPEC.md 的 §1 定義、§2 資料盤點、§3 資料契約與 ETL、
   §4 特徵字典、§5 分數計算、§6 模型與驗證
 - etl/constants.py、etl/quality.py、etl/pii.py（已寫好，直接用）
+- data/media/README.md —— 輿情資料已進 repo
+
+輿情資料（2026-09-12 已進版控，7 份 JSON）：
+  data/media/docs.json           2,900 篇文件（刻意不含新聞全文）
+  data/media/doc_resolution.json 實體解析 A 161 / B 352 / C 137 / X 2,250
+  data/media/doc_links.json      A 級綁定 209 筆，park_id 與 preschools.json 相同
+  data/media/doc_analysis.json   LLM 抽取 580/2,900，其餘 2,320 待補
+  data/media/district_heat.json  區級熱度（SPEC §5.5 的 L2 層）
+  data/media/park_risk.json      既有 SRI 結果，供對照
+最重要的一件事：只用 L1 園級訊號覆蓋率僅 3.3%（40/1,178 園），
+必須加上 L2 區級才有意義。維度內權重 L1 60% / L2 40%，見 SPEC §5.5。
 
 你要產出：
 1. etl/build_curated.py

@@ -103,9 +103,11 @@
 | 2 | 裁罰紀錄 | `sentinel/data/watchdog.db` `punishments` | 1,423 筆 / 475 園 / 2017-05-11 ~ 2026-08-21 | ✅ |
 | 3 | 裁罰衍生特徵 | `data/園所裁罰特徵_cutoff20250101.json` | 1,212 園 | ✅ |
 | 4 | 累犯負責人 | `data/累犯負責人_cutoff20250101.json` | 179 人，38 人跨園，最高 15 次 | ✅ |
-| 5 | 輿情文件 | `watchdog.db` `docs` | 2,900 篇（gnews 2,329 / ptt 571） | ✅ |
-| 6 | 輿情實體連結 | `watchdog.db` `doc_links` / `doc_resolution` | A 161 / B 352 / C 137 / X 2,250 | ⚠ 見 §2.3 |
-| 7 | 輿情 NLP 標註 | `watchdog.db` `doc_analysis` | **580 / 2,900 = 20%** | ⚠ 需補跑 |
+| 5 | 輿情文件 | `data/media/docs.json` | 2,900 篇（gnews 2,329 / ptt 571） | ✅ 已進 repo |
+| 6 | 輿情實體連結 | `data/media/doc_links.json`、`doc_resolution.json` | A 161 / B 352 / C 137 / X 2,250 | ✅ 已進 repo |
+| 7 | 輿情 NLP 標註 | `data/media/doc_analysis.json` | **580 / 2,900 = 20%** | ⚠ 需補跑 |
+
+> 輿情資料已由 `etl/export_media.py` 從 `sentinel/data/watchdog.db` 匯出進 `data/media/`，說明見 [`data/media/README.md`](../data/media/README.md)。**原始 SQLite 不進版控**——它含 1,147 個負責人姓名與 1.6M 字元的新聞全文。匯出時剝掉姓名（`parks.owner`、`punishments.target`、`park_aliases` 的 owner 別名、`doc_links.matched_alias` 當 `alias_kind='owner'`）與 `docs.body`，並在每次匯出後回頭掃描確認零殘留。
 | 8 | 收費明細 | `data/新北市...收費明細.json` | **280 園，100% 為公立**（95.2% 的公立園），115 學年度 | ✅ 檔名誤導，見 §5.6.1 |
 | 9 | 非營利園財報 | `data/ocr/*.pdf` | 46 份 / 12 園 / 110–113 學年度 | ✅ 已 OCR |
 | 10 | 公校決算 | `E_教育局-資料集/資料集/公校/` | 112–114 年度 | ⚠ 未進 repo |

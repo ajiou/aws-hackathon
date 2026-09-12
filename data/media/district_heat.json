@@ -1,0 +1,114 @@
+[
+ {
+  "as_of": "2026-08-23",
+  "town": "三峽區",
+  "heat": 0.0002813581400448384,
+  "doc_count": 2,
+  "candidate_pool": 50,
+  "heat_per_park": 5.627162800896768e-06
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "三芝區",
+  "heat": 3.0184822677259496e-22,
+  "doc_count": 1,
+  "candidate_pool": 10,
+  "heat_per_park": 3.0184822677259496e-23
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "三重區",
+  "heat": 13.301522546909027,
+  "doc_count": 11,
+  "candidate_pool": 92,
+  "heat_per_park": 0.14458176681422855
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "土城區",
+  "heat": 11.339629664610575,
+  "doc_count": 12,
+  "candidate_pool": 67,
+  "heat_per_park": 0.16924820394941156
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "新店區",
+  "heat": 2.7250892928826005,
+  "doc_count": 5,
+  "candidate_pool": 86,
+  "heat_per_park": 0.03168708480096047
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "新莊區",
+  "heat": 30.42482511789902,
+  "doc_count": 26,
+  "candidate_pool": 112,
+  "heat_per_park": 0.2716502242669555
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "板橋區",
+  "heat": 39.52750553907007,
+  "doc_count": 54,
+  "candidate_pool": 158,
+  "heat_per_park": 0.2501740856903169
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "林口區",
+  "heat": 50.2657323366335,
+  "doc_count": 84,
+  "candidate_pool": 61,
+  "heat_per_park": 0.8240283989612048
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "樹林區",
+  "heat": 0.6898967068943801,
+  "doc_count": 5,
+  "candidate_pool": 50,
+  "heat_per_park": 0.013797934137887602
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "永和區",
+  "heat": 14.521149881644556,
+  "doc_count": 23,
+  "candidate_pool": 64,
+  "heat_per_park": 0.22689296690069619
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "汐止區",
+  "heat": 0.10478001355306342,
+  "doc_count": 9,
+  "candidate_pool": 59,
+  "heat_per_park": 0.0017759324331027698
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "瑞芳區",
+  "heat": 3.301440226499525,
+  "doc_count": 8,
+  "candidate_pool": 19,
+  "heat_per_park": 0.17376001192102764
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "蘆洲區",
+  "heat": 0.155959364041856,
+  "doc_count": 5,
+  "candidate_pool": 68,
+  "heat_per_park": 0.002293520059439059
+ },
+ {
+  "as_of": "2026-08-23",
+  "town": "鶯歌區",
+  "heat": 26.210061994290964,
+  "doc_count": 19,
+  "candidate_pool": 25,
+  "heat_per_park": 1.0484024797716385
+ }
+]

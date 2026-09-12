@@ -17,7 +17,7 @@
 | 後端 | [`docs/SPEC.md`](docs/SPEC.md) §8 API 契約（**已凍結**） |
 | 前端 | [`docs/FRONTEND.md`](docs/FRONTEND.md) 全部 |
 | 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 + [`infra/README.md`](infra/README.md) |
-| 簡報要放架構圖 | [`docs/architecture.html`](docs/architecture.html) 瀏覽器開啟；投影片直接用 `docs/architecture.png`（2880×1696 透明底、投影片字級）或 `.svg` |
+| 簡報要放架構圖 | [`presentation/architecture.html`](presentation/architecture.html) 瀏覽器開啟；投影片直接用 `presentation/architecture.png`（2880×1696 透明底、投影片字級）或 `.svg` |
 | 簡報 | [`docs/NARRATIVE.md`](docs/NARRATIVE.md) |
 
 ---
@@ -108,7 +108,9 @@ python frontend/mock/generate.py
 
 ```
 data/        原始資料（已在 repo）
-docs/        SPEC / FRONTEND / NARRATIVE / 營運係數
+  media/     輿情資料 7 份 JSON，見 data/media/README.md
+docs/        規格文件：SPEC / FRONTEND / NARRATIVE / ASSIGNMENTS / 營運係數
+presentation/ 簡報素材：架構圖 html / svg / png 與產生腳本
 etl/         constants · pii · quality · ocr_extract · build_curated
 model/       train · backtest · score
 backend/     app.py（Lambda handler）· local_server.py
@@ -136,4 +138,5 @@ out/         本機執行產物（gitignore）
 | 前端 | ⬜ 待實作 |
 | IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
 | **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
-| 架構圖 | ✅ `docs/architecture.html` + `.svg` + `.png`（2× 與 1×） |
+| 架構圖 | ✅ `presentation/architecture.html` + `.svg` + `.png`（2× 與 1×） |
+| 輿情資料 | ✅ `data/media/` 7 份 JSON，個資已剝除 |
