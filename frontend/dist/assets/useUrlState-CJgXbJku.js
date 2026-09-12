@@ -1,1 +1,0 @@
-import{x as u}from"./index--A1iOgUz.js";function i(){const[s,e]=u();function o(a,t,c=!0){e(p=>{const r=new URLSearchParams(p);r.delete(a);for(const n of Array.isArray(t)?t:[t])n&&r.append(a,n);return c&&a!=="page"&&r.delete("page"),r})}return{params:s,update:o,clear:()=>e({}),setParams:e}}export{i as u};
