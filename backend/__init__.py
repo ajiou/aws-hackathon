@@ -1,0 +1,1 @@
+"""Smart Watchdog serving API."""

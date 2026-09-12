@@ -1,0 +1,34 @@
+@base = http://127.0.0.1:8000/api/v1
+
+### Metadata
+GET {{base}}/meta
+
+### Paginated search (repeat town/type/tier to select multiple)
+GET {{base}}/parks?town=板橋區&town=新店區&size=10&sort=risk
+
+### Top risk records
+GET {{base}}/risk/top?k=10
+
+### Park detail — replace with an id returned by /parks for other datasets
+GET {{base}}/parks/d3529bca-98d5-4761-9ff3-40ee3716d1dc
+
+### Offline or template brief
+GET {{base}}/parks/d3529bca-98d5-4761-9ff3-40ee3716d1dc/brief
+
+### Districts
+GET {{base}}/districts
+
+### Map filtered by town and tier
+GET {{base}}/map?town=板橋區&tier=高
+
+### Backtest curve
+GET {{base}}/curve
+
+### Current week's dispatch sheet
+GET {{base}}/worklist?k=50
+
+### Invalid parameter: 400
+GET {{base}}/risk/top?k=abc
+
+### Missing park: 404
+GET {{base}}/parks/missing

@@ -1,0 +1,93 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Smart Watchdog FastAPI backend; reads an existing private data bucket.
+
+Parameters:
+  DataBucketName:
+    Type: String
+    Description: Existing private bucket containing de-identified serving/ and raw/pdf/ artifacts.
+  FrontendOrigin:
+    Type: String
+    AllowedPattern: 'https://[a-zA-Z0-9.-]+'
+    Description: Exact frontend origin, e.g. https://example.cloudfront.net (no trailing slash).
+  DataRevision:
+    Type: String
+    Default: initial
+    Description: Change after publishing a coherent serving snapshot to recycle Lambda caches.
+
+Resources:
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 50
+        ThrottlingRateLimit: 20
+
+  ApiRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: ReadServingAndReports
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${DataBucketName}/serving/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${DataBucketName}/raw/pdf/*'
+        - PolicyName: WriteApiLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !GetAtt ApiLogGroup.Arn
+
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AWS::StackName}-api'
+      RetentionInDays: 7
+
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Metadata:
+      BuildMethod: makefile
+    DependsOn: ApiLogGroup
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-api'
+      CodeUri: .
+      Handler: backend.app.handler
+      Runtime: python3.12
+      Architectures: [x86_64]
+      MemorySize: 512
+      Timeout: 10
+      ReservedConcurrentExecutions: 10
+      Role: !GetAtt ApiRole.Arn
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref DataBucketName
+          CORS_ORIGINS: !Ref FrontendOrigin
+          DATA_REVISION: !Ref DataRevision
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: ANY
+
+Outputs:
+  ApiUrl:
+    Value: !Sub 'https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/api/v1'
+  FunctionName:
+    Value: !Ref ApiFunction
