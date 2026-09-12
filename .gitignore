@@ -26,3 +26,4 @@ Thumbs.db
 # 本機執行產物
 out/
 *.parquet
+*.stackdump

@@ -1,0 +1,278 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Smart Watchdog - preschool risk early-warning system for New Taipei City.
+  See docs/SPEC.md section 7.4 and infra/README.md.
+  Batch architecture: no online inference. Lambda only reads the
+  precomputed serving/*.json from S3.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: watchdog
+    Description: Resource name prefix
+  LogRetentionDays:
+    Type: Number
+    Default: 7
+    AllowedValues: [1, 3, 5, 7, 14, 30]
+    Description: CloudWatch Logs retention. 7 days is enough for the hackathon.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Timeout: 10
+    MemorySize: 512
+    Architectures: [x86_64]
+
+Resources:
+  # ---------------------------------------------------------------
+  # Storage. Both buckets are private with all four Block Public
+  # Access settings on. Competition rule 1 forbids public buckets.
+  # ---------------------------------------------------------------
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !Sub "${ProjectName}-data-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  SiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ProjectName}-site-${AWS::AccountId}"
+      # Deliberately no WebsiteConfiguration: static website hosting
+      # requires a public bucket, which the rules forbid. The frontend
+      # is served only through CloudFront + OAC.
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # ---------------------------------------------------------------
+  # API. One Lambda routes all 9 endpoints internally (SPEC 8.0).
+  # ---------------------------------------------------------------
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub "${ProjectName}-api"
+      CodeUri: ../backend/
+      Handler: app.handler
+      ReservedConcurrentExecutions: 10
+      Environment:
+        Variables:
+          DATA_BUCKET: !Ref DataBucket
+      Policies:
+        # Least privilege: read serving/ and the report PDFs only.
+        # No writes, no curated/, no model/.
+        - Statement:
+            - Effect: Allow
+              Action: s3:GetObject
+              Resource:
+                - !Sub "${DataBucket.Arn}/serving/*"
+                - !Sub "${DataBucket.Arn}/raw/pdf/*"
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /{proxy+}
+            Method: GET
+
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${ProjectName}-api"
+      RetentionInDays: !Ref LogRetentionDays
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: $default
+      # Production is same-origin behind CloudFront, so no CORS here.
+      # Local development adds the header in backend/local_server.py.
+      DefaultRouteSettings:
+        ThrottlingBurstLimit: 50
+        ThrottlingRateLimit: 20
+
+  # ---------------------------------------------------------------
+  # Delivery: CloudFront + OAC. The bucket stays private.
+  # ---------------------------------------------------------------
+  # SPA routing lives in a viewer-request function, NOT in
+  # CustomErrorResponses. CustomErrorResponses applies to the whole
+  # distribution, so it also swallows legitimate 404s from /api/* and
+  # rewrites them to index.html - which breaks the API error contract
+  # (SPEC 8.0). Verified: GET /api/v1/parks/<missing> returned S3
+  # AccessDenied XML instead of PARK_NOT_FOUND.
+  SpaRouterFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${ProjectName}-spa-router"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite extensionless non-API paths to /index.html
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          // API paths pass through untouched so their status codes survive.
+          if (uri.indexOf('/api/') === 0) {
+            return request;
+          }
+          // A path with no file extension is an SPA route.
+          var last = uri.substring(uri.lastIndexOf('/') + 1);
+          if (last.indexOf('.') === -1) {
+            request.uri = '/index.html';
+          }
+          return request;
+        }
+
+  SiteOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub "${ProjectName}-site-oac"
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  ApiCachePolicy:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name: !Sub "${ProjectName}-api-cache"
+        Comment: 60s API cache. Data refreshes once a day.
+        DefaultTTL: 60
+        MinTTL: 0
+        MaxTTL: 300
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig:
+            CookieBehavior: none          # do not forward cookies
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: all      # filters must be in the cache key
+
+  Distribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        Comment: !Sub "${ProjectName} - preschool risk early-warning"
+        DefaultRootObject: index.html
+        HttpVersion: http2
+        PriceClass: PriceClass_100
+        Origins:
+          - Id: site
+            DomainName: !GetAtt SiteBucket.RegionalDomainName
+            OriginAccessControlId: !GetAtt SiteOAC.Id
+            S3OriginConfig:
+              OriginAccessIdentity: ""
+          - Id: api
+            DomainName: !Sub "${HttpApi}.execute-api.${AWS::Region}.amazonaws.com"
+            CustomOriginConfig:
+              OriginProtocolPolicy: https-only
+              OriginSSLProtocols: [TLSv1.2]
+        DefaultCacheBehavior:
+          TargetOriginId: site
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods: [GET, HEAD, OPTIONS]
+          CachedMethods: [GET, HEAD]
+          Compress: true
+          # CachingOptimized (AWS managed policy)
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaRouterFunction.FunctionMetadata.FunctionARN
+        CacheBehaviors:
+          - PathPattern: /api/*
+            TargetOriginId: api
+            ViewerProtocolPolicy: https-only
+            AllowedMethods: [GET, HEAD, OPTIONS]
+            CachedMethods: [GET, HEAD]
+            Compress: true
+            CachePolicyId: !Ref ApiCachePolicy
+
+  # OAC bucket policy: only this distribution may read.
+  SiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref SiteBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipalReadOnly
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribution}"
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt SiteBucket.Arn
+              - !Sub "${SiteBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  DataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DataBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: "*"
+            Action: s3:*
+            Resource:
+              - !GetAtt DataBucket.Arn
+              - !Sub "${DataBucket.Arn}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+Outputs:
+  SiteUrl:
+    Description: Frontend URL
+    Value: !Sub "https://${Distribution.DomainName}"
+  ApiUrl:
+    Description: API base, same-origin through CloudFront
+    Value: !Sub "https://${Distribution.DomainName}/api/v1"
+  ApiOriginUrl:
+    Description: Direct API Gateway URL, for debugging only
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/api/v1"
+  DataBucketName:
+    Description: Data bucket. ETL output is uploaded here.
+    Value: !Ref DataBucket
+  SiteBucketName:
+    Description: Site bucket. The npm run build output goes here.
+    Value: !Ref SiteBucket
+  DistributionId:
+    Description: CloudFront distribution id, used to invalidate after a deploy
+    Value: !Ref Distribution

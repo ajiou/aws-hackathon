@@ -103,9 +103,11 @@
 | 2 | 裁罰紀錄 | `sentinel/data/watchdog.db` `punishments` | 1,423 筆 / 475 園 / 2017-05-11 ~ 2026-08-21 | ✅ |
 | 3 | 裁罰衍生特徵 | `data/園所裁罰特徵_cutoff20250101.json` | 1,212 園 | ✅ |
 | 4 | 累犯負責人 | `data/累犯負責人_cutoff20250101.json` | 179 人，38 人跨園，最高 15 次 | ✅ |
-| 5 | 輿情文件 | `watchdog.db` `docs` | 2,900 篇（gnews 2,329 / ptt 571） | ✅ |
-| 6 | 輿情實體連結 | `watchdog.db` `doc_links` / `doc_resolution` | A 161 / B 352 / C 137 / X 2,250 | ⚠ 見 §2.3 |
-| 7 | 輿情 NLP 標註 | `watchdog.db` `doc_analysis` | **580 / 2,900 = 20%** | ⚠ 需補跑 |
+| 5 | 輿情文件 | `data/media/docs.json` | 2,900 篇（gnews 2,329 / ptt 571） | ✅ 已進 repo |
+| 6 | 輿情實體連結 | `data/media/doc_links.json`、`doc_resolution.json` | A 161 / B 352 / C 137 / X 2,250 | ✅ 已進 repo |
+| 7 | 輿情 NLP 標註 | `data/media/doc_analysis.json` | **580 / 2,900 = 20%** | ⚠ 需補跑 |
+
+> 輿情資料已由 `etl/export_media.py` 從 `sentinel/data/watchdog.db` 匯出進 `data/media/`，說明見 [`data/media/README.md`](../data/media/README.md)。**原始 SQLite 不進版控**——它含 1,147 個負責人姓名與 1.6M 字元的新聞全文。匯出時剝掉姓名（`parks.owner`、`punishments.target`、`park_aliases` 的 owner 別名、`doc_links.matched_alias` 當 `alias_kind='owner'`）與 `docs.body`，並在每次匯出後回頭掃描確認零殘留。
 | 8 | 收費明細 | `data/新北市...收費明細.json` | **280 園，100% 為公立**（95.2% 的公立園），115 學年度 | ✅ 檔名誤導，見 §5.6.1 |
 | 9 | 非營利園財報 | `data/ocr/*.pdf` | 46 份 / 12 園 / 110–113 學年度 | ✅ 已 OCR |
 | 10 | 公校決算 | `E_教育局-資料集/資料集/公校/` | 112–114 年度 | ⚠ 未進 repo |
@@ -1198,6 +1200,7 @@ ocr/*.pdf       ┘              │    └─> SageMaker                     �
 | `DataBucket` | `AWS::S3::Bucket` | `PublicAccessBlockConfiguration` 四項全 `true`；`BucketEncryption` SSE-S3 |
 | `SiteBucket` | `AWS::S3::Bucket` | 同上。**不啟用 WebsiteConfiguration** |
 | `SiteOAC` | `AWS::CloudFront::OriginAccessControl` | `SigningBehavior: always`，`OriginAccessControlOriginType: s3` |
+| `SpaRouterFunction` | `AWS::CloudFront::Function` | viewer-request，SPA 路由。**不可改用 `CustomErrorResponses`**，見下方說明 |
 | `SiteBucketPolicy` | `AWS::S3::BucketPolicy` | 僅允許該 CloudFront distribution 的 `s3:GetObject` |
 | `Distribution` | `AWS::CloudFront::Distribution` | 見下方 behavior 設定 |
 | `ApiFunction` | `AWS::Serverless::Function` | Python 3.12 / 512 MB / 10s / `ReservedConcurrentExecutions: 10` |
@@ -1211,7 +1214,24 @@ ocr/*.pdf       ┘              │    └─> SageMaker                     �
 | `/api/*` | HttpApi | TTL 60s；轉發 query string；不轉發 cookie |
 | `/*`（預設） | SiteBucket via OAC | TTL 3600s；`index.html` 為 root object |
 
-**SPA 路由**：`CustomErrorResponses` 將 403 與 404 對應到 `/index.html` 並回傳 **200**。缺這段的話 `/park/xxx` 直接輸入網址會 404。
+**SPA 路由**：用 **CloudFront Function（viewer-request）** 把無副檔名且非 `/api/` 的路徑改寫成 `/index.html`。
+
+> ⚠ **不可以用 `CustomErrorResponses`。** 那是網路上最常見的 SPA 作法，但它**對整個 distribution 生效，無法只綁一個 behavior**——API 正常回的 404 也會被攔截並改寫成 `/index.html`，導致前端收到的是 S3 的 `AccessDenied` XML 而不是 `PARK_NOT_FOUND`。
+>
+> 2026-09-12 實測：先用 `CustomErrorResponses` 部署，`GET /api/v1/parks/<不存在>` 直連 API Gateway 正確回 404 JSON，經 CloudFront 卻變成 HTTP 403 + `<Error><Code>AccessDenied</Code>`。整個 §8.0 的錯誤契約失效。
+>
+> 正解（`infra/template.yaml` 的 `SpaRouterFunction`）：
+>
+> ```js
+> function handler(event) {
+>   var request = event.request;
+>   var uri = request.uri;
+>   if (uri.indexOf('/api/') === 0) return request;   // API 原樣通過
+>   var last = uri.substring(uri.lastIndexOf('/') + 1);
+>   if (last.indexOf('.') === -1) request.uri = '/index.html';
+>   return request;
+> }
+> ```
 
 #### Lambda 最小權限
 
@@ -1670,6 +1690,7 @@ aws-hackathon/
 - [ ] **S3 Block Public Access 四項全開**，`aws s3api get-public-access-block` 驗證
 - [ ] 直接存取 S3 物件 URL 回 403，經 CloudFront 回 200
 - [ ] `/park/xxx` 直接輸入網址正常載入（SPA fallback 生效）
+- [ ] **`GET /api/v1/parks/<不存在>` 經 CloudFront 仍回 404 + `PARK_NOT_FOUND` JSON**（確認 SPA 路由沒有吃掉 API 的錯誤碼）
 - [ ] 全部資源在 **us-west-2**
 - [ ] CloudWatch Logs 保留期已設定（建議 7 天，省成本）
 

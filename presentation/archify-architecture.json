@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "小小守護員 Smart Watchdog — 系統架構",
+    "output": "archify-architecture.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "sources",
+      "type": "external",
+      "label": "六個公開資料源",
+      "sublabel": "基本 · 評鑑 · 裁罰 · 收費 · 財報 · 輿情",
+      "tag": "1,178 園",
+      "pos": [
+        48,
+        56
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "etl",
+      "type": "security",
+      "label": "ETL · 個資雜湊",
+      "sublabel": "HMAC-SHA256 · 洩漏與個資檢查",
+      "tag": "本機執行",
+      "pos": [
+        48,
+        216
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "inspector",
+      "type": "external",
+      "label": "教育局稽查人員",
+      "sublabel": "每週一份稽查派工單",
+      "tag": "50 個名額",
+      "pos": [
+        48,
+        392
+      ],
+      "size": [
+        200,
+        76
+      ]
+    },
+    {
+      "id": "compute",
+      "type": "cloud",
+      "label": "離線運算",
+      "sublabel": "Bedrock 輿情標註 · SageMaker 訓練",
+      "tag": "批次 · 每日一次",
+      "pos": [
+        348,
+        56
+      ],
+      "size": [
+        210,
+        76
+      ]
+    },
+    {
+      "id": "s3data",
+      "type": "database",
+      "label": "S3 資料層",
+      "sublabel": "serving/*.json · 算好的分數約 3 MB",
+      "tag": "private",
+      "pos": [
+        652,
+        56
+      ],
+      "size": [
+        210,
+        76
+      ]
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CloudFront + OAC",
+      "sublabel": "SPA 路由用 CloudFront Function",
+      "tag": "API 快取 60s",
+      "pos": [
+        348,
+        392
+      ],
+      "size": [
+        210,
+        76
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API Gateway + Lambda",
+      "sublabel": "9 支路由 · 512 MB · 唯讀 IAM",
+      "tag": "無資料庫",
+      "pos": [
+        652,
+        344
+      ],
+      "size": [
+        210,
+        64
+      ]
+    },
+    {
+      "id": "s3site",
+      "type": "database",
+      "label": "S3 前端靜態站",
+      "sublabel": "React · 不開 Website Hosting",
+      "tag": "private",
+      "pos": [
+        652,
+        448
+      ],
+      "size": [
+        210,
+        64
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "security-group",
+      "label": "本機執行 — 自然人姓名不越過此界",
+      "wraps": [
+        "sources",
+        "etl"
+      ],
+      "pad": 24
+    },
+    {
+      "kind": "region",
+      "label": "AWS us-west-2 — 無線上推論，雲端只讀算好的靜態檔",
+      "wraps": [
+        "compute",
+        "s3data",
+        "cdn",
+        "api",
+        "s3site"
+      ],
+      "pad": 28
+    }
+  ],
+  "connections": [
+    {
+      "from": "sources",
+      "to": "etl",
+      "label": "原始資料含真實姓名",
+      "labelDy": 40
+    },
+    {
+      "from": "etl",
+      "to": "compute",
+      "label": "已雜湊為 owner_key"
+    },
+    {
+      "from": "compute",
+      "to": "s3data",
+      "label": "寫入 serving/"
+    },
+    {
+      "from": "inspector",
+      "to": "cdn",
+      "label": "HTTPS"
+    },
+    {
+      "from": "cdn",
+      "to": "api",
+      "label": "/api/*"
+    },
+    {
+      "from": "cdn",
+      "to": "s3site",
+      "label": "OAC 私有讀取"
+    },
+    {
+      "from": "api",
+      "to": "s3data",
+      "label": "只讀 serving/"
+    }
+  ]
+}

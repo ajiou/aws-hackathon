@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>系統架構 — 小小守護員 Smart Watchdog</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75;
+    --soft:#7a8399; --rule:rgba(45,49,66,0.12); --rule-solid:#bfc0c0;
+    --accent:#eb6c36; --link:#2e5aa8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:'Geist','Noto Sans TC',system-ui,sans-serif;
+    padding:3rem 1.5rem 3.5rem; line-height:1.5;
+  }
+  .wrap{max-width:1440px;margin:0 auto}
+  .eyebrow{
+    font-family:'Geist Mono',monospace; font-size:8px; letter-spacing:.18em;
+    text-transform:uppercase; color:var(--soft); margin:0 0 .6rem;
+  }
+  h1{
+    font-family:'Instrument Serif',serif; font-weight:400; font-size:2rem;
+    margin:0 0 .5rem; letter-spacing:.01em; line-height:1.2;
+  }
+  .sub{color:var(--muted); font-size:.875rem; margin:0 0 2.5rem; max-width:62ch; line-height:1.75}
+  .sub b{color:var(--ink);font-weight:500}
+  svg.diagram{width:100%;height:auto;display:block}
+  .metrics{
+    display:flex; flex-wrap:wrap; gap:0; margin:0 0 2.25rem;
+    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
+  }
+  .metric{padding:.875rem 1.75rem .875rem 0; margin-right:1.75rem; border-right:1px solid var(--rule)}
+  .metric:last-child{border-right:none;margin-right:0}
+  .metric .k{font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--soft);display:block;margin-bottom:.15rem}
+  .metric .v{font-size:1rem;font-weight:600;font-variant-numeric:tabular-nums}
+  .metric .v span{font-size:.75rem;font-weight:400;color:var(--muted);margin-left:.25rem}
+  .cards{display:grid; grid-template-columns:1.15fr 1fr .95fr; gap:1rem; margin-top:2.75rem}
+  @media (max-width:880px){ .cards{grid-template-columns:1fr} .metric{border-right:none} }
+  .card{background:#fff; border:1px solid var(--rule); border-radius:6px; padding:1.375rem}
+  .card-header{display:flex;align-items:center;gap:.5rem;margin:.3rem 0 .8rem}
+  .card-dot{width:7px;height:7px;border-radius:50%;flex:none}
+  .dot-accent{background:var(--accent)} .dot-ink{background:var(--ink)} .dot-muted{background:var(--muted)}
+  .card h3{font-size:.9375rem;margin:0;font-weight:600}
+  .card ul{margin:0;padding-left:1.05rem;color:var(--muted);font-size:.8125rem;line-height:1.75}
+  .card li::marker{color:var(--soft)}
+  code{font-family:'Geist Mono',monospace;font-size:.75rem;color:var(--ink)}
+  footer{
+    margin-top:2.75rem;padding-top:1rem;border-top:1px solid var(--rule);
+    font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--soft);
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">2026 新北生成式 AI 黑客松 · 教育局</p>
+  <h1>小小守護員 Smart Watchdog — 系統架構</h1>
+  <p class="sub">六個公開資料源串成新北 1,178 家幼兒園的風險排序。分數在離線批次算好後寫入 S3，雲端只做唯讀遞送——<b>沒有線上推論</b>，也<b>沒有任何自然人姓名離開本機</b>。</p>
+
+  <div class="metrics">
+    <div class="metric"><span class="k">母體</span><span class="v">1,178<span>園</span></span></div>
+    <div class="metric"><span class="k">Precision@50</span><span class="v">28.0%<span>隨機 10.6%</span></span></div>
+    <div class="metric"><span class="k">相對提升</span><span class="v">2.65×</span></div>
+    <div class="metric"><span class="k">線上推論</span><span class="v">0<span>個 endpoint</span></span></div>
+    <div class="metric"><span class="k">姓名上雲</span><span class="v">0<span>筆</span></span></div>
+  </div>
+
+<svg class="diagram" viewBox="0 0 1440 848" role="img" aria-labelledby="arch-title arch-desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="arch-title">小小守護員系統架構</title>
+  <desc id="arch-desc">上方為每日一次的離線批次層：六個公開資料源經過 ETL 與個資雜湊，交由 Bedrock 與 SageMaker 運算，結果寫入 S3 資料層。下方為線上服務層：稽查員經 CloudFront 取得前端與 API，Lambda 只讀取 S3 上算好的靜態分數，不做線上推論。</desc>
+
+  <defs>
+    <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
+    </marker>
+    <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#eb6c36"/>
+    </marker>
+    <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="#2e5aa8"/>
+    </marker>
+    <g id="ic-db" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 6a8 3 0 1 0 16 0a8 3 0 1 0 -16 0"/><path d="M4 6v6a8 3 0 0 0 16 0v-6"/><path d="M4 12v6a8 3 0 0 0 16 0v-6"/>
+    </g>
+    <g id="ic-lock" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M8 11v-4a4 4 0 1 1 8 0v4"/>
+    </g>
+    <g id="ic-robot" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 6a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -4"/><path d="M12 2v2"/><path d="M9 12v9"/><path d="M15 12v9"/><path d="M5 16l4 -2"/><path d="M15 14l4 2"/><path d="M9 18h6"/><path d="M10 8v.01"/><path d="M14 8v.01"/>
+    </g>
+    <g id="ic-bucket" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 7a8 4 0 1 0 16 0a8 4 0 1 0 -16 0"/><path d="M4 7c0 .664 .088 1.324 .263 1.965l2.737 10.035c.5 1.5 2.239 2 5 2s4.5 -.5 5 -2c.333 -1 1.246 -4.345 2.737 -10.035a7.45 7.45 0 0 0 .263 -1.965"/>
+    </g>
+    <g id="ic-users" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 7a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/>
+    </g>
+    <g id="ic-cdn" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19.5 7a9 9 0 0 0 -7.5 -4a8.991 8.991 0 0 0 -7.484 4"/><path d="M11.5 3a16.989 16.989 0 0 0 -1.826 4"/><path d="M12.5 3a16.989 16.989 0 0 1 1.828 4"/><path d="M19.5 17a9 9 0 0 1 -7.5 4a8.991 8.991 0 0 1 -7.484 -4"/><path d="M11.5 21a16.989 16.989 0 0 1 -1.826 -4"/><path d="M12.5 21a16.989 16.989 0 0 0 1.828 -4"/><path d="M2 10l1 4l1.5 -4l1.5 4l1 -4"/><path d="M17 10l1 4l1.5 -4l1.5 4l1 -4"/>
+    </g>
+    <g id="ic-api" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2"/><path d="M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2"/>
+    </g>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#f5f5f5"/>
+
+  <!-- ZONES -->
+  <rect x="48" y="120" width="1344" height="216" rx="12" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+  <rect x="76" y="124" width="292" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="222" y="136" fill="rgba(45,49,66,0.40)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">OFFLINE BATCH · ONCE A DAY</text>
+  <rect x="48" y="448" width="1344" height="232" rx="12" fill="rgba(45,49,66,0.02)" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+  <rect x="76" y="452" width="316" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="234" y="464" fill="rgba(45,49,66,0.40)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.14em">ONLINE SERVING · READ-ONLY</text>
+
+  <!-- ARROWS -->
+  <line x1="344" y1="228" x2="400" y2="228" stroke="#4f5d75" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <line x1="704" y1="228" x2="760" y2="228" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+  <rect x="708" y="196" width="48" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="732" y="208" fill="#eb6c36" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HASHED</text>
+  <line x1="1064" y1="228" x2="1120" y2="228" stroke="#4f5d75" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <rect x="1068" y="196" width="48" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="1092" y="208" fill="#7a8399" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">WRITE</text>
+  <line x1="344" y1="560" x2="400" y2="560" stroke="#2e5aa8" stroke-width="1.4" marker-end="url(#arrow-link)"/>
+  <rect x="348" y="528" width="48" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="372" y="540" fill="#7a8399" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">HTTPS</text>
+  <path d="M 704 536 H 724 Q 732 536 732 528 V 520 Q 732 512 740 512 H 760" fill="none" stroke="#4f5d75" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <rect x="708" y="472" width="48" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="732" y="484" fill="#7a8399" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">OAC</text>
+  <path d="M 704 584 H 724 Q 732 584 732 592 V 604 Q 732 612 740 612 H 760" fill="none" stroke="#2e5aa8" stroke-width="1.4" marker-end="url(#arrow-link)"/>
+  <rect x="672" y="628" width="56" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="700" y="640" fill="#7a8399" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">/API/*</text>
+  <path d="M 1104 612 H 1240 Q 1248 612 1248 604 V 340" fill="none" stroke="#4f5d75" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <rect x="1260" y="416" width="120" height="16" rx="3" fill="#f5f5f5"/>
+  <text x="1320" y="428" fill="#7a8399" font-size="11" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.06em">READ SERVING/</text>
+
+  <!-- NODES -->
+  <rect x="88" y="164" width="256" height="128" rx="8" fill="#f5f5f5"/>
+  <rect x="88" y="164" width="256" height="128" rx="8" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1.2"/>
+  <g transform="translate(112,208) scale(1.7)" color="#4f5d75"><use href="#ic-db"/></g>
+  <rect x="284" y="180" width="44" height="16" rx="3" fill="transparent" stroke="rgba(122,131,153,0.9)" stroke-width="1"/>
+  <text x="306" y="192" fill="rgba(122,131,153,0.9)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">INPUT</text>
+  <text x="168" y="220" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">六個公開資料源</text>
+  <text x="168" y="244" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">1,178 parks</text>
+  <text x="112" y="268" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">基本 · 評鑑 · 裁罰 · 收費 · 財報 · 輿情</text>
+  <rect x="400" y="164" width="304" height="128" rx="8" fill="#f5f5f5"/>
+  <rect x="400" y="164" width="304" height="128" rx="8" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.6"/>
+  <g transform="translate(424,208) scale(1.7)" color="#eb6c36"><use href="#ic-lock"/></g>
+  <rect x="652" y="180" width="36" height="16" rx="3" fill="transparent" stroke="rgba(235,108,54,0.95)" stroke-width="1"/>
+  <text x="670" y="192" fill="rgba(235,108,54,0.95)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">ETL</text>
+  <text x="480" y="220" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">清洗 · 特徵 · 個資雜湊</text>
+  <text x="480" y="244" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">local only · hmac-sha256</text>
+  <text x="424" y="268" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">洩漏檢查 · 個資檢查 · 禁用欄位</text>
+  <rect x="760" y="164" width="304" height="128" rx="8" fill="#f5f5f5"/>
+  <rect x="760" y="164" width="304" height="128" rx="8" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1.2"/>
+  <g transform="translate(784,208) scale(1.7)" color="#2d3142"><use href="#ic-robot"/></g>
+  <rect x="1012" y="180" width="36" height="16" rx="3" fill="transparent" stroke="rgba(45,49,66,0.75)" stroke-width="1"/>
+  <text x="1030" y="192" fill="rgba(45,49,66,0.75)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">AWS</text>
+  <text x="840" y="220" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">離線運算</text>
+  <text x="840" y="244" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">bedrock · sagemaker</text>
+  <text x="784" y="268" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">輿情標註 2,900 篇 · 訓練與回測</text>
+  <rect x="1120" y="164" width="236" height="176" rx="8" fill="#f5f5f5"/>
+  <rect x="1120" y="164" width="236" height="176" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1.2"/>
+  <g transform="translate(1144,232) scale(1.7)" color="#4f5d75"><use href="#ic-bucket"/></g>
+  <rect x="1308" y="180" width="32" height="16" rx="3" fill="transparent" stroke="rgba(79,93,117,0.9)" stroke-width="1"/>
+  <text x="1324" y="192" fill="rgba(79,93,117,0.9)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">S3</text>
+  <text x="1200" y="240" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">資料層</text>
+  <text x="1200" y="264" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">serving/*.json</text>
+  <text x="1144" y="288" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">算好的分數 · 約 3 MB</text>
+  <text x="1144" y="310" fill="#7a8399" font-size="12" font-family="'Geist Mono', monospace">private · bpa on</text>
+  <rect x="88" y="496" width="256" height="128" rx="8" fill="#f5f5f5"/>
+  <rect x="88" y="496" width="256" height="128" rx="8" fill="rgba(79,93,117,0.10)" stroke="#7a8399" stroke-width="1.2"/>
+  <g transform="translate(112,540) scale(1.7)" color="#4f5d75"><use href="#ic-users"/></g>
+  <rect x="288" y="512" width="40" height="16" rx="3" fill="transparent" stroke="rgba(122,131,153,0.9)" stroke-width="1"/>
+  <text x="308" y="524" fill="rgba(122,131,153,0.9)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">USER</text>
+  <text x="168" y="552" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">教育局稽查人員</text>
+  <text x="168" y="576" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">50 slots / week</text>
+  <text x="112" y="600" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">每週產出一份稽查派工單</text>
+  <rect x="400" y="496" width="304" height="128" rx="8" fill="#f5f5f5"/>
+  <rect x="400" y="496" width="304" height="128" rx="8" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1.2"/>
+  <g transform="translate(424,540) scale(1.7)" color="#2d3142"><use href="#ic-cdn"/></g>
+  <rect x="652" y="512" width="36" height="16" rx="3" fill="transparent" stroke="rgba(45,49,66,0.75)" stroke-width="1"/>
+  <text x="670" y="524" fill="rgba(45,49,66,0.75)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">CDN</text>
+  <text x="480" y="552" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">CloudFront + OAC</text>
+  <text x="480" y="576" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">api ttl 60s</text>
+  <text x="424" y="600" fill="#7a8399" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">SPA 路由用 CloudFront Function</text>
+  <rect x="760" y="472" width="344" height="80" rx="8" fill="#f5f5f5"/>
+  <rect x="760" y="472" width="344" height="80" rx="8" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1.2"/>
+  <g transform="translate(784,492) scale(1.7)" color="#4f5d75"><use href="#ic-bucket"/></g>
+  <rect x="1056" y="488" width="32" height="16" rx="3" fill="transparent" stroke="rgba(79,93,117,0.9)" stroke-width="1"/>
+  <text x="1072" y="500" fill="rgba(79,93,117,0.9)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">S3</text>
+  <text x="840" y="510" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">前端靜態站</text>
+  <text x="840" y="534" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">private · no website hosting</text>
+  <rect x="760" y="572" width="344" height="80" rx="8" fill="#f5f5f5"/>
+  <rect x="760" y="572" width="344" height="80" rx="8" fill="#ffffff" stroke="#2d3142" stroke-width="1.2"/>
+  <g transform="translate(784,592) scale(1.7)" color="#2d3142"><use href="#ic-api"/></g>
+  <rect x="1052" y="588" width="36" height="16" rx="3" fill="transparent" stroke="rgba(45,49,66,0.8)" stroke-width="1"/>
+  <text x="1070" y="600" fill="rgba(45,49,66,0.8)" font-size="9" font-family="'Geist Mono', monospace" text-anchor="middle" letter-spacing="0.08em">API</text>
+  <text x="840" y="610" fill="#2d3142" font-size="16" font-weight="600" font-family="'Geist','Noto Sans TC',sans-serif">API Gateway + Lambda</text>
+  <text x="840" y="634" fill="#4f5d75" font-size="12" font-family="'Geist Mono', monospace">9 routes · 512mb · read-only</text>
+
+  <!-- CALLOUTS -->
+  <text x="552" y="88" fill="#eb6c36" font-size="20" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="middle">姓名在這裡變成雜湊值，不越過這一格</text>
+  <path d="M 552 100 Q 552 128 552 156" fill="none" stroke="rgba(235,108,54,0.50)" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <circle cx="552" cy="160" r="3" fill="#eb6c36"/>
+  <text x="1392" y="740" fill="#2d3142" font-size="20" font-style="italic" font-family="'Instrument Serif', serif" text-anchor="end">沒有 SageMaker Endpoint — 雲端只讀算好的檔</text>
+  <path d="M 1176 728 Q 1140 700 1104 656" fill="none" stroke="rgba(45,49,66,0.40)" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <circle cx="1104" cy="652" r="3" fill="#2d3142"/>
+
+  <!-- LEGEND -->
+  <line x1="48" y1="784" x2="1392" y2="784" stroke="rgba(45,49,66,0.10)" stroke-width="1"/>
+  <text x="48" y="812" fill="#4f5d75" font-size="11" font-family="'Geist Mono', monospace" letter-spacing="0.14em">LEGEND</text>
+  <rect x="160" y="800" width="24" height="16" rx="3" fill="rgba(235,108,54,0.08)" stroke="#eb6c36" stroke-width="1.2"/>
+  <text x="196" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">個資邊界</text>
+  <rect x="300" y="800" width="24" height="16" rx="3" fill="rgba(45,49,66,0.05)" stroke="#4f5d75" stroke-width="1.2"/>
+  <text x="336" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">S3 儲存（private）</text>
+  <rect x="500" y="800" width="24" height="16" rx="3" fill="rgba(45,49,66,0.03)" stroke="rgba(45,49,66,0.30)" stroke-width="1.2"/>
+  <text x="536" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">AWS 受管服務</text>
+  <line x1="672" y1="808" x2="708" y2="808" stroke="#2e5aa8" stroke-width="1.4" marker-end="url(#arrow-link)"/>
+  <text x="720" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">HTTPS 請求</text>
+  <line x1="868" y1="808" x2="904" y2="808" stroke="#4f5d75" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <text x="916" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">資料流</text>
+  <line x1="1028" y1="808" x2="1064" y2="808" stroke="#eb6c36" stroke-width="1.4" marker-end="url(#arrow-accent)"/>
+  <text x="1076" y="812" fill="#4f5d75" font-size="12" font-family="'Geist','Noto Sans TC',sans-serif">已雜湊的資料</text>
+</svg>
+
+  <div class="cards">
+    <div class="card">
+      <p class="eyebrow">設計決定 01</p>
+      <div class="card-header"><span class="card-dot dot-accent"></span><h3>個資不上雲</h3></div>
+      <ul>
+        <li>競賽規範第 2 條禁止匯入個人資料</li>
+        <li>裁罰紀錄的行為人與 <code>owner</code> 都是真實姓名</li>
+        <li>ETL 以 <code>HMAC-SHA256</code> 雜湊，SALT 存本機環境變數</li>
+        <li>雜湊後仍可 groupby，跨園連結能力零損失</li>
+      </ul>
+    </div>
+    <div class="card">
+      <p class="eyebrow">設計決定 02</p>
+      <div class="card-header"><span class="card-dot dot-ink"></span><h3>不做線上推論</h3></div>
+      <ul>
+        <li>母體固定 1,178 園，資料日更一次</li>
+        <li>分數離線批次算好寫入 <code>serving/*.json</code></li>
+        <li>Lambda 冷啟載入 3 MB 進記憶體，無資料庫</li>
+        <li>省掉 Endpoint 的成本與部署風險</li>
+      </ul>
+    </div>
+    <div class="card">
+      <p class="eyebrow">合規 · 已驗收 11/11</p>
+      <div class="card-header"><span class="card-dot dot-muted"></span><h3>規範對照</h3></div>
+      <ul>
+        <li>S3 Block Public Access 四項全開</li>
+        <li>前端走 OAC，不用 Website Hosting</li>
+        <li>Bedrock ≤ 1 RPS，全部離線批次</li>
+        <li>資源全在 <code>us-west-2</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>小小守護員 Smart Watchdog · 規格見 docs/SPEC.md §7 · 已部署 d2p0ksy36o4foe.cloudfront.net · 2026-09-12</footer>
+</div>
+</body>
+</html>

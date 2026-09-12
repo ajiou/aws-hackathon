@@ -16,7 +16,8 @@
 | DATA / ML | [`docs/SPEC.md`](docs/SPEC.md) §1–§6 |
 | 後端 | [`docs/SPEC.md`](docs/SPEC.md) §8 API 契約（**已凍結**） |
 | 前端 | [`docs/FRONTEND.md`](docs/FRONTEND.md) 全部 |
-| 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 |
+| 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 + [`infra/README.md`](infra/README.md) |
+| 簡報要放架構圖 | [`presentation/README.md`](presentation/README.md) — 兩版架構圖的取捨與用法 |
 | 簡報 | [`docs/NARRATIVE.md`](docs/NARRATIVE.md) |
 
 ---
@@ -66,10 +67,14 @@ python etl/ocr_extract.py
 
 ### 雲端
 
-```bash
-sam deploy --template infra/template.yaml --stack-name watchdog-infra \
-           --region us-west-2 --capabilities CAPABILITY_IAM
+```powershell
+. $HOME\aws-env.ps1          # 競賽憑證，不在 repo 裡
+.\infra\deploy.ps1           # 建立/更新 stack
+.\infra\upload.ps1 -UseMock  # 用 mock 跑通整條路徑
+.\infra\verify.ps1           # 驗收 SPEC §14.4，失敗回非零
 ```
+
+不需要 SAM CLI。細節見 [`infra/README.md`](infra/README.md)。
 
 ---
 
@@ -105,7 +110,9 @@ python frontend/mock/generate.py
 
 ```
 data/        原始資料（已在 repo）
-docs/        SPEC / FRONTEND / NARRATIVE / 營運係數
+  media/     輿情資料 7 份 JSON，見 data/media/README.md
+docs/        規格文件：SPEC / FRONTEND / NARRATIVE / ASSIGNMENTS / 營運係數
+presentation/ 簡報素材：架構圖 html / svg / png 與產生腳本
 etl/         constants · pii · quality · ocr_extract · build_curated
 model/       train · backtest · score
 backend/     app.py（Lambda handler）· local_server.py
@@ -131,4 +138,7 @@ out/         本機執行產物（gitignore）
 | `build_curated.py` | ⬜ 待實作 |
 | 模型與回測 | ⬜ 待實作 |
 | 前端 | ✅ 七頁與列印已實作，啟動及驗證見 `frontend/README.md` |
-| IaC | ⬜ 待實作 |
+| IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
+| **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
+| 架構圖 | ✅ 兩版：`presentation/architecture.*`（編輯風格＋成效數據）與 `presentation/archify-architecture.*`（邊界為結構＋互動檢視器） |
+| 輿情資料 | ✅ `data/media/` 7 份 JSON，個資已剝除 |

@@ -54,6 +54,17 @@ Repo：https://github.com/ajiou/aws-hackathon
 - docs/SPEC.md 的 §1 定義、§2 資料盤點、§3 資料契約與 ETL、
   §4 特徵字典、§5 分數計算、§6 模型與驗證
 - etl/constants.py、etl/quality.py、etl/pii.py（已寫好，直接用）
+- data/media/README.md —— 輿情資料已進 repo
+
+輿情資料（2026-09-12 已進版控，7 份 JSON）：
+  data/media/docs.json           2,900 篇文件（刻意不含新聞全文）
+  data/media/doc_resolution.json 實體解析 A 161 / B 352 / C 137 / X 2,250
+  data/media/doc_links.json      A 級綁定 209 筆，park_id 與 preschools.json 相同
+  data/media/doc_analysis.json   LLM 抽取 580/2,900，其餘 2,320 待補
+  data/media/district_heat.json  區級熱度（SPEC §5.5 的 L2 層）
+  data/media/park_risk.json      既有 SRI 結果，供對照
+最重要的一件事：只用 L1 園級訊號覆蓋率僅 3.3%（40/1,178 園），
+必須加上 L2 區級才有意義。維度內權重 L1 60% / L2 40%，見 SPEC §5.5。
 
 你要產出：
 1. etl/build_curated.py
@@ -262,12 +273,18 @@ frontend/mock/ 已有 9 份符合契約的假資料，用真實園名與座標�
    Distribution / HttpApi / ApiFunctionRole
 2. 部署腳本與 CI
 
+⚠ 2026-09-12 更新：E 軌已完成並部署，驗收 11/11 通過。
+   https://d2p0ksy36o4foe.cloudfront.net
+   下面保留給接手或重建的人。
+
 關鍵設定（照 §7.4，不要自己發明）：
 - Region 一律 us-west-2（規範指定 us-east-1 或 us-west-2）
 - 兩個 bucket 的 PublicAccessBlockConfiguration 四項全 true
 - CloudFront 走 OAC，SigningBehavior: always
-- SPA fallback：CustomErrorResponses 把 403 與 404 對應到
-  /index.html 並回傳 200。缺這段 /park/xxx 直接輸入網址會 404。
+- SPA 路由用 CloudFront Function（viewer-request），
+  絕對不要用 CustomErrorResponses——它對整個 distribution 生效，
+  會把 API 正常回的 404 也改寫成 /index.html。實測紀錄見
+  infra/README.md 的「踩過的坑」。
 - /api/* behavior TTL 60s，轉發 query string，不轉發 cookie
 - Lambda：Python 3.12 / 512MB / 10s / ReservedConcurrentExecutions 10
 - Lambda IAM 只給 serving/* 與 raw/pdf/* 的 s3:GetObject，不給寫入
