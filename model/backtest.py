@@ -171,7 +171,12 @@ def main():
             "baseline": round(baseline, 4),
             "points": curve(rows, orderings, positives),
             "summary": {
-                "precision_at_50": {n: summary[n]["p_at_50"] for n in orderings},
+                # random 不在 orderings 裡（它不是一種排序），但成效驗證頁要拿它
+                # 當基準線。隨機抽查的 Precision@K 就是母體被罰率，跟 K 無關。
+                "precision_at_50": {
+                    **{n: summary[n]["p_at_50"] for n in orderings},
+                    "random": round(baseline, 4),
+                },
                 "stratified": strat,
             },
         }, fh, ensure_ascii=False, indent=1)

@@ -202,7 +202,12 @@ export function RiskScore({ park, meta }: { park: Park; meta: Meta }) {
   return (
     <section className={s.panel} data-panel>
       <h2>風險總分</h2>
-      {park.reasons.length > 0 && (
+      {park.risk.score === null && (
+        <p className={s.empty}>
+          已停辦，不列入排名與分級。以下仍保留該園的歷史紀錄供查詢。
+        </p>
+      )}
+      {park.risk.score !== null && park.reasons.length > 0 && (
         <>
           <div className={s.score}>
             {park.risk.score.toFixed(1)} <TierBadge tier={park.risk.tier} />
@@ -212,12 +217,12 @@ export function RiskScore({ park, meta }: { park: Park; meta: Meta }) {
             名 / {number(meta.population)}
           </p>
           <p>
-            {park.peer_group}同類中前 {(100 - park.risk.score).toFixed(1)}%
+            {park.peer_group}同類中前 {(100 - (park.risk.score ?? 0)).toFixed(1)}%
           </p>
           <div className={s.progress}>
             <span
               style={{
-                width: `${park.risk.score}%`,
+                width: `${park.risk.score ?? 0}%`,
                 background: `var(--c-tier-${park.risk.tier ?? "低"})`,
               }}
             />
@@ -288,7 +293,7 @@ export function ParkCard({ park }: { park: Park }) {
               />
             </span>
           )}
-          {park.reasons.length > 0 && (
+          {park.risk.score !== null && park.reasons.length > 0 && (
             <span>風險分 {park.risk.score.toFixed(1)}</span>
           )}
         </div>

@@ -231,7 +231,7 @@ def read_checklist(pdf):
     return results
 
 
-def audit_flags(checklist):
+def audit_flags(checklist, school_year):
     """查核表的「否」→ 旗標，不進分數（§5.6.6）。
 
     3,202 個判定只有 11 個「否」，而且與裁罰反向（安興 0 個否卻被罰、
@@ -245,8 +245,12 @@ def audit_flags(checklist):
         text = row["label"]
         severity = 3 if any(k in text for k in SEVERITY_3) else (
             2 if any(k in text for k in SEVERITY_2) else 1)
+        # year 是 API 契約的必填欄（SPEC §8.2）。查核表本身沒有年度欄位，
+        # 年度在 PDF 檔名上，所以從外面傳進來。沒年度的旗標前端無法呈現
+        # 「哪一學年度查核出問題」，稽查人員就無法追溯。
         flags.append({"code": "OPER_AUDIT_ITEM", "no": row["no"],
-                      "label": text[:60], "severity": severity})
+                      "label": text[:60], "severity": severity,
+                      "year": school_year, "validated": False})
     return flags
 
 
@@ -302,7 +306,7 @@ def extract(path, parks):
         }
         checklist = read_checklist(pdf)
     record["checklist_count"] = len(checklist)
-    record["flags"] = audit_flags(checklist)
+    record["flags"] = audit_flags(checklist, int(year))
     park = resolve_park(identity, parks)
     record["park_id"] = park["park_id"] if park else None
     record["park_name"] = park["name"] if park else None
