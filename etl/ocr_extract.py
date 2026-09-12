@@ -66,7 +66,10 @@ SUMMARY_FIELDS = {
 }
 
 # §5.6.7 嚴重度 3 的查核項目關鍵字（收入漏列、違法支出、薪資不符、加班超支、關係人、前期未改善）
-SEVERITY_3 = ("薪資", "加班", "退休金", "勞健保", "借", "關係人", "未改善", "漏列", "超支")
+# 查核項目全寫成「是否符合…」，所以答「否」＝不符合。「已完成改善」答否
+# 就是 §5.6.7 的「前期缺失未改善」，關鍵字要抓「改善」而不是「未改善」。
+SEVERITY_3 = ("薪資", "加班", "退休金", "勞健保", "借", "關係人",
+              "改善", "漏列", "超支", "未授權")
 SEVERITY_2 = ("憑證", "帳務", "流用", "預算")
 
 
@@ -183,7 +186,12 @@ def read_execution(pdf):
 
 
 def read_checklist(pdf):
-    """附表五 會計師查核附表。**靠打勾的 x 座標判欄位**，文字抽取會把三欄壓扁。"""
+    """附表五 會計師查核附表。**靠打勾的 x 座標判欄位**，文字抽取會把三欄壓扁。
+
+    項目文字常常換行（第 21、26、30、32 項都是），打勾只落在第一行。
+    只取打勾那一行會得到「65」「70」這種光禿禿的編號——旗標送到前端給
+    稽查員看的時候等於沒寫。所以往下續接沒有打勾的行，直到下一個編號為止。
+    """
     results = []
     for page in pdf.pages:
         words = page.extract_words()
@@ -191,15 +199,32 @@ def read_checklist(pdf):
                   if w["text"].strip() in ("是", "否", "不適用")}
         if len(header) < 3:
             continue
+        left_edge = min(header.values()) - 5
         marks = [w for w in words if w["text"].strip() in ("V", "v", "✓", "∨", "Ｖ")]
+
         rows = collections.defaultdict(list)
         for w in words:
             rows[round(w["top"] / 6)].append(w)
+        ordered = sorted(rows)
+        marked = {round(m["top"] / 6) for m in marks}
+
+        def line_text(key):
+            return normalize("".join(w["text"] for w in
+                                     sorted(rows[key], key=lambda w: w["x0"])
+                                     if w["x0"] < left_edge))
+
         for mark in marks:
+            key = round(mark["top"] / 6)
             column = min(header, key=lambda k: abs(header[k] - mark["x0"]))
-            line = sorted(rows[round(mark["top"] / 6)], key=lambda w: w["x0"])
-            label = normalize("".join(w["text"] for w in line
-                                      if w["x0"] < min(header.values()) - 5))
+            label = line_text(key)
+            # 續行：往下接沒有打勾、也沒有自己的編號的行
+            for nxt in ordered[ordered.index(key) + 1:]:
+                if nxt in marked:
+                    break
+                tail = line_text(nxt)
+                if not tail or re.match(r"^\d", tail):
+                    break
+                label += tail
             item = re.match(r"^(\d+)", label)
             results.append({"no": int(item.group(1)) if item else None,
                             "label": label, "answer": column})
