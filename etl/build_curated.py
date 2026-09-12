@@ -182,7 +182,9 @@ def main():
     owner_priors = build_owner_priors(parks)
     rows, park_level, district = features_mod.build_features(
         parks, punishments, evaluations, media_tables, owner_priors,
-        finance={r["park_id"]: r.get("oper_fields", {}) for r in finance_rows},
+        finance={r["park_id"]: {f"oper_{k}": v for k, v in r["metrics"].items()
+                                if k not in ("school_year", "fiscal_year")}
+                 for r in finance_rows},
     )
     assert_population(rows, 1215, "features")
     assert_no_pii(rows)
@@ -224,7 +226,10 @@ def main():
         "media_note": "輿情特徵以切點前資料重算；data/media/park_risk.json 為切點後快照，僅供展示",
     })
     ok(f"fees 280 園、finance {len(finance_rows)} 筆"
-       + ("（B 軌尚未交付，coverage=0）" if not finance_rows else ""))
+       + ("（B 軌尚未交付，coverage=0）" if not finance_rows
+          else "（" + "、".join(f"{k} {v}" for k, v in
+                               sorted(collections.Counter(
+                                   r["peer_group"] for r in finance_rows).items())) + "）"))
 
     print(f"\n完成 → {out}")
     print("同儕群：" + "、".join(f"{k} {v}" for k, v in sorted(groups.items())))

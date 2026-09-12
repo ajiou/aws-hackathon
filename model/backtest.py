@@ -34,6 +34,20 @@ def load(indir):
     return [r for r in rows if r["is_active"] == 1]
 
 
+def load_finance(indir):
+    """營運維度（B 軌）。**回測必須帶上它**，否則報出來的數字不是實際出貨的模型。
+
+    它只影響公立 290 + 非營利 12 園，而那正是監督式模型失效的區段
+    （公立組 lift 0.86x）。對全母體 P@50 幾乎沒有影響是預期中的——
+    高風險名單由私幼主導，私幼沒有營運資料。
+    """
+    path = Path(indir) / "finance.json"
+    if not path.exists():
+        return {}
+    with open(path, encoding="utf-8") as fh:
+        return {r["park_id"]: r for r in json.load(fh)}
+
+
 def precision_at(ordering, k):
     """前 k 名裡的正樣本比例。"""
     top = ordering[:k]
@@ -58,7 +72,7 @@ def baseline_orderings(rows):
 
 
 def model_ordering(rows, weights=None, finance=None):
-    scored = assign_tiers(score_all(rows, weights or WEIGHTS, finance), TIERS)
+    scored = assign_tiers(score_all(rows, weights or WEIGHTS, finance or {}), TIERS)
     by_id = {s["park_id"]: s for s in scored}
     return sorted(rows, key=lambda r: -by_id[r["park_id"]]["raw"]), scored
 
@@ -112,7 +126,10 @@ def main():
     baseline = positives / len(rows)
     print(f"母體 {len(rows)}　正樣本 {positives}　基準率 {baseline:.1%}\n")
 
-    order, scored = model_ordering(rows)
+    finance = load_finance(args.indir)
+    order, scored = model_ordering(rows, finance=finance)
+    print(f"營運維度：{len(finance)} 園有資料"
+          f"（{sum(1 for r in finance.values() if r['operation_score'] is not None)} 園算得出分數）\n")
     orderings = {"model": order, **baseline_orderings(rows)}
 
     print(f"{'排序方式':<22}{'P@20':>8}{'P@50':>8}{'P@100':>8}{'lift@50':>9}")
