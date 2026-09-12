@@ -55,6 +55,9 @@ MEDIA_HALFLIFE = {
 }
 MEDIA_HALFLIFE_DEFAULT = 30
 SRI_SATURATION = 3.0
+# 輿情明細每園最多顯示幾則（展示用，不影響分數）。單一事件常被十幾家媒體
+# 轉載，全列出來會把頁面淹掉，看不出還有別的事件。
+MEDIA_COVERAGE_PER_PARK = 12
 
 # SPEC §1.4 分級（依全市合併名次）
 TIERS = [("高", 1, 50), ("中", 51, 200), ("低", 201, None)]

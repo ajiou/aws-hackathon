@@ -242,6 +242,9 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
                 if key == "finance"
                 else (store.related(key, park_id) or embedded)
             )
+        # 輿情明細獨立於上面三份：它刻意含切點之後的報導，所以不走同一個迴圈，
+        # 也沒有 embedded 退路——沒有這份 serving 檔就是沒有，不編造。
+        data["media_coverage"] = store.related("media_coverage", park_id)
         request.state.signed_detail = any(row.get("pdf_url") for row in data["finance"])
         return data
 

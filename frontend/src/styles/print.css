@@ -138,3 +138,23 @@
     display: none !important;
   }
 }
+
+@media print {
+  /* 園名跟著每個區塊走，而不是做成 running header。
+     Chrome 對 position:fixed 的分頁處理會把元素切成兩半（實測 top:0／-3mm／
+     -6mm 三種都在頁緣被裁掉或蓋住內文），沒有可靠的每頁頁首做法，
+     所以改成「每個面板標題都帶園名」——至少每個區塊的第一頁認得出是哪間園。 */
+  [data-print-ident] {
+    display: inline !important;
+    font-weight: normal;
+    color: #333;
+  }
+  [role="tabpanel"] > h2 {
+    border-bottom: 1px solid #aaa;
+    padding-bottom: 1.5mm;
+  }
+  /* 圖例是螢幕上的輔助資訊，列印時圓點會退成灰階，留著反而誤導 */
+  [aria-label="圓點顏色代表違規類別嚴重度"] {
+    display: none !important;
+  }
+}

@@ -212,12 +212,21 @@ export function RiskScore({ park, meta }: { park: Park; meta: Meta }) {
           <div className={s.score}>
             {park.risk.score.toFixed(1)} <TierBadge tier={park.risk.tier} />
           </div>
+          {/* 這個數字是同儕群內百分位，不是下方四維度加權的結果。不標出來，
+              「100.0」疊在「76.0 × 38% ／ 88.9 × 62%」上方，任何人都會把它
+              讀成加權算錯了 16 分——而且名次越後面差越大（第 200 名顯示
+              79.6，加權其實只有 29.3）。 */}
+          <p className={s.scoreBasis}>
+            {park.risk.score_basis ?? meta.score_basis}
+            <Hint text="百分位代表「在同類園所中排得多前面」，不是違規嚴重度的絕對分數。下方四個維度的加權結果另外列在「加權總分」。" />
+          </p>
           <p>
             全市第 {park.risk.rank === null ? "未排名" : number(park.risk.rank)}{" "}
             名 / {number(meta.population)}
           </p>
           <p>
-            {park.peer_group}同類中前 {(100 - (park.risk.score ?? 0)).toFixed(1)}%
+            {park.peer_group}同類中前{" "}
+            {(100 - (park.risk.score ?? 0)).toFixed(1)}%
           </p>
           <div className={s.progress}>
             <span
@@ -250,19 +259,46 @@ export function RiskScore({ park, meta }: { park: Park; meta: Meta }) {
                       ? "——"
                       : percent(meta.weights[park.institution_type][key]!)}
                     {dim.coverage < 0.8 && <p>涵蓋 {percent(dim.coverage)}</p>}
-                    {dim.note && <p>{dim.note}</p>}
+                    {dim.note && <DimensionNote note={dim.note} />}
                   </>
                 ) : (
                   <>
-                    ——<p>{dim.note ?? "此維度不適用"}</p>
+                    ——
+                    <DimensionNote note={dim.note ?? "此維度不適用"} />
                   </>
                 )}
               </td>
             </tr>
           ))}
         </tbody>
+        {park.risk.raw !== undefined && (
+          <tfoot>
+            <tr>
+              <th scope="row">加權總分</th>
+              <td>
+                <b>{park.risk.raw.toFixed(1)}</b>
+                <p className={s.note}>
+                  上方各維度加權相加的結果。頁首的 {park.risk.score?.toFixed(1)}{" "}
+                  是這個數字在{park.peer_group}同類中的百分位，兩者刻度不同。
+                </p>
+              </td>
+            </tr>
+          </tfoot>
+        )}
       </table>
     </section>
+  );
+}
+/** 維度備註。整段超過一行的（例如輿情引 ADR-0001 講 Precision@50）收進
+ *  tooltip——稽查人員需要知道「這維度不計分」，不需要在主畫面讀回測數字。 */
+function DimensionNote({ note }: { note: string }) {
+  const [lead, ...rest] = note.split(/[（(]/);
+  if (note.length <= 24 || !rest.length) return <p>{note}</p>;
+  return (
+    <p>
+      {lead.trim()}
+      <Hint text={note} />
+    </p>
   );
 }
 export function ParkCard({ park }: { park: Park }) {

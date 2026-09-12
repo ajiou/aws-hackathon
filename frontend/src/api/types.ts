@@ -28,6 +28,13 @@ export const riskSchema = z.object({
   rank: z.number().int().nonnegative().nullable(),
   tier: tierSchema.nullable(),
   coverage: ratio.optional(),
+  // score 是同儕群內百分位，raw 才是四維度加權的結果，兩者差很多
+  // （排名第 1 的園 score=100.0 但 raw=84.0，第 200 名 79.6 對 29.3）。
+  // 之前 raw 連 schema 都沒有，會被 zod 直接 strip 掉，畫面上只剩百分位
+  // 疊在加權明細上方，讀起來就像加權算錯了。
+  raw: z.number().optional(),
+  score_basis: z.string().optional(),
+  rank_basis: z.string().optional(),
 });
 const institution = z.enum(["公立", "私立", "非營利"]);
 const typeFields = {
@@ -121,6 +128,9 @@ const financeDocument = z
     metrics: z.record(z.number().nullable()).optional(),
     audit_floor_applied: z.number().nullable().optional(),
     validated: z.boolean().optional(),
+    // 302 筆財報列裡只有 46 筆有 PDF。其餘能顯示的就是這個分數與 metrics，
+    // 不是只有一個點不動的連結。
+    operation_score: z.number().nullable().optional(),
   })
   .refine(
     (d) => d.year !== undefined || d.school_year !== undefined,
@@ -178,6 +188,20 @@ export const parkSchema = z
       article_count: z.number().optional(),
       event_count: z.number().optional(),
     }),
+    // 展示用輿情明細，**刻意含切點之後的報導**（見 backend MediaCoverage）。
+    media_coverage: z
+      .array(
+        z.object({
+          date: z.string(),
+          outlet: z.string().nullish(),
+          title: z.string(),
+          url: z.string().nullish(),
+          event_type: z.string().nullish(),
+          severity: z.number().nullish(),
+          is_after_cutoff: z.boolean(),
+        }),
+      )
+      .optional(),
     timeline: z.array(timelineSchema),
     has_fee: z.boolean().optional(),
     evaluations: z
@@ -186,6 +210,9 @@ export const parkSchema = z
           year: z.union([z.string(), z.number()]),
           result: z.string(),
           kind: z.string().optional(),
+          // 完成日。同一學年度可以有基礎評鑑→追蹤評鑑→連續數次行政處分，
+          // 沒有日期就看不出這是一條升級鏈。
+          date: z.string().nullish(),
         }),
       )
       .optional(),

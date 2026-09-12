@@ -139,6 +139,14 @@
   font: var(--t-caption);
   white-space: nowrap;
   margin-left: auto;
+  /* 原本是右對齊的彩色純文字，看起來完全像連結，寫的還是下方分頁的名字
+     （「評鑑」「違規」），點下去卻沒反應。加外框做成標籤，把「可點」這個
+     暗示拿掉，維度的顏色編碼保留。
+     只淡化外框、不動文字顏色——整塊加 opacity 會把對比從 4.5:1 壓到 4.47:1，
+     axe 直接判 serious（實測過）。 */
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: 3px;
+  padding: 0 6px;
 }
 .hint {
   border: 0;
@@ -347,6 +355,19 @@
   overflow-x: auto;
   border-bottom: 1px solid var(--c-border);
   margin: 20px 0;
+  /* 窄螢幕會橫向溢出（實測 scrollWidth 481 / clientWidth 358，第 4 個分頁
+     整個在畫面外）。貼在容器上的漸層陰影提示還有內容，只有真的可捲動時
+     才會出現。 */
+  background:
+    linear-gradient(90deg, var(--c-bg) 30%, transparent) left / 32px 100%
+      no-repeat local,
+    linear-gradient(90deg, transparent, var(--c-bg) 70%) right / 32px 100%
+      no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 16%), transparent)
+      left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 16%), transparent)
+      right / 12px 100% no-repeat scroll;
+  scrollbar-width: thin;
 }
 .tabs button {
   border: 0;
@@ -677,4 +698,85 @@
   .legend {
     font: var(--t-small);
   }
+}
+
+/* ---- 風險分數的刻度說明 ---- */
+.scoreBasis {
+  font: var(--t-small);
+  color: var(--c-text-2);
+  margin: -6px 0 8px;
+}
+
+/* 維度標籤本來是有顏色的純文字、右對齊，看起來完全像連結，而且寫的
+   還是下方分頁的名字（「評鑑」「違規」），點下去卻沒有反應。做成有框
+   的標籤，把「可點」這個暗示拿掉，顏色編碼保留。 */
+
+/* ---- 裁罰時間軸的顏色圖例 ---- */
+.severityLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 16px;
+  font: var(--t-caption);
+  color: var(--c-text-2);
+}
+.severityLegend li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.severityLegend span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--c-text-3);
+  flex: none;
+}
+
+/* ---- 輿情明細 ---- */
+.coverageList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 10px;
+}
+.coverageList li {
+  display: grid;
+  gap: 2px;
+  border-left: 2px solid var(--c-border);
+  padding-left: 10px;
+}
+.afterCutoffTag {
+  color: var(--c-tier-高);
+  margin-left: 6px;
+}
+
+/* ---- 財報指標 ---- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 4px 16px;
+  margin: 6px 0 14px;
+  font: var(--t-small);
+}
+.metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px dotted var(--c-border);
+}
+.metrics dt {
+  color: var(--c-text-2);
+}
+.metrics dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 列印用的園所識別，螢幕上不存在 */
+.printIdent {
+  display: none;
 }

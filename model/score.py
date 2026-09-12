@@ -2,8 +2,14 @@
 
     python -m model.score --in ./out/curated --model ./out/model --out ./out/serving
 
-產出後端會讀的六份：scores / districts / map / curve / worklist / meta。
-`parks`、`risk/top`、`park-detail` 由 backend 從 scores 現算，不另存檔。
+產出後端會讀的十份：scores / districts / map / curve / worklist / meta，
+加上園所明細四份 evaluations / fees / finance / media_coverage。
+`parks`、`risk/top`、`park-detail` 由 backend 從 scores 現算，不另存檔；
+明細四份由 store.related() 依 park_id 查，沒有檔案就是空陣列。
+
+明細四份原本只寫到 curated 就停住，serving 沒有，於是前端三個分頁對
+**全部 1,178 園**都顯示「（無明細）」——包括「基礎評鑑 2 次未全數指標通過」
+這種已經寫在風險原因裡、卻在頁面上查無佐證的宣稱。
 
 **欄位名以 `frontend/mock/*.json` 為準**——前端已照它開發，契約凍結（§8）。
 """
@@ -78,9 +84,11 @@ def main():
     parks = {p["park_id"]: p for p in load(args.indir, "parks")}
     punishments = load(args.indir, "punishments")
     media = load(args.indir, "media")
-    fees = {r["park_id"] for r in load(args.indir, "fees", [])}
+    fee_rows = load(args.indir, "fees", [])
+    fees = {r["park_id"] for r in fee_rows}
     finance = {r["park_id"]: r for r in load(args.indir, "finance", [])}
     evaluations = load(args.indir, "evaluations", [])
+    media_coverage = load(args.indir, "media_coverage", [])
     metrics = load(args.modeldir, "metrics", {})
     meta_in = load(args.indir, "meta", {})
 
@@ -165,6 +173,45 @@ def main():
         assert not [r for r in it["reasons"] if r["dimension"] == "sentiment"], \
             "輿情不計分時不得產生輿情原因碼"
     dump("scores", {"generated_at": now, "items": items})
+
+    # ---- 園所明細三份：評鑑 / 收費 / 財報
+    # 這三份原本只寫到 curated 就停住，serving 沒有，backend 的
+    # store.related() 因此對每一園都回 []，前端三個分頁全部空白——
+    # 包括「基礎評鑑 2 次未全數指標通過」這種**已經寫在風險原因裡**、
+    # 卻在頁面上查無佐證的宣稱。欄位名以 frontend/src/api/types.ts 的
+    # parkSchema 為準（year / kind / result；school_year + items）。
+    dump("evaluations", {"items": [
+        {"park_id": r["park_id"], "year": r["評鑑學年度"], "kind": r["類型"],
+         "result": r["評鑑結果"], "date": r["評鑑完成日"]}
+        # 同一園內由新到舊，讓處分升級鏈由近而遠讀下來
+        for r in sorted(sorted(evaluations, key=lambda r: r["評鑑完成日"], reverse=True),
+                        key=lambda r: r["park_id"])
+    ]})
+
+    # 收費的外層（school_year + items）已符合契約，只有 items 內的欄位名是中文。
+    # 「小計」才是該學期實付總額，「單價」是月費，兩者差一個月數倍率。
+    fee_terms = {"term1_full": "上學期全日班小計", "term2_full": "下學期全日班小計",
+                 "term1_half": "上學期半日班小計", "term2_half": "下學期半日班小計"}
+    dump("fees", {"items": [
+        {"park_id": r["park_id"], "school_year": r["school_year"],
+         "items": [{"age": i["適用年齡（歲）"], "item": i["收費項目"],
+                    "period": i["收費期間"],
+                    **{k: i.get(v) for k, v in fee_terms.items()}}
+                   for i in r["items"]]}
+        for r in fee_rows
+    ]})
+
+    # 財報：school_year 可能是 null（公立-附設併入學校決算，沒有自己的年度），
+    # 契約的 z.number().optional() 不吃 null，所以是「不送」而不是「送 null」。
+    # validated 必須永遠 false（§5.6.8），backend store.finance() 會再擋一次。
+    dump("finance", {"items": [
+        {k: v for k, v in r.items() if not (k == "school_year" and v is None)}
+        for r in finance.values()
+    ]})
+
+    # 輿情明細。**刻意含切點之後的報導**，而且只有這一份是這樣——
+    # 特徵那條路仍由 assert_no_leakage 守著切點，兩者不共用資料。
+    dump("media_coverage", {"items": media_coverage})
 
     # ---- districts
     active = [it for it in items if it["is_active"] == 1]

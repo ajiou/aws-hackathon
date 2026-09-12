@@ -219,10 +219,28 @@ class Park(Contract):
         return self
 
 
+class MediaCoverage(Contract):
+    """一則點名本園的報導。**唯一允許帶切點之後日期的契約物件。**
+
+    風險分數的輿情維度必須守著切點（否則是用 2026 年的新聞預測 2025 年的
+    裁罰），但稽查人員要看的恰恰是最近發生的事。兩者走不同資料路徑：
+    這份不經 features，不進任何分數，`is_after_cutoff` 讓前端把它標示出來。
+    """
+
+    date: str
+    outlet: str | None = None
+    title: str
+    url: str | None = None
+    event_type: str | None = None
+    severity: Annotated[int, Field(ge=1, le=5)] | None = None
+    is_after_cutoff: bool
+
+
 class ParkDetail(Park):
     fees: list[dict[str, Any]]
     finance: list[dict[str, Any]]
     evaluations: list[dict[str, Any]]
+    media_coverage: list[MediaCoverage] = []
 
 
 class ParkSummary(Contract):
