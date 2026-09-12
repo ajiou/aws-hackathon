@@ -14,6 +14,11 @@ import { heatLevel } from "./Choropleth";
 import s from "../styles/App.module.css";
 // MapLibre 6 workers live in a separate module; Vite must emit its URL explicitly.
 setWorkerUrl(workerUrl);
+// 全市視野：清除行政區篩選時回到這個範圍。
+const HOME_BOUNDS: [[number, number], [number, number]] = [
+  [121.27, 24.67],
+  [122.01, 25.3],
+];
 const cssVar = (name: string) =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim();
 // MapLibre 自己解析 paint 值，看不懂 CSS 的 var()，所以色票要先解析成 hex 再組表達式。
@@ -37,6 +42,7 @@ export default function MapCanvas({
   districts,
   mode,
   selectedTown,
+  focus,
   onSelect,
   onSelectTown,
 }: {
@@ -44,6 +50,8 @@ export default function MapCanvas({
   districts: District[];
   mode: "points" | "districts";
   selectedTown?: string;
+  // 選定行政區時要框住的園所分布範圍；null 代表回到全市視野。
+  focus: [[number, number], [number, number]] | null;
   onSelect: (id: string) => void;
   onSelectTown: (town: string) => void;
 }) {
@@ -82,10 +90,7 @@ export default function MapCanvas({
       map = new Map({
         container: host.current,
         style: createMapStyle(),
-        bounds: [
-          [121.27, 24.67],
-          [122.01, 25.3],
-        ],
+        bounds: HOME_BOUNDS,
         fitBoundsOptions: {
           padding: { top: 100, bottom: 45, left: 30, right: 30 },
         },
@@ -119,10 +124,9 @@ export default function MapCanvas({
           id: "district-heat",
           type: "fill",
           source: "districts",
-          layout: { visibility: mode === "districts" ? "visible" : "none" },
           paint: {
             "fill-color": heatFill(heat.current),
-            "fill-opacity": 0.72,
+            "fill-opacity": mode === "districts" ? 0.72 : 0,
           },
         },
         "district-outline",
@@ -132,7 +136,6 @@ export default function MapCanvas({
           id: "district-heat-selected",
           type: "line",
           source: "districts",
-          layout: { visibility: mode === "districts" ? "visible" : "none" },
           filter: ["==", ["get", "town"], town.current ?? ""],
           paint: {
             "line-color": color("--c-primary") || "#1d4ed8",
@@ -142,6 +145,17 @@ export default function MapCanvas({
         "district-names",
       );
       map.on("click", "district-heat", (e) => {
+        // 園所模式下熱力層是透明的命中層，點在園所或叢集上時讓位給它們。
+        const above = ["clusters", "points"].filter(
+          (id) =>
+            map.getLayer(id) &&
+            map.getLayoutProperty(id, "visibility") !== "none",
+        );
+        if (
+          above.length &&
+          map.queryRenderedFeatures(e.point, { layers: above }).length
+        )
+          return;
         const name = e.features?.[0]?.properties?.town;
         if (name) selectTown.current(String(name));
       });
@@ -267,16 +281,20 @@ export default function MapCanvas({
     if (!map) return;
     const update = () => {
       const districtMode = mode === "districts";
-      const visibility: [string, boolean][] = [
-        ["district-heat", districtMode],
-        ["district-heat-selected", districtMode],
-        ["clusters", !districtMode],
-        ["counts", !districtMode],
-        ["points", !districtMode],
-      ];
-      for (const [id, on] of visibility)
+      for (const id of ["clusters", "counts", "points"])
         if (map.getLayer(id))
-          map.setLayoutProperty(id, "visibility", on ? "visible" : "none");
+          map.setLayoutProperty(
+            id,
+            "visibility",
+            districtMode ? "none" : "visible",
+          );
+      // 熱力層兩種模式都留著：園所模式設成全透明，只當行政區的點擊範圍用。
+      if (map.getLayer("district-heat"))
+        map.setPaintProperty(
+          "district-heat",
+          "fill-opacity",
+          districtMode ? 0.72 : 0,
+        );
     };
     if (map.getLayer("district-heat")) update();
     else map.once("style.load", update);
@@ -301,6 +319,22 @@ export default function MapCanvas({
       map.off("style.load", update);
     };
   }, [districts]);
+  const firstFocus = useRef(true);
+  useEffect(() => {
+    const map = instance.current;
+    if (!map) return;
+    // 初次掛載已經用 HOME_BOUNDS 開圖，沒有選區時不必再 fit 一次。
+    if (firstFocus.current && !focus) {
+      firstFocus.current = false;
+      return;
+    }
+    firstFocus.current = false;
+    map.fitBounds(focus ?? HOME_BOUNDS, {
+      padding: focus ? 80 : { top: 100, bottom: 45, left: 30, right: 30 },
+      maxZoom: 14.5,
+      duration: 700,
+    });
+  }, [focus]);
   useEffect(() => {
     const map = instance.current;
     if (!map) return;

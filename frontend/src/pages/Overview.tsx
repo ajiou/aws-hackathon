@@ -12,7 +12,9 @@ import {
 } from "../components/common";
 import { number } from "../utils/format";
 import s from "../styles/App.module.css";
-function Row({ row }: { row: ParkRow }) {
+// compact：地圖右側欄的窄版，只留辨識風險必要的欄位（行政區已由地圖與篩選
+// 表達、加權總分與裁罰次數都已折進分級與上榜原因）。
+function Row({ row, compact }: { row: ParkRow; compact?: boolean }) {
   const details = usePark(row.park_id, !row.reasons);
   const reasons = row.reasons ?? details.data?.reasons;
   return (
@@ -22,17 +24,19 @@ function Row({ row }: { row: ParkRow }) {
         <Link to={`/park/${row.park_id}`}>{row.name}</Link>
         {!row.is_active && <p>已停辦</p>}
       </th>
-      <td>{row.town}</td>
+      {!compact && <td>{row.town}</td>}
       <td>{row.institution_type}</td>
-      <td className={s.num}>
-        {reasons?.length && row.risk.score !== null
-          ? row.risk.score.toFixed(1)
-          : "——"}
-      </td>
+      {!compact && (
+        <td className={s.num}>
+          {reasons?.length && row.risk.score !== null
+            ? row.risk.score.toFixed(1)
+            : "——"}
+        </td>
+      )}
       <td>
         <TierBadge tier={row.risk.tier} />
       </td>
-      <td className={s.num}>{row.pun_count}</td>
+      {!compact && <td className={s.num}>{row.pun_count}</td>}
       <td>
         {reasons ? (
           <ReasonList reasons={reasons} />
@@ -62,16 +66,24 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
       return next;
     });
   }
-  const headers = [
-    ["名次", "risk"],
-    ["園名", "name"],
-    ["行政區", ""],
-    ["設立別", ""],
-    ["加權總分", "risk"],
-    ["分級", ""],
-    ["裁罰次數", "pun_count"],
-    ["上榜原因", ""],
-  ];
+  const headers = embedded
+    ? [
+        ["名次", "risk"],
+        ["園名", "name"],
+        ["設立別", ""],
+        ["分級", ""],
+        ["上榜原因", ""],
+      ]
+    : [
+        ["名次", "risk"],
+        ["園名", "name"],
+        ["行政區", ""],
+        ["設立別", ""],
+        ["加權總分", "risk"],
+        ["分級", ""],
+        ["裁罰次數", "pun_count"],
+        ["上榜原因", ""],
+      ];
   return (
     <>
       <PageHeader
@@ -124,7 +136,7 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
                   </thead>
                   <tbody>
                     {data.items.map((row) => (
-                      <Row key={row.park_id} row={row} />
+                      <Row key={row.park_id} row={row} compact={embedded} />
                     ))}
                   </tbody>
                 </table>

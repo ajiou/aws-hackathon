@@ -1,5 +1,30 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator, type Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
+
+// 直接點地圖上的行政區：不同投影位置都試一次，避開海面、行政區邊界與園所點位。
+async function clickAnyDistrict(page: Page, canvas: Locator) {
+  const box = (await canvas.boundingBox())!;
+  await expect
+    .poll(
+      async () => {
+        for (const [fx, fy] of [
+          [0.5, 0.6],
+          [0.45, 0.5],
+          [0.55, 0.7],
+          [0.4, 0.45],
+        ]) {
+          if (/town=/.test(page.url())) break;
+          await canvas.click({
+            position: { x: box.width * fx, y: box.height * fy },
+          });
+          await page.waitForTimeout(250);
+        }
+        return /town=/.test(page.url());
+      },
+      { timeout: 30_000 },
+    )
+    .toBe(true);
+}
 
 test("top search, map filters and accessible basic information drawer work together", async ({
   page,
@@ -54,9 +79,14 @@ test("top search, map filters and accessible basic information drawer work toget
   await expect(
     types.getByRole("button", { name: "非營利", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await page
-    .getByRole("searchbox", { name: "搜尋園名", exact: true })
-    .fill("不存在的園所xyz");
+  // 頂端搜尋是 300ms debounce，reload 後太早輸入會打在還沒接上事件的 input 上，
+  // 所以重填到網址真的帶上 q 為止。
+  await expect(async () => {
+    await page
+      .getByRole("searchbox", { name: "搜尋園名", exact: true })
+      .fill("不存在的園所xyz");
+    await expect(page).toHaveURL(/q=/, { timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await expect(page).toHaveURL(/\/map\?/);
   // 地圖與右側總覽現在同頁，兩邊都有空狀態標題，斷言要指明是地圖那一個。
   await expect(
@@ -195,28 +225,7 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   const mapBox = (await page.locator("[data-map-canvas]").boundingBox())!;
   const overviewBox = (await overview.boundingBox())!;
   expect(overviewBox.x).toBeGreaterThanOrEqual(mapBox.x + mapBox.width);
-  // 直接點地圖上的行政區：不同投影位置都試一次，避開海面與行政區邊界。
-  const box = (await canvas.boundingBox())!;
-  await expect
-    .poll(
-      async () => {
-        for (const [fx, fy] of [
-          [0.5, 0.6],
-          [0.45, 0.5],
-          [0.55, 0.7],
-          [0.4, 0.45],
-        ]) {
-          if (/town=/.test(page.url())) break;
-          await canvas.click({
-            position: { x: box.width * fx, y: box.height * fy },
-          });
-          await page.waitForTimeout(250);
-        }
-        return /town=/.test(page.url());
-      },
-      { timeout: 30_000 },
-    )
-    .toBe(true);
+  await clickAnyDistrict(page, canvas);
   await expect(page).toHaveURL(/mode=districts/);
   await expect(page).toHaveURL(/town=/);
   const town = new URL(page.url()).searchParams.get("town")!;
@@ -224,15 +233,27 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
     overview.getByRole("button", { name: `移除${town}` }),
   ).toBeVisible();
   await expect(overview.locator("tbody tr").first()).toBeVisible();
-  for (const cell of await overview
-    .locator("tbody tr td:nth-child(3)")
-    .allTextContents()) {
-    expect(cell).toBe(town);
-  }
-  // 切回園所分布時保留行政區篩選，等於在同一張圖上往下鑽。
+  // 右側欄是窄版：行政區、加權總分、裁罰次數不列出來。
+  for (const column of ["行政區", "加權總分", "裁罰次數"])
+    await expect(
+      overview.getByRole("columnheader", { name: column }),
+    ).toHaveCount(0);
+  for (const column of ["名次", "園名", "設立別", "分級", "上榜原因"])
+    await expect(
+      overview.getByRole("columnheader", { name: new RegExp(column) }),
+    ).toHaveCount(1);
+  // 切回園所分布時保留行政區篩選，地圖同時放大到該區的園所分布。
   await layers.getByRole("button", { name: "園所分布" }).click();
   await expect(page).toHaveURL(/mode=points/);
   await expect(page).toHaveURL(/town=/);
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: "test-results/map-points-zoom.png" });
+  // 園所分布模式下行政區仍可點：清掉篩選回到全市視野後再點一次。
+  await overview.getByRole("button", { name: "清除全部", exact: true }).click();
+  await expect(page).not.toHaveURL(/town=/);
+  await page.waitForTimeout(900);
+  await clickAnyDistrict(page, canvas);
+  await expect(page).toHaveURL(/mode=points/);
   await layers.getByRole("button", { name: "行政區熱力" }).click();
   await expect(page).toHaveURL(/mode=districts/);
   await overview.getByRole("button", { name: /園名/ }).click();
@@ -249,9 +270,14 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
     await new AxeBuilder({ page }).analyze()
   ).violations.filter((v) => v.impact === "serious" || v.impact === "critical");
   expect(violations).toEqual([]);
-  await page
-    .getByRole("searchbox", { name: "搜尋園名", exact: true })
-    .fill("不存在的園所xyz");
+  // 頂端搜尋是 300ms debounce，reload 後太早輸入會打在還沒接上事件的 input 上，
+  // 所以重填到網址真的帶上 q 為止。
+  await expect(async () => {
+    await page
+      .getByRole("searchbox", { name: "搜尋園名", exact: true })
+      .fill("不存在的園所xyz");
+    await expect(page).toHaveURL(/q=/, { timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await expect(
     overview.getByRole("heading", { name: "沒有符合條件的園所" }),
   ).toBeVisible();

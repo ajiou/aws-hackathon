@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useMemo } from "react";
 import {
   ListFilter,
   MapPin,
@@ -62,6 +62,27 @@ function Distribution({ data }: { data: MapData }) {
     params.has(key),
   );
   const townStats = districts.data?.items.find((d) => d.town === town);
+  // 選定行政區時，用該區園所座標的範圍當視野——比行政區幾何中心更貼近
+  // 實際有園所的地方（沿海與山區行政區的幾何中心常常沒有半間園所）。
+  const focus = useMemo(() => {
+    if (!town) return null;
+    const points = data.features
+      .filter((f) => f.properties.town === town)
+      .map((f) => f.geometry.coordinates);
+    if (!points.length) return null;
+    const lon = points.map(([x]) => x),
+      lat = points.map(([, y]) => y);
+    const box: [[number, number], [number, number]] = [
+      [Math.min(...lon), Math.min(...lat)],
+      [Math.max(...lon), Math.max(...lat)],
+    ];
+    // 單點或極小範圍時 fitBounds 會爆到最大縮放，先撐開一點。
+    const pad = 0.004;
+    return [
+      [box[0][0] - pad, box[0][1] - pad],
+      [box[1][0] + pad, box[1][1] + pad],
+    ] as [[number, number], [number, number]];
+  }, [data, town]);
   return (
     <>
       <div
@@ -165,6 +186,7 @@ function Distribution({ data }: { data: MapData }) {
                 districts={districts.data?.items ?? []}
                 mode={mode}
                 selectedTown={town}
+                focus={focus}
                 onSelect={(parkId) => update("selected", parkId, false)}
                 onSelectTown={(name) =>
                   filter("town", name === town ? "" : name)
