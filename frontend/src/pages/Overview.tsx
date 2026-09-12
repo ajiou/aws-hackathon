@@ -9,7 +9,6 @@ import {
   QueryState,
   ReasonList,
   TierBadge,
-  Hint,
 } from "../components/common";
 import { number } from "../utils/format";
 import s from "../styles/App.module.css";
@@ -34,13 +33,6 @@ function Row({ row }: { row: ParkRow }) {
         <TierBadge tier={row.risk.tier} />
       </td>
       <td className={s.num}>{row.pun_count}</td>
-      <td>
-        {row.has_finance_flag ? (
-          <Hint text="有財務旗標，不計入風險分數，僅供人工複查；詳見單園分析。" />
-        ) : (
-          "—"
-        )}
-      </td>
       <td>
         {reasons ? (
           <ReasonList reasons={reasons} />
@@ -73,10 +65,9 @@ export default function Overview() {
     ["園名", "name"],
     ["行政區", ""],
     ["設立別", ""],
-    ["風險分", "risk"],
+    ["加權總分", "risk"],
     ["分級", ""],
     ["裁罰次數", "pun_count"],
-    ["旗標", ""],
     ["上榜原因", ""],
   ];
   return (

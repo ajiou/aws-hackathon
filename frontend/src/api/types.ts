@@ -28,13 +28,14 @@ export const riskSchema = z.object({
   rank: z.number().int().nonnegative().nullable(),
   tier: tierSchema.nullable(),
   coverage: ratio.optional(),
-  // score 是同儕群內百分位，raw 才是四維度加權的結果，兩者差很多
-  // （排名第 1 的園 score=100.0 但 raw=84.0，第 200 名 79.6 對 29.3）。
-  // 之前 raw 連 schema 都沒有，會被 zod 直接 strip 掉，畫面上只剩百分位
-  // 疊在加權明細上方，讀起來就像加權算錯了。
+  // score 現在就是四維度加權總分（後端 2026-09-12 改），raw 是同一個數字的
+  // 完整精度版本。rank 是全市合併名次，peer_rank 是設立別內名次。
   raw: z.number().optional(),
+  peer_rank: z.number().int().positive().nullish(),
+  peer_n: z.number().int().positive().nullish(),
   score_basis: z.string().optional(),
   rank_basis: z.string().optional(),
+  tier_basis: z.string().optional(),
 });
 const institution = z.enum(["公立", "私立", "非營利"]);
 const typeFields = {

@@ -581,6 +581,71 @@
 .drawerBackdrop {
   display: none;
 }
+
+/* ---- 單園分析的三段方形結構 ----
+   風險總分橫幅 → 建議查核重點／輿情訊號等寬並排 → 分頁。
+   三段同寬、上下對齊，窄螢幕時中段與橫幅各自疊成一欄。 */
+.riskBand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  /* stretch 而不是 start：兩欄等高，整塊才是使用者要的方形結構 */
+  align-items: stretch;
+}
+.riskBandMain h2 {
+  margin-top: 0;
+}
+.riskBandSide .dimensions caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: 6px;
+}
+/* 名次成對呈現：全市名次與同類別名次是兩把不同的尺，並排才不會被誤讀成同一件事 */
+.rankPair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 8px 0;
+}
+.rankPair div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.rankPair dt {
+  color: var(--c-text-2);
+  font: var(--t-small);
+}
+.rankPair dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* 等寬並排的一對面板。不沿用 .twoCol——那組是 1 : 1.5 的不對稱欄寬。 */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+/* 兩個面板等高、等寬，內容再長也不互相推擠 */
+.pair > * {
+  min-width: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pair > * > :last-child {
+  margin-bottom: 0;
+}
+/* 半寬欄裡放的是新聞標題與維度備註這種長字串，沒有這行會把整頁撐出橫向捲動 */
+.riskBand,
+.pair,
+.coverageList,
+.dimensions td {
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 768px) and (max-width: 1279px) {
   .layout {
     grid-template-columns: 64px minmax(0, 1fr);
@@ -601,6 +666,11 @@
   }
   .mapLayout {
     grid-template-columns: minmax(0, 1fr) 290px;
+  }
+  /* 1280px 以下維度表擠不下權重欄，橫幅改成上下兩段 */
+  .riskBand {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   .stats {
     gap: 10px;
@@ -655,8 +725,14 @@
     flex-direction: column;
   }
   .twoCol,
-  .mapLayout {
+  .mapLayout,
+  .riskBand,
+  .pair {
     grid-template-columns: 1fr;
+  }
+  .riskBand,
+  .pair {
+    gap: 14px;
   }
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));

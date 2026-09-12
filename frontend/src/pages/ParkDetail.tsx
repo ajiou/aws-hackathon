@@ -7,7 +7,6 @@ import {
   QueryState,
   PageHeader,
   RiskScore,
-  FinanceFlags,
   CopyLink,
   SafeLink,
 } from "../components/common";
@@ -198,46 +197,39 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
         {park.established_at ? `立案 ${park.established_at}` : "未提供立案日期"}
         {park.lon === null || park.lat === null ? " · 無座標資料" : ""}
       </p>
-      <div className={s.twoCol}>
-        <div>
-          <RiskScore park={park} meta={meta} />
-          {/* 財務旗標放在分數這一欄：它是同一個問題的延伸（哪些帳目有疑慮），
-              而且把它從右欄搬過來，兩欄高度才不會一邊空一大片。 */}
-          <section className={s.panel}>
-            <FinanceFlags flags={park.finance_flags} />
-          </section>
-        </div>
-        <div>
-          <section className={s.panel}>
-            <h2>建議查核重點</h2>
-            <QueryState query={brief}>
-              {(data) => (
-                <>
-                  {data.summary && <p>{data.summary}</p>}
-                  {data.actions.length ? (
-                    <ul>
-                      {data.actions.map((a, i) => (
-                        <li key={i}>
-                          <strong>{a.focus}</strong> — {a.why}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p className={s.note}>
-                      此園尚未提供查核建議，請依裁罰與評鑑原始紀錄人工確認。
-                    </p>
-                  )}
-                  <small>
-                    來源：
-                    {data.source === "llm" ? "離線文字摘要" : "預先產生的模板"}
-                    。文字摘要不參與打分。
-                  </small>
-                </>
-              )}
-            </QueryState>
-          </section>
-          <MediaPanel park={park} cutoff={meta.cutoff} />
-        </div>
+      {/* 由上到下三段等寬的方形結構：風險總分橫幅 → 建議查核重點／輿情訊號
+          並排 → 分頁。窄螢幕時中段自動疊成一欄（見 App.module.css .pair）。 */}
+      <RiskScore park={park} meta={meta} />
+      <div className={s.pair}>
+        <section className={s.panel}>
+          <h2>建議查核重點</h2>
+          <QueryState query={brief}>
+            {(data) => (
+              <>
+                {data.summary && <p>{data.summary}</p>}
+                {data.actions.length ? (
+                  <ul>
+                    {data.actions.map((a, i) => (
+                      <li key={i}>
+                        <strong>{a.focus}</strong> — {a.why}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className={s.note}>
+                    此園尚未提供查核建議，請依裁罰與評鑑原始紀錄人工確認。
+                  </p>
+                )}
+                <small>
+                  來源：
+                  {data.source === "llm" ? "離線文字摘要" : "預先產生的模板"}
+                  。文字摘要不參與打分。
+                </small>
+              </>
+            )}
+          </QueryState>
+        </section>
+        <MediaPanel park={park} cutoff={meta.cutoff} />
       </div>
       <div className={s.tabs} role="tablist" aria-label="園所資料">
         {tabs.map((tab, i) => (

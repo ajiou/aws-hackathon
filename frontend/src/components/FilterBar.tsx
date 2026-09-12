@@ -76,14 +76,7 @@ export function FilterBar({
     return () => clearTimeout(timer);
   }, [search, urlSearch]);
   const chips = [...params.entries()].filter(([key]) =>
-    [
-      "town",
-      "type",
-      "tier",
-      "has_finance_flag",
-      "include_inactive",
-      "q",
-    ].includes(key),
+    ["town", "type", "tier", "include_inactive", "q"].includes(key),
   );
   return (
     <section className={s.filters} data-filters aria-label="園所篩選">
@@ -127,16 +120,6 @@ export function FilterBar({
         />
         {!map && (
           <>
-            <label>
-              <input
-                type="checkbox"
-                checked={params.get("has_finance_flag") === "true"}
-                onChange={(e) =>
-                  update("has_finance_flag", e.target.checked ? "true" : "")
-                }
-              />{" "}
-              僅財務旗標
-            </label>
             <label
               title={!isMock ? "目前正式 API 僅提供營運中園所" : undefined}
             >
@@ -167,12 +150,7 @@ export function FilterBar({
               );
             }}
           >
-            {key === "has_finance_flag"
-              ? "財務旗標"
-              : key === "include_inactive"
-                ? "已停辦"
-                : value}{" "}
-            ×
+            {key === "include_inactive" ? "已停辦" : value} ×
           </button>
         ))}
         <button

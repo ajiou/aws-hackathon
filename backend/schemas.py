@@ -98,9 +98,14 @@ class Risk(Contract):
     # SPEC §2：is_active == 0 的 37 園（已停辦）保留供查詢，但不進排名、
     # 不進分級。它們的 score/rank/tier 三個都是 null；排名分母是 1,178 而非 1,215。
     # 在營園所必須有分數，由 Park.check_park 跟 ParkSummary 分別強制。
+    # score 是四維度加權總分（R_raw 取一位小數），不是百分位——2026-09-12 改。
+    # rank 仍是全市合併名次；tier 改由各設立別自己的分佈切（scoring.assign_tiers）。
     score: Score | None
     rank: Annotated[int, Field(ge=1)] | None
     tier: Tier | None
+    # 設立別內名次，取代舊版那個會被誤讀成「總分」的百分位。
+    peer_rank: Annotated[int, Field(ge=1)] | None = None
+    peer_n: Annotated[int, Field(ge=1)] | None = None
 
 
 class Dimension(Contract):

@@ -148,8 +148,12 @@ def main():
             "timeline": timeline.get(pid, []),
             "has_fee": pid in fees,
             "risk": {
-                "score": s["risk_score"], "score_basis": "同儕群內百分位",
-                "rank": s["rank"], "rank_basis": "全市合併", "tier": s["tier"],
+                # score 就是四維度加權總分（= raw 取一位小數），不再是百分位。
+                # raw 仍照送，供需要完整精度的下游使用。
+                "score": s["risk_score"], "score_basis": "四維度加權總分",
+                "rank": s["rank"], "rank_basis": "全市合併",
+                "tier": s["tier"], "tier_basis": "設立別內分佈",
+                "peer_rank": s["peer_rank"], "peer_n": s["peer_n"],
                 "raw": round(s["raw"], 4), "coverage": s["coverage"],
                 "model_version": MODEL_VERSION,
             },
@@ -213,6 +217,13 @@ def main():
 
     # ---- districts
     active = [it for it in items if it["is_active"] == 1]
+    # 分級改成各設立別各自切之後，全市「高風險」總數不再剛好等於 50，
+    # 把實際切出來的數量寫進 meta，免得有人拿舊的 50 去對帳。
+    tier_counts = {
+        itype: dict(collections.Counter(
+            it["risk"]["tier"] for it in active if it["institution_type"] == itype))
+        for itype in sorted({it["institution_type"] for it in active})
+    }
     heat = {d["town"]: d for d in media["district_level"]}
     pun_pre = collections.Counter(r["park_id"] for r in punishments if not r["is_after_cutoff"])
     districts = []
@@ -297,10 +308,14 @@ def main():
         "generated_at": now, "cutoff": CUTOFF.isoformat(),
         "population": len(active), "weights": WEIGHTS,
         "peer_groups": {k: {"n": v} for k, v in meta_in.get("peer_groups", {}).items()},
-        "score_basis": "同儕群內百分位（ECDF by peer_group）",
+        "score_basis": "四維度加權總分（R_raw）",
         "rank_basis": "全市合併排序（R_raw）",
+        "tier_basis": "設立別內 R_raw 分佈，切點比例沿用全市 50 / 200 名",
         "unvalidated_dimensions": ["operation"],
+        # 名次仍是全市合併，所以這裡照舊記全市切點；實際標籤是各設立別
+        # 按同樣比例各自切（見 model.scoring.assign_tiers）。
         "tiers": {"high": [1, 50], "medium": [51, 200], "low": [201, len(active)]},
+        "tiers_by_type": tier_counts,
         "data_freshness": {
             "punishments": max(r["date"] for r in punishments),
             "media": media.get("as_of"), "fees": "115學年度",

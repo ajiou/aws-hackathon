@@ -164,13 +164,17 @@ def risk_raw(row, dim_scores, weights):
 
 
 def score_all(rows, weights_by_type, finance=None,
-              indicator_peer_key="institution_type", score_peer_key="peer_group"):
-    """回傳每園的四維度分數、R_raw、組內百分位。tier 由呼叫端依全市名次決定。
+              indicator_peer_key="institution_type", score_peer_key="institution_type"):
+    """回傳每園的四維度分數、R_raw，以及設立別內的名次。
 
-    **兩層同儕群刻意不同**（§5.2）：子指標百分位比的是設立別（違規／評鑑／輿情
-    三個維度的可得性不隨組織形態變化），最後的 `risk_score` ECDF 才用細分的
-    peer_group——因為營運維度的資料可得性確實隨組織形態變化，附設幼兒園
-    制度上就沒有獨立決算。
+    `risk_score` **就是 R_raw**，不再是組內百分位。舊版把百分位當風險總分
+    顯示，畫面上「100.0」疊在「76.0 × 38% ／ 88.9 × 62%」正上方，任何人
+    都會讀成加權算錯——而且名次越後面落差越大（第 200 名顯示 79.6，加權
+    其實只有 29.3）。2026-09-12 使用者定案改為直接顯示加權總分。
+
+    子指標百分位仍在**設立別內**計算（§5.2）：違規／評鑑／輿情三個維度的
+    可得性不隨組織形態變化。`peer_rank` 同樣以設立別為單位，供畫面顯示
+    「私立同類第 35 名 / 835」——那是百分位原本想表達、卻表達錯的東西。
     """
     table = percentile_table(rows, indicator_peer_key)
     scored = []
@@ -193,35 +197,58 @@ def score_all(rows, weights_by_type, finance=None,
                                   if w and dims[d][0] is not None) / weight_mass, 4),
         })
 
-    # 組內百分位，只用 is_active 的園當分母
+    # 風險總分＝加權總分本身。名次另外算：全市合併名次由 assign_tiers 給，
+    # 這裡只給設立別內的名次（只用 is_active 的園當分母）。
     peers = collections.defaultdict(list)
     for s in scored:
         if s["is_active"] == 1:
             peers[s[score_peer_key]].append(s)
     for _, members in peers.items():
-        pcts = pct_ecdf([m["raw"] for m in members])
-        for m, p in zip(members, pcts):
-            m["risk_score"] = round(p, 2)
+        members.sort(key=lambda m: -m["raw"])
+        for i, m in enumerate(members, 1):
+            m["risk_score"] = round(m["raw"], 1)
+            m["peer_rank"] = i
+            m["peer_n"] = len(members)
     for s in scored:
         s.setdefault("risk_score", None)
+        s.setdefault("peer_rank", None)
+        s.setdefault("peer_n", None)
     return scored
 
 
-def assign_tiers(scored, tiers):
-    """分級用**全市合併排序**，且排的是 R_raw 不是 risk_score（§5.2）。
+def assign_tiers(scored, tiers, peer_key="institution_type"):
+    """名次用**全市合併**排序，分級改用**各設立別自己的** R_raw 分佈切三段。
 
-    分數回答「同類中多危險」，分級回答「這週的 50 個名額給誰」——
-    後者是全市共用的固定資源，用組內百分位切會選出 182 園。
-    合併排序用未經 ECDF 壓縮的 R_raw，以保留尾端差距。
+    兩者刻意分開（2026-09-12 使用者定案）：
+
+    - **名次與派工單仍是全市合併**。稽查人力是全市共用的固定資源，
+      每週 50 個名額不該按設立別配額，回測 P@50 的定義也因此不變。
+    - **分級改成同類別內比較**。公立園的加權總分分佈整體低於私立，
+      合併切會讓「高風險」幾乎全是私立，公立園再糟也標不上——
+      標籤要回答的是「這間園在同類裡算不算糟」。
+
+    切點比例**從 `tiers` 推導**，不寫死：以全市在營園數為分母算出各級
+    的累積比例，再乘上該設立別的園數。改 `etl.constants.TIERS` 時，
+    各類別的切點會跟著動。
     """
     active = sorted([s for s in scored if s["is_active"] == 1],
                     key=lambda s: -s["raw"])
     for i, s in enumerate(active, 1):
         s["rank"] = i
-        for name, lo, hi in tiers:
-            if i >= lo and (hi is None or i <= hi):
-                s["tier"] = name
-                break
+
+    total = len(active)
+    # tiers 是 (名稱, 起始名次, 結束名次)，結束名次即該級的累積上界。
+    bounds = [(name, hi if hi is not None else total) for name, _lo, hi in tiers]
+    peers = collections.defaultdict(list)
+    for s in active:
+        peers[s[peer_key]].append(s)
+    for _, members in peers.items():
+        members.sort(key=lambda m: -m["raw"])
+        n = len(members)
+        scaled = [(name, round(n * hi / total) if total else 0) for name, hi in bounds]
+        for i, s in enumerate(members, 1):
+            s["tier"] = next((name for name, hi in scaled if i <= hi), bounds[-1][0])
+
     for s in scored:
         s.setdefault("rank", None)
         s.setdefault("tier", None)
