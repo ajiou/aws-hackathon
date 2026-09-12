@@ -5,7 +5,6 @@ import { useUrlState } from "../hooks/useUrlState";
 import { FilterBar, EmptyState } from "../components/FilterBar";
 import {
   PageHeader,
-  CopyLink,
   QueryState,
   ReasonList,
   TierBadge,
@@ -80,15 +79,7 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
         headingLevel={embedded ? 2 : 1}
         title="教保機構風險總覽"
         description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
-      >
-        {/* 地圖右側欄以網站瀏覽為主，複製連結與列印在那個情境用不到。 */}
-        {!embedded && (
-          <>
-            <CopyLink />
-            <button onClick={() => window.print()}>列印</button>
-          </>
-        )}
-      </PageHeader>
+      />
       <FilterBar />
       <QueryState query={query}>
         {(data) =>

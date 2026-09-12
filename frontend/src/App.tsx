@@ -24,7 +24,6 @@ const Worklist = lazy(() => import("./pages/Worklist"));
 const navigation = [
   { path: "/overview", label: "總覽搜尋", icon: LayoutDashboard },
   { path: "/validation", label: "成效驗證", icon: ChartNoAxesCombined },
-  { path: "/worklist", label: "稽查派工單", icon: ClipboardList },
 ];
 export default function App() {
   const meta = useMeta();
@@ -34,6 +33,7 @@ export default function App() {
       "/": "園所風險地圖",
       "/map": "園所風險地圖",
       "/districts": "行政區熱力",
+      "/worklist": "稽查派工單",
     };
     document.title = `${navigation.find(({ path }) => path === location.pathname)?.label ?? named[location.pathname] ?? "單園分析"} · 小小守護員`;
   }, [location.pathname]);
@@ -96,6 +96,19 @@ export default function App() {
               {isMock && " · 示範資料"}
             </span>
           )}
+          {/* 派工單是「產出」而不是瀏覽用的分頁，所以放在右上角當動作按鈕。 */}
+          <NavLink
+            to="/worklist"
+            className={({ isActive }) =>
+              cn(
+                "flex shrink-0 items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium no-underline transition-colors hover:bg-muted",
+                isActive ? "bg-accent text-primary" : "text-foreground",
+              )
+            }
+          >
+            <ClipboardList className="size-4" aria-hidden="true" />
+            稽查派工單
+          </NavLink>
         </div>
       </header>
       <div data-layout>

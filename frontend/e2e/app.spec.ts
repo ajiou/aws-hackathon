@@ -135,7 +135,11 @@ test("responsive widths never overflow the document", async ({ page }) => {
   await page.goto("/");
   const navigation = page.getByRole("navigation", { name: "主要導覽" });
   await expect(navigation).toBeVisible();
-  await navigation.getByRole("link", { name: "稽查派工單" }).focus();
+  // 派工單移出導覽列，改放在右上角當動作按鈕。
+  await expect(
+    navigation.getByRole("link", { name: "稽查派工單" }),
+  ).toHaveCount(0);
+  await page.getByRole("link", { name: "稽查派工單" }).focus();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/worklist/);
   await page.screenshot({ path: "test-results/mobile.png", fullPage: false });

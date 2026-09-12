@@ -220,11 +220,6 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
                     此園尚未提供查核建議，請依裁罰與評鑑原始紀錄人工確認。
                   </p>
                 )}
-                <small>
-                  來源：
-                  {data.source === "llm" ? "離線文字摘要" : "預先產生的模板"}
-                  。文字摘要不參與打分。
-                </small>
               </>
             )}
           </QueryState>
