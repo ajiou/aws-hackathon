@@ -113,6 +113,36 @@ Resources:
   # ---------------------------------------------------------------
   # Delivery: CloudFront + OAC. The bucket stays private.
   # ---------------------------------------------------------------
+  # SPA routing lives in a viewer-request function, NOT in
+  # CustomErrorResponses. CustomErrorResponses applies to the whole
+  # distribution, so it also swallows legitimate 404s from /api/* and
+  # rewrites them to index.html - which breaks the API error contract
+  # (SPEC 8.0). Verified: GET /api/v1/parks/<missing> returned S3
+  # AccessDenied XML instead of PARK_NOT_FOUND.
+  SpaRouterFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name: !Sub "${ProjectName}-spa-router"
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Rewrite extensionless non-API paths to /index.html
+        Runtime: cloudfront-js-2.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          var uri = request.uri;
+          // API paths pass through untouched so their status codes survive.
+          if (uri.indexOf('/api/') === 0) {
+            return request;
+          }
+          // A path with no file extension is an SPA route.
+          var last = uri.substring(uri.lastIndexOf('/') + 1);
+          if (last.indexOf('.') === -1) {
+            request.uri = '/index.html';
+          }
+          return request;
+        }
+
   SiteOAC:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
@@ -169,6 +199,9 @@ Resources:
           Compress: true
           # CachingOptimized (AWS managed policy)
           CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+          FunctionAssociations:
+            - EventType: viewer-request
+              FunctionARN: !GetAtt SpaRouterFunction.FunctionMetadata.FunctionARN
         CacheBehaviors:
           - PathPattern: /api/*
             TargetOriginId: api
@@ -177,17 +210,6 @@ Resources:
             CachedMethods: [GET, HEAD]
             Compress: true
             CachePolicyId: !Ref ApiCachePolicy
-        # SPA fallback. Without this, typing /park/xxx directly 404s.
-        # A private bucket answers 403 for a missing object, so map both.
-        CustomErrorResponses:
-          - ErrorCode: 403
-            ResponseCode: 200
-            ResponsePagePath: /index.html
-            ErrorCachingMinTTL: 10
-          - ErrorCode: 404
-            ResponseCode: 200
-            ResponsePagePath: /index.html
-            ErrorCachingMinTTL: 10
 
   # OAC bucket policy: only this distribution may read.
   SiteBucketPolicy:

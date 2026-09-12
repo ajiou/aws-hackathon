@@ -12,7 +12,7 @@ cp950 無法解析 UTF-8 中文，會讓 `validate-template` 與 `package` 直�
 | **不用 DynamoDB** | `serving/*.json` 約 3 MB，Lambda 冷啟載入模組層全域變數即可。維護一套 schema 與 GSI 比直接讀 JSON 更慢也更容易出錯。 |
 | **單一 Lambda 內部路由** | 9 支 API 共用一個函式，減少冷啟次數與部署複雜度。 |
 | **S3 不開 Website Hosting** | 靜態網站代管需要公開 bucket，違反競賽規範第 1 條。改走 CloudFront + OAC，bucket 維持 private。 |
-| **CloudFront 403/404 → index.html 200** | 缺這段時直接輸入 `/park/xxx` 會 404。private bucket 對不存在的物件回 403，所以兩個狀態碼都要接。 |
+| **SPA 路由用 CloudFront Function，不用 CustomErrorResponses** | `CustomErrorResponses` 對整個 distribution 生效，無法只綁一個 behavior。用它的話 API 正常回的 404 也會被改寫成 `/index.html`，前端收到的會是 S3 的 `AccessDenied` XML。實測見下方。 |
 | **DataBucket 設 DeletionPolicy: Retain** | 刪 stack 時不會連資料一起刪掉。 |
 
 ## 資源
@@ -31,6 +31,30 @@ cp950 無法解析 UTF-8 中文，會讓 `validate-template` 與 `package` 直�
 
 Lambda 的 IAM 只有 `serving/*` 與 `raw/pdf/*` 的 `s3:GetObject`——沒有寫入、
 沒有 `curated/`、沒有 `model/`。
+
+## 踩過的坑：CustomErrorResponses 會吃掉 API 的錯誤碼
+
+第一版照常見的 SPA 教學，用 `CustomErrorResponses` 把 403/404 對應到
+`/index.html` 回 200。部署後驗收發現：
+
+```
+直連 API Gateway：
+  GET /api/v1/parks/does-not-exist
+  → HTTP 404  {"error":{"code":"PARK_NOT_FOUND", ...}}
+
+經 CloudFront：
+  GET /api/v1/parks/does-not-exist
+  → HTTP 403  <Error><Code>AccessDenied</Code></Error>
+```
+
+原因：`CustomErrorResponses` 是 distribution 層級設定，**不能只綁一個
+behavior**。API 回的 404 被攔截後，CloudFront 轉去預設 origin（S3）撈
+`/index.html`，當時 bucket 是空的，於是回 S3 的 AccessDenied。
+
+即使 bucket 有 `index.html`，結果也只是變成「API 錯誤回傳一頁 HTML」，
+SPEC §8.0 的錯誤契約一樣失效。
+
+改用 viewer-request 的 CloudFront Function，第一行就讓 `/api/` 原樣通過。
 
 ## 操作
 
