@@ -376,13 +376,15 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
                           可以點、點了沒反應。有連結才給連結。 */}
                       {(f.pdf_url ?? f.url) ? (
                         <SafeLink href={f.pdf_url ?? f.url}>
-                          {f.year} 學年度 {f.title ?? "財務報告 PDF"}（連結效期
-                          15 分鐘）
+                          {f.year === null ? "" : `${f.year} 學年度 `}
+                          {f.title ?? "財務報告 PDF"}（連結效期 15 分鐘）
                         </SafeLink>
                       ) : (
                         <>
-                          {f.year} 學年度 · 營運分數{" "}
-                          {f.operation_score ?? "未計算"}
+                          {/* 公立-附設園沒有自己的學年度（決算併入所屬學校），
+                              不要印成「null 學年度」。 */}
+                          {f.year === null ? "" : `${f.year} 學年度 · `}
+                          營運分數 {f.operation_score ?? "未計算"}
                           <span className={s.rowMeta}> · 無公開 PDF</span>
                         </>
                       )}

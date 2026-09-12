@@ -356,7 +356,8 @@ export function SafeLink({
   href,
   children,
 }: {
-  href?: string;
+  // null 與 undefined 都要收：財報的 pdf_url 在沒有 S3 bucket 時是明確的 null。
+  href?: string | null;
   children: ReactNode;
 }) {
   if (!href || !/^https?:\/\//i.test(href))

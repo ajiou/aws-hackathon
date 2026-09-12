@@ -119,12 +119,18 @@ const feesSchema = z
   });
 const financeDocument = z
   .object({
-    year: z.union([z.string(), z.number()]).optional(),
-    school_year: z.number().optional(),
-    title: z.string().optional(),
-    url: z.string().url().optional(),
-    pdf_url: z.string().url().optional(),
-    presigned_url: z.string().url().optional(),
+    year: z.union([z.string(), z.number()]).nullish(),
+    // 公立-附設園沒有自己的學年度——決算併進所屬學校，教育局本身就沒有
+    // 「板橋國小附幼」這個預算單位（見 etl/build_curated.assign_peer_groups）。
+    // 269 筆這樣的列在來源就是 null，不是資料缺漏。
+    school_year: z.number().nullish(),
+    title: z.string().nullish(),
+    // backend 在沒有 S3 bucket 時（本機、或該園沒有公開 PDF）會明確送
+    // pdf_url: null，不是省略欄位。.optional() 不吃 null，會讓這 12 園的
+    // 詳情頁整頁變成「資料載入失敗」。
+    url: z.string().url().nullish(),
+    pdf_url: z.string().url().nullish(),
+    presigned_url: z.string().url().nullish(),
     metrics: z.record(z.number().nullable()).optional(),
     audit_floor_applied: z.number().nullable().optional(),
     validated: z.boolean().optional(),
@@ -132,13 +138,13 @@ const financeDocument = z
     // 不是只有一個點不動的連結。
     operation_score: z.number().nullable().optional(),
   })
-  .refine(
-    (d) => d.year !== undefined || d.school_year !== undefined,
-    "財報需要年度",
-  )
+  // 這裡原本 refine「財報需要年度」，但 269 筆公立-附設列的年度本來就是
+  // null，硬要求年度會讓整個 /parks/{id} 回應驗證失敗，詳情頁整頁變成
+  // 「資料載入失敗」——為了一個顯示欄位，把裁罰、評鑑、風險分數全部一起
+  // 弄不見。沒有年度就是沒有年度，由畫面決定怎麼呈現。
   .transform((d) => ({
     ...d,
-    year: d.year ?? d.school_year!,
+    year: d.year ?? d.school_year ?? null,
     pdf_url: d.pdf_url ?? d.presigned_url,
   }));
 export const timelineSchema = z.object({

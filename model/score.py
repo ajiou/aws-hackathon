@@ -202,12 +202,10 @@ def main():
     ]})
 
     # 財報：school_year 可能是 null（公立-附設併入學校決算，沒有自己的年度），
-    # 契約的 z.number().optional() 不吃 null，所以是「不送」而不是「送 null」。
+    # 照實送 null，不省略欄位——省略會讓前端分不出「沒有年度」與「忘了給」，
+    # 而且曾因此讓 269 園的詳情頁整頁變成「資料載入失敗」。
     # validated 必須永遠 false（§5.6.8），backend store.finance() 會再擋一次。
-    dump("finance", {"items": [
-        {k: v for k, v in r.items() if not (k == "school_year" and v is None)}
-        for r in finance.values()
-    ]})
+    dump("finance", {"items": list(finance.values())})
 
     # 輿情明細。**刻意含切點之後的報導**，而且只有這一份是這樣——
     # 特徵那條路仍由 assert_no_leakage 守著切點，兩者不共用資料。
