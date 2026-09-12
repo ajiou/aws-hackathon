@@ -16,7 +16,8 @@
 | DATA / ML | [`docs/SPEC.md`](docs/SPEC.md) §1–§6 |
 | 後端 | [`docs/SPEC.md`](docs/SPEC.md) §8 API 契約（**已凍結**） |
 | 前端 | [`docs/FRONTEND.md`](docs/FRONTEND.md) 全部 |
-| 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 |
+| 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 + [`infra/README.md`](infra/README.md) |
+| 簡報要放架構圖 | [`docs/architecture.html`](docs/architecture.html) — 瀏覽器開啟即可 |
 | 簡報 | [`docs/NARRATIVE.md`](docs/NARRATIVE.md) |
 
 ---
@@ -64,10 +65,14 @@ python etl/ocr_extract.py
 
 ### 雲端
 
-```bash
-sam deploy --template infra/template.yaml --stack-name watchdog-infra \
-           --region us-west-2 --capabilities CAPABILITY_IAM
+```powershell
+. $HOME\aws-env.ps1          # 競賽憑證，不在 repo 裡
+.\infra\deploy.ps1           # 建立/更新 stack
+.\infra\upload.ps1 -UseMock  # 用 mock 跑通整條路徑
+.\infra\verify.ps1           # 驗收 SPEC §14.4，失敗回非零
 ```
+
+不需要 SAM CLI。細節見 [`infra/README.md`](infra/README.md)。
 
 ---
 
@@ -129,4 +134,6 @@ out/         本機執行產物（gitignore）
 | `build_curated.py` | ⬜ 待實作 |
 | 模型與回測 | ⬜ 待實作 |
 | 前端 | ⬜ 待實作 |
-| IaC | ⬜ 待實作 |
+| IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
+| **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
+| 架構圖 | ✅ `docs/architecture.html` |

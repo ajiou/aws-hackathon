@@ -262,12 +262,18 @@ frontend/mock/ 已有 9 份符合契約的假資料，用真實園名與座標�
    Distribution / HttpApi / ApiFunctionRole
 2. 部署腳本與 CI
 
+⚠ 2026-09-12 更新：E 軌已完成並部署，驗收 11/11 通過。
+   https://d2p0ksy36o4foe.cloudfront.net
+   下面保留給接手或重建的人。
+
 關鍵設定（照 §7.4，不要自己發明）：
 - Region 一律 us-west-2（規範指定 us-east-1 或 us-west-2）
 - 兩個 bucket 的 PublicAccessBlockConfiguration 四項全 true
 - CloudFront 走 OAC，SigningBehavior: always
-- SPA fallback：CustomErrorResponses 把 403 與 404 對應到
-  /index.html 並回傳 200。缺這段 /park/xxx 直接輸入網址會 404。
+- SPA 路由用 CloudFront Function（viewer-request），
+  絕對不要用 CustomErrorResponses——它對整個 distribution 生效，
+  會把 API 正常回的 404 也改寫成 /index.html。實測紀錄見
+  infra/README.md 的「踩過的坑」。
 - /api/* behavior TTL 60s，轉發 query string，不轉發 cookie
 - Lambda：Python 3.12 / 512MB / 10s / ReservedConcurrentExecutions 10
 - Lambda IAM 只給 serving/* 與 raw/pdf/* 的 s3:GetObject，不給寫入
