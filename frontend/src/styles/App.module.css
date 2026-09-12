@@ -502,11 +502,11 @@
   min-height: 320px;
 }
 .districtSvg text {
-  font: 10px var(--font-sans);
+  font: 8px var(--font-sans);
   fill: var(--c-text);
   paint-order: stroke;
   stroke: var(--c-bg);
-  stroke-width: 3px;
+  stroke-width: 2px;
   pointer-events: none;
 }
 .paper {
