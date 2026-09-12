@@ -10,10 +10,13 @@ export function ParkDrawer({
   id,
   name,
   onClose,
+  inline = false,
 }: {
   id: string;
   name?: string;
   onClose: () => void;
+  // inline：不浮在地圖上，直接當右側側欄的內容
+  inline?: boolean;
 }) {
   const park = usePark(id, !!id);
   const titleId = useId();
@@ -38,7 +41,11 @@ export function ParkDrawer({
     return () => document.removeEventListener("keydown", escape);
   }, []);
   return (
-    <aside className={s.parkDrawer} aria-labelledby={titleId} data-park-drawer>
+    <aside
+      className={inline ? s.parkPanel : s.parkDrawer}
+      aria-labelledby={titleId}
+      data-park-drawer
+    >
       <Button
         variant="ghost"
         size="icon"

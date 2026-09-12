@@ -441,6 +441,34 @@
     animation: none;
   }
 }
+.mapLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
+  align-items: start;
+  gap: 24px;
+}
+.mapLayout > * {
+  min-width: 0;
+}
+.parkPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.parkPanel > * {
+  flex-shrink: 0;
+}
+@media (max-width: 1023px) {
+  .mapLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .districtLayout {
   display: grid;
   grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
