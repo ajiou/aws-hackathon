@@ -38,7 +38,9 @@ npm install
 VITE_API_BASE=mock npm run dev        # → http://localhost:5173
 ```
 
-`frontend/mock/` 已有 9 份符合 §8 契約的假資料，用真實園名與座標產生，
+Windows／跨平台也可使用 `npm run dev -- --mode mock`。七頁前端、驗證指令與後端交接限制見 [`frontend/README.md`](frontend/README.md)。
+
+`frontend/mock/` 已有符合 §8 契約的假資料（含單園 `briefs.json`），用真實園名與座標產生，
 涵蓋邊界案例：停辦 37 園、無評鑑 140 園、無營運 905 園、裁罰超過 8 筆 25 園。
 
 ### 後端（不需要 AWS）
@@ -140,8 +142,9 @@ out/         本機執行產物（gitignore）
 | `build_curated.py` | ✅ 八步 assert 全過 |
 | 模型與回測 | ✅ P@50 26.0%、lift 2.39x（ADR-0001） |
 | 營運維度（B 軌） | ✅ 四個同儕群，302 園有分數 |
-| 前端 | ⬜ 待實作 |
+| 後端 | ✅ FastAPI 9 支路由，69 個測試 |
+| 前端 | ✅ 七頁與列印已實作，啟動及驗證見 `frontend/README.md` |
 | IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
-| **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
+| **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **13/13 通過** |
 | 架構圖 | ✅ 兩版：`presentation/architecture.*`（編輯風格＋成效數據）與 `presentation/archify-architecture.*`（邊界為結構＋互動檢視器） |
 | 輿情資料 | ✅ `data/media/` 7 份 JSON，個資已剝除 |

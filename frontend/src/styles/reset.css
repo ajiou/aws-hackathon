@@ -1,0 +1,126 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font: var(--t-body);
+  font-variant-numeric: tabular-nums;
+  color: var(--c-text);
+  background: var(--c-bg-2);
+}
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+button,
+a,
+input,
+select,
+summary {
+  touch-action: manipulation;
+}
+button,
+select,
+input {
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-md);
+  padding: 7px 10px;
+  background: var(--c-bg);
+}
+button,
+summary {
+  cursor: pointer;
+}
+button:hover {
+  background: var(--c-bg-3);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+a {
+  color: var(--c-primary);
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: var(--c-primary-hover);
+}
+:focus-visible {
+  outline: 2px solid var(--c-primary);
+  outline-offset: 3px;
+}
+h1 {
+  font: var(--t-h1);
+  margin: 0 0 8px;
+}
+h2 {
+  font: var(--t-h2);
+  margin: 0 0 12px;
+}
+h3 {
+  font: var(--t-h3);
+  margin: 0 0 8px;
+}
+p {
+  margin: 8px 0;
+}
+ul,
+ol {
+  padding-left: 22px;
+}
+small {
+  font: var(--t-small);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  font: var(--t-caption);
+  font-weight: 600;
+  color: var(--c-text-2);
+  text-align: left;
+  background: var(--c-bg-2);
+  position: sticky;
+  top: 0;
+}
+td,
+th {
+  padding: 12px;
+  border-bottom: 1px solid var(--c-border);
+  vertical-align: top;
+}
+tbody tr:hover {
+  background: var(--c-bg-2);
+}
+svg {
+  max-width: 100%;
+}
+input[type="checkbox"] {
+  accent-color: var(--c-primary);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+.maplibregl-ctrl-attrib-inner a {
+  text-decoration: underline !important;
+  color: var(--c-text-2) !important;
+}
+tbody th {
+  position: static;
+  background: transparent;
+  font: var(--t-body-strong);
+}
+
+.print-only {
+  display: none;
+}
