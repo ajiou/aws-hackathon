@@ -33,3 +33,6 @@ frontend/dist/
 frontend/.vite/
 frontend/node_modules/
 frontend/*.tsbuildinfo
+
+# Excel 暫存鎖檔（開啟 .xlsx 時自動產生）
+~$*
