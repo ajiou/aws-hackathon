@@ -196,7 +196,15 @@ Resources:
           CookiesConfig:
             CookieBehavior: none          # do not forward cookies
           HeadersConfig:
-            HeaderBehavior: none
+            # Origin must be part of the cache key. Without it CloudFront
+            # serves whichever variant it cached first: a response fetched
+            # without an Origin header carries no CORS headers, and a
+            # browser that later requests the same path is blocked. This
+            # was observed on /parks/{id} while /meta happened to have been
+            # cached from a browser request and worked.
+            HeaderBehavior: whitelist
+            Headers:
+              - Origin
           QueryStringsConfig:
             QueryStringBehavior: all      # filters must be in the cache key
 

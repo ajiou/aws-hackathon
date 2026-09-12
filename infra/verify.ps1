@@ -65,6 +65,16 @@ foreach ($r in $routes) {
 }
 Check "九支 API 全部回 200" ($bad.Count -eq 0) ($bad -join "; ")
 
+# 5c. CORS 標頭必須隨 Origin 變動。CloudFront 若不把 Origin 納入 cache key，
+#     會把「不帶 Origin 取得、因此沒有 CORS 標頭」的回應快取起來，之後
+#     瀏覽器帶 Origin 來要就被擋。前端直連線上 API 開發時一定會踩到。
+$corsBad = @()
+foreach ($r in @('/meta', "/parks/$pid1", '/worklist')) {
+    $h = curl.exe -s -i -H "Origin: http://localhost:5173" "$api$r"
+    if (-not ($h | Select-String -Quiet "access-control-allow-origin")) { $corsBad += $r }
+}
+Check "帶 Origin 的請求都有 CORS 標頭" ($corsBad.Count -eq 0) ($corsBad -join "; ")
+
 # 6. Lambda IAM 只有唯讀
 $role = aws iam list-roles --query "Roles[?contains(RoleName,'watchdog')].RoleName" --output text
 $hasWrite = $false
