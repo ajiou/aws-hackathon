@@ -1,0 +1,1465 @@
+[
+ {
+  "doc_id": "03ce7086895eb5eb859d0890582bf4fa6313a7ea",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "07f8eebe5345745f7261ce8d6a8b10719076f80a",
+  "park_id": "48ca7ef9-2087-4394-8a65-71b6463d8412",
+  "confidence": 0.95,
+  "matched_alias": "時代",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "0b7a261a012f3949e77370c95f092aaa6f2d363d",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "0b924b762be431bd86a4bee95d5ec0b40f68fa02",
+  "park_id": "79a05cd7-8a6d-438e-a7c7-c45209c515e6",
+  "confidence": 0.95,
+  "matched_alias": "台大",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "0d125e45a62f5841794c7162f4baae8c83f3ed08",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 0.5,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "0d125e45a62f5841794c7162f4baae8c83f3ed08",
+  "park_id": "694de2db-d20f-4fdc-9de3-d6da2603f574",
+  "confidence": 0.475,
+  "matched_alias": "及人",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "0da37c40cd9a2327a642900c3760107c6e7d08af",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "0e7d19442f9932e8e8ca1e1f3ce0b40546246e84",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "0e7d19442f9932e8e8ca1e1f3ce0b40546246e84",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "0f40b07e8a1da886eb5470cd3e1cd09c994d4b2f",
+  "park_id": "36bd8abf-2adf-4647-a040-edc63819b189",
+  "confidence": 0.95,
+  "matched_alias": "夏哲森",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "13e0853b900e6b40a6b96c454bcfa75b713ceb2e",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "新北市私立吉尼爾幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "13f03bc06899660705a6d2e46292c0c717d87fcd",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "145819f2f5556c44907224af753777aff36615bd",
+  "park_id": "5e1ac800-bc0e-432c-b09d-43935bae5899",
+  "confidence": 0.95,
+  "matched_alias": "太平洋",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "145819f2f5556c44907224af753777aff36615bd",
+  "park_id": "d3d18119-54fa-46b0-924c-422220743708",
+  "confidence": 0.95,
+  "matched_alias": "重新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "15cd85077c52445f48576a0ebb71a918b1d0a541",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "195a36f8b9351441712fd7f24d76e8863a5d5183",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "1a73f7cd3af5d5ce8c362a2c73106dd8782ab9c0",
+  "park_id": "56b544bf-35bf-496f-ab73-0019b9f9e6e6",
+  "confidence": 0.95,
+  "matched_alias": "小小",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "1d01a7b96c802e0be6767d6606c3cec74a42cb71",
+  "park_id": "6222faa7-3ddc-4b56-b34f-579311f363d2",
+  "confidence": 0.475,
+  "matched_alias": "碧城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "1d01a7b96c802e0be6767d6606c3cec74a42cb71",
+  "park_id": "dfe33fb7-a85f-49e0-97e2-458db82b2df7",
+  "confidence": 0.475,
+  "matched_alias": "碧城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "1d142ae418235ec61b36cdf62ce15c28fd3f1c4b",
+  "park_id": "4787abd9-937a-49fe-b11a-0cac6f97e748",
+  "confidence": 0.95,
+  "matched_alias": "柏翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "1e5a68ab1a67cc3d7c8e3f1efadab0d0fbbe4099",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "2228116ebe8258540b44c91137a01dd44ad33874",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "22b6642d7dd792697dbf771410fa9ac4c97e405f",
+  "park_id": "790ca435-d9fe-44dc-af25-924d582ee5c0",
+  "confidence": 0.95,
+  "matched_alias": "新新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "2687e6f139b73bbb3bd3895e5c6c0b439f37ecc0",
+  "park_id": "afc5cb83-ded9-4a88-a026-a77b70c2d74d",
+  "confidence": 1.0,
+  "matched_alias": "中冠幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "27a65faf9178a4aa360a5a1543bba8a478bda7fa",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "2a5856b5cf5793809cd83b7c9a3916aad169b4d6",
+  "park_id": "d3d18119-54fa-46b0-924c-422220743708",
+  "confidence": 0.95,
+  "matched_alias": "重新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "2b30b036ab5ba5fa47147ee7a55eb4248f4cc8af",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "2cb6a34c37a815e97790a7bfc1d06c83e7a4d7d2",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "2ea8860a721d1af3eb7a67be01f93e890346a56e",
+  "park_id": "03708867-73a4-4ecf-b4bd-5fc56bb89533",
+  "confidence": 0.95,
+  "matched_alias": "幸福",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "30da9420c064234f1e0345a64ca95af504fb2e93",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "32c881bdf6e8610aa8eadb792b01017b9551172c",
+  "park_id": "b2dfc870-6df3-45f0-84ab-765ef2d1d33e",
+  "confidence": 1.0,
+  "matched_alias": "立泰山幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "335a8d40ed592fa3694a714e7aa136d09f97a314",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "34d099dce57af7b67b6eb8250a8515b8b9cc7521",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "36e102e48ef98b49f4ae9329459bd87cb0519e9f",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 0.5,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "36e102e48ef98b49f4ae9329459bd87cb0519e9f",
+  "park_id": "694de2db-d20f-4fdc-9de3-d6da2603f574",
+  "confidence": 0.475,
+  "matched_alias": "及人",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "37311e038b8dcbdf69332d5054b2e8b02c88a849",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "3811511c6f5ccfdad4c025283035771f87813c2c",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "3881262d7d6255e8a51bcece164e97e5fc14a0d1",
+  "park_id": "3e535f7e-a3e4-49c1-a0b8-426ef0854398",
+  "confidence": 0.95,
+  "matched_alias": "聯合",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "3a5a792cfdf0fac87a205fc461e65c583f4aa9cf",
+  "park_id": "4787abd9-937a-49fe-b11a-0cac6f97e748",
+  "confidence": 0.95,
+  "matched_alias": "柏翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "3c325b4df43d5595293b265f6b7a3f9b9fe08c20",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4141464d43b19c21060fedae07b5350b9d0ce25f",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "41a052ae573f46bffae5c381e45ac23d17b9eb2f",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "43e4c06eec152b1c3f39fb2b0dfd3d7a54634ed4",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "454e632166341b95b6718ae3c627bf3563e5b3e2",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "46459f00636d38310163f759927ed04206b70748",
+  "park_id": "201270ee-418d-451e-9220-a0670c3fd257",
+  "confidence": 0.95,
+  "matched_alias": "童心",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "48ce9b97aefc477351226d5fe7746d278440659b",
+  "park_id": "473fc5a9-a0a1-4f7e-860e-39152ae43dfb",
+  "confidence": 0.95,
+  "matched_alias": "新店民安",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "48ea31fa9430bd9fc0b114c0b52ac9e77e6db32c",
+  "park_id": "82394a26-2933-4adb-9f32-97f6000060f9",
+  "confidence": 0.95,
+  "matched_alias": "立土城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "49208145fa8c2979a926ab448a33f63fcb1af4b4",
+  "park_id": "3e535f7e-a3e4-49c1-a0b8-426ef0854398",
+  "confidence": 0.95,
+  "matched_alias": "聯合",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "497bbeaacabd8b894a5f7ec2fb9b80d4e137d6ac",
+  "park_id": "4787abd9-937a-49fe-b11a-0cac6f97e748",
+  "confidence": 0.95,
+  "matched_alias": "柏翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "49b7a2ef0662f2d1454ea0c57e1ce36ed2df0e85",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 0.95,
+  "matched_alias": "新月",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "4a7253b5414b455012f48bf834b76bc9341ebbcb",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4a7253b5414b455012f48bf834b76bc9341ebbcb",
+  "park_id": "257592a7-2642-49df-baa7-61e687035dbe",
+  "confidence": 0.95,
+  "matched_alias": "育人",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "4c1ddcd98c58cb9620041c7a3a064b36b0fef45f",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4d27cf25f7b89459467b55dee3d706413489e611",
+  "park_id": "afc5cb83-ded9-4a88-a026-a77b70c2d74d",
+  "confidence": 1.0,
+  "matched_alias": "中冠幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4d99435a984c1d3f4658c70991de5586f88343ea",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4e07b39173c6d8d5541a296242c01eb02a00cf9f",
+  "park_id": "201270ee-418d-451e-9220-a0670c3fd257",
+  "confidence": 0.95,
+  "matched_alias": "童心",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "4ed6f21e5aef86d4b556f85b44dfe0011a9d5a9f",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 1.0,
+  "matched_alias": "新月幼稚園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4ed6f21e5aef86d4b556f85b44dfe0011a9d5a9f",
+  "park_id": "94d3801f-37d1-42d3-b1db-77922f84830e",
+  "confidence": 1.0,
+  "matched_alias": "新北市立板橋幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "4fb367d3e94d5a9ba44e1d37e29286cc6ee72c94",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "4fd3f8e9eec6188131ddbd42278925d2dba769a7",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "516093e60a48469374358228ef65d0fa148320ca",
+  "park_id": "3e535f7e-a3e4-49c1-a0b8-426ef0854398",
+  "confidence": 0.95,
+  "matched_alias": "聯合",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "516093e60a48469374358228ef65d0fa148320ca",
+  "park_id": "82394a26-2933-4adb-9f32-97f6000060f9",
+  "confidence": 0.95,
+  "matched_alias": "立土城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "53f76f1ae96f7f819696af9aa0678d42f0f7ca08",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "55144d82cddc71465e95ee677d0420d64712eef6",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "55232447bc16f83b2085057b6320615aa006d04c",
+  "park_id": "d6d90775-8fce-4484-ba73-54e85b4f2849",
+  "confidence": 1.0,
+  "matched_alias": "艾倫戴爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "555e4c8d005cdc1751e60e7a72f04e9db1e5ca24",
+  "park_id": "aac8b700-9c27-4c1d-bd3b-220cb12142d7",
+  "confidence": 1.0,
+  "matched_alias": "加州森林國際幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "55a7b0ed653d8706ecf34eaafc844c830b44d934",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "570843ca13055f9f19d190ce86b602efcece9ad8",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "5757b7b2537f7d75d5e511c13d6c6665c556bc98",
+  "park_id": "36eb695c-41ad-419c-8535-682995c67d8d",
+  "confidence": 0.95,
+  "matched_alias": "冠軍",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "5757b7b2537f7d75d5e511c13d6c6665c556bc98",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "58249cdf62c9d03802e8889ca6c7d642b3b5720f",
+  "park_id": "afc5cb83-ded9-4a88-a026-a77b70c2d74d",
+  "confidence": 1.0,
+  "matched_alias": "中冠幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "5a55b9e8dba6d18ee03b280b06925eca30a599cf",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "5c86927b07f922b11a3ee351b4c132de9e2eb2de",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "5e44c9a51af33abe2393b3b37bf5057bcf010c6a",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "60129575c780eba1f4a1c0fd0e5990d454f57f2c",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "6099cef8107574d8bafa110ee81336257e39c156",
+  "park_id": "a4e0bbee-429b-4dd5-b897-6cfff6494322",
+  "confidence": 0.5,
+  "matched_alias": null,
+  "alias_kind": "owner"
+ },
+ {
+  "doc_id": "616bd0cbffd0542e752ca82ca430cfd8dddb67c1",
+  "park_id": "5b795786-6427-4289-99ac-1f6c1c8bc6de",
+  "confidence": 0.95,
+  "matched_alias": "有一天",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "616bd0cbffd0542e752ca82ca430cfd8dddb67c1",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "63bdb0174c01803fb89d50887e984ed0098b5cc9",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "63bdb0174c01803fb89d50887e984ed0098b5cc9",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "66397959988288cdaa865b9259d30c3366afaf9e",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "6754a06031c35ba8fa55e2bfc877165a9d845006",
+  "park_id": "cedb09ac-5e6f-427d-b9ad-423024c71d88",
+  "confidence": 0.95,
+  "matched_alias": "永翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "67a880b318ef39e278fa28aaa994ce7a94de2a17",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "68286441cde613533cd7c9427a33592a286a065e",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "6a0dfba48a475bb0c9247d2dfa5ba44fcd45e6f0",
+  "park_id": "473fc5a9-a0a1-4f7e-860e-39152ae43dfb",
+  "confidence": 0.95,
+  "matched_alias": "新店民安",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "6a0dfba48a475bb0c9247d2dfa5ba44fcd45e6f0",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 0.95,
+  "matched_alias": "新月",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "6a0dfba48a475bb0c9247d2dfa5ba44fcd45e6f0",
+  "park_id": "8b143010-7879-4756-b57b-fb8a1012e89f",
+  "confidence": 0.95,
+  "matched_alias": "好好",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "6a0dfba48a475bb0c9247d2dfa5ba44fcd45e6f0",
+  "park_id": "cedb09ac-5e6f-427d-b9ad-423024c71d88",
+  "confidence": 0.95,
+  "matched_alias": "永翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "6cbb05c588683f98fc678029df02f61495061fe8",
+  "park_id": "b4982ad9-ae8e-4528-8232-e922ee0eca31",
+  "confidence": 1.0,
+  "matched_alias": "新北市私立幼苗國際幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "6cf84c2bcff6c66d92a02820cb163296106f6382",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "6d756eef6477b5bb76c208843793f349fb6bb698",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "6dad6cd2aaacc0442543a0a10132e5e1731b3cbf",
+  "park_id": "8b143010-7879-4756-b57b-fb8a1012e89f",
+  "confidence": 0.95,
+  "matched_alias": "好好",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "70494f52a21ab231e180fd7f5bba9c23558d58a7",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "71977065d290e86d00e05ba44b5b1f93d261c6b5",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "73bf1e1c669346df398f62e04133fa0a42f27962",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "新北市私立欣勵德幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "7616b55a17454fac39ffd79c9a2fe66518d6d097",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "763bd8371288d00f098c5f4a02095a773ab5f354",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "77addf130f6d38cbe53bd56991f08ececb359240",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "7852884e6a519c961eee3aceea3300abfab5c8c5",
+  "park_id": "03825d7c-3ee1-4a49-9faf-e5a31f9ea091",
+  "confidence": 1.0,
+  "matched_alias": "新北市立萬里幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "7b1f9c3fbc7bd11e8c9fd6c6cb51b115a0fc4598",
+  "park_id": "d6d90775-8fce-4484-ba73-54e85b4f2849",
+  "confidence": 1.0,
+  "matched_alias": "艾倫戴爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "0afcfc9f-3765-4071-b651-5eebd2cd45c3",
+  "confidence": 0.95,
+  "matched_alias": "中平",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "2754276d-1ff2-4e75-9f81-6695de738418",
+  "confidence": 0.95,
+  "matched_alias": "復國",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "311fd89e-984f-4532-8b68-1e5ced7a7a34",
+  "confidence": 0.95,
+  "matched_alias": "淡海",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "456bc54d-fcd4-4f67-a5dc-bf48a04721d4",
+  "confidence": 0.95,
+  "matched_alias": "福營",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "58e3e31d-1e4c-4cc1-9b71-700efe0b7e22",
+  "confidence": 0.95,
+  "matched_alias": "江翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "a3ec15ec-696c-44e0-a3a7-5bd00f9367d0",
+  "confidence": 0.95,
+  "matched_alias": "昌平",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "bc0ac35c-44a5-42f4-8c4e-b1f810ee4201",
+  "confidence": 0.95,
+  "matched_alias": "鷺江",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "e130c7b5-0ce6-4bba-9755-aee40d27e305",
+  "confidence": 0.95,
+  "matched_alias": "中園",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "e7071b50-ceec-44dd-8ea7-8472631c3360",
+  "confidence": 1.0,
+  "matched_alias": "新北市私立長頸鹿吉凱幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "7ba23f9c152a8c569c9cf486ae5236e9d2c7af39",
+  "park_id": "ebeeff50-09ba-429d-a0e6-36fcca4297b7",
+  "confidence": 0.95,
+  "matched_alias": "三和",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "7c4d2ec1864c2852491faa65545d1391e7a5c757",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "80dd0e067a7d5332e22e0fd051e5d81d56bde5dd",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 0.95,
+  "matched_alias": "欣勵德",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "882e6c9b2a5cda1507cd551e90c4def219c183c4",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "89b8f6e34b0ff768157d57e296acdf51e5650d29",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "8c5c52fbab7f91433811d81c3ee55d8deca9043a",
+  "park_id": "eb4be7d2-1387-4e06-8ed4-eaefc834d0b5",
+  "confidence": 0.95,
+  "matched_alias": "文化",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "8c64c45598b660c8c8c561406a8d6381687c0fec",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "8f7684483ee0fa2c162305a9d0665d5595eff559",
+  "park_id": "58e3e31d-1e4c-4cc1-9b71-700efe0b7e22",
+  "confidence": 0.95,
+  "matched_alias": "江翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "8f7684483ee0fa2c162305a9d0665d5595eff559",
+  "park_id": "dff00ebe-2685-4543-aa09-023476a9a81c",
+  "confidence": 0.95,
+  "matched_alias": "中華電信江翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "8fa223983d242f93ac7b651e34326e6cc2ef7780",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "90e610d0a6163f69506e49c19a8f1ac53e73c20f",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "92c2683cfccc8fbf4344eff97ccc299181e243d7",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "94fb77011e77a3ce87fd98c5ceb10e38030d681f",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "961969b7b4a3918d3363ce5b784202ba6d154677",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "97693fcd08b0fbed084d4300084c5d17c5fbe8bf",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9866f7e821b728764b3fae1ce7d449495be76daf",
+  "park_id": "5e69bf48-dd43-4215-8227-555ca4909676",
+  "confidence": 0.95,
+  "matched_alias": "立三芝幼",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9866f7e821b728764b3fae1ce7d449495be76daf",
+  "park_id": "a4e0bbee-429b-4dd5-b897-6cfff6494322",
+  "confidence": 1.0,
+  "matched_alias": "新北市立三芝幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "98d30697629dca352325e7e9061b4b2962548605",
+  "park_id": "27ac1e37-5c63-4cce-bbd9-088b58169814",
+  "confidence": 1.0,
+  "matched_alias": "喬幼國際幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9926a329733ec0be33cead852a7d52526f17d0c9",
+  "park_id": "efeb2820-084e-43fa-8008-4b3bc42c66f0",
+  "confidence": 1.0,
+  "matched_alias": "寶仁幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9b5aee66ec82643a651ae05eb15d7eca86e40fbd",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9c44e089a5ca459f5f38d4b9fa6dd6e1a3132b61",
+  "park_id": "d278e786-2fb9-4da3-bf30-96f39df13c55",
+  "confidence": 0.95,
+  "matched_alias": "民族",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9c8eaed5fae9b4a40f6ecdcfaf547f38659dfe3e",
+  "park_id": "efeb2820-084e-43fa-8008-4b3bc42c66f0",
+  "confidence": 1.0,
+  "matched_alias": "寶仁幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9d4309e37d961601994a63d5673e575d363b7593",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9d6fa59b058f21662b93fbac91b2b86e4283c37c",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "9d6fa59b058f21662b93fbac91b2b86e4283c37c",
+  "park_id": "82394a26-2933-4adb-9f32-97f6000060f9",
+  "confidence": 0.95,
+  "matched_alias": "立土城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9de67d7eaef5ae4401581baae1a09992eef57f5a",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "新北市私立學仕幼兒園",
+  "alias_kind": "full"
+ },
+ {
+  "doc_id": "9de67d7eaef5ae4401581baae1a09992eef57f5a",
+  "park_id": "d3d18119-54fa-46b0-924c-422220743708",
+  "confidence": 0.95,
+  "matched_alias": "重新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9e0ef6843e272a1956d297575203248b51fb9659",
+  "park_id": "311fd89e-984f-4532-8b68-1e5ced7a7a34",
+  "confidence": 0.95,
+  "matched_alias": "淡海",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "9e63496f5d5198b30e47251df6650666502ec2c9",
+  "park_id": "9b381e64-ea03-42cb-8474-cc5f4b068a1d",
+  "confidence": 0.95,
+  "matched_alias": "傑出",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "a1d481bb32059de31a2fabae26ffabfd820e70bf",
+  "park_id": "cc1eac21-0964-4170-9d32-c2a21349c93d",
+  "confidence": 0.95,
+  "matched_alias": "澄品",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "a1dfd9abfbab3663b6f45160875ef0744d181e9a",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "a523b594a4e3a55ead6777bec1e5aa7c1c417501",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "a606d56983654305c25e66c4c14c8c258bdc222a",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "a63ffe392b86c649fa2d156b3d72fba9a86273c0",
+  "park_id": "ab77f820-8816-4b86-b0f4-88f8843c7c4b",
+  "confidence": 0.95,
+  "matched_alias": "民安",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "a63ffe392b86c649fa2d156b3d72fba9a86273c0",
+  "park_id": "fd466d95-3594-4897-85b1-9175b43d3348",
+  "confidence": 1.0,
+  "matched_alias": "永錡幼稚園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "a72403a056f738ab3379930d5de7895c3a6bbf30",
+  "park_id": "348398a1-1f14-42da-bc82-c7f6fb874e96",
+  "confidence": 1.0,
+  "matched_alias": "朱徠德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b0924f35fa1e766e65538c31b7f6de1969804a25",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 0.5,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b0924f35fa1e766e65538c31b7f6de1969804a25",
+  "park_id": "694de2db-d20f-4fdc-9de3-d6da2603f574",
+  "confidence": 0.475,
+  "matched_alias": "及人",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "b2b823bec8368045542502aba0b2c7d570d7a751",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b2df95d5349cb0255205f5fa8adfa3b03533ce96",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b37fb5ddb7e7fb7e3328b99a6553c3de988b864d",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b42480206f223c3755d1a9140db6893ae2ee191d",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b4c1a4d5ad8e787ff542311dcc8d36d2f78b142c",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b5634cb54557a882eb050abd5ba56c5858b2c258",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b691078299247be6d14fb86d59dc2eda88e28523",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b71a7400202aad1b38fb94de69381794fa84a1ac",
+  "park_id": "7196f653-1692-4cdc-9408-0ec0514cd563",
+  "confidence": 1.0,
+  "matched_alias": "福音幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b852eb34c572bf5f630596e0939be9656def6f66",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "b977ceaf549e4646ce5be41661cf6cb2bc77283f",
+  "park_id": "79a05cd7-8a6d-438e-a7c7-c45209c515e6",
+  "confidence": 0.475,
+  "matched_alias": "台大",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "b977ceaf549e4646ce5be41661cf6cb2bc77283f",
+  "park_id": "efeb2820-084e-43fa-8008-4b3bc42c66f0",
+  "confidence": 0.5,
+  "matched_alias": "寶仁幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "bb0b2fdc49c1b8764aa32c662987b4bf57ade8c0",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "bc4c68df5cc51f6d8b730068e9385134cc7ccd19",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "bc4c68df5cc51f6d8b730068e9385134cc7ccd19",
+  "park_id": "d3d18119-54fa-46b0-924c-422220743708",
+  "confidence": 0.95,
+  "matched_alias": "重新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "bc71b7e10a1921035ef59bfa6b512dfecfd2cb0f",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "bca879969e31ef76fe2e4a7831a89050652215f7",
+  "park_id": "79a05cd7-8a6d-438e-a7c7-c45209c515e6",
+  "confidence": 0.475,
+  "matched_alias": "台大",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "bca879969e31ef76fe2e4a7831a89050652215f7",
+  "park_id": "efeb2820-084e-43fa-8008-4b3bc42c66f0",
+  "confidence": 0.475,
+  "matched_alias": "寶仁",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "bee24caaffd29aa5f1d5c2a11a718688547df00e",
+  "park_id": "c9c672a3-ac68-4d5e-a9a3-497693d25a43",
+  "confidence": 1.0,
+  "matched_alias": "劍聲幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "bf66fd2aadd40420c3b7635bb6668f87163b7059",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "c21033a8b261f72465636e3c301a24ab4b94a800",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "c28fc922a44945491d3fbb79827a2d512a060f24",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "c70ba2d37042c6564f4a89c4377957e1af72f7e4",
+  "park_id": "a5b9dd5c-6f8d-4fad-98ae-6c8bb5ab3a42",
+  "confidence": 1.0,
+  "matched_alias": "雅森幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "c70ba2d37042c6564f4a89c4377957e1af72f7e4",
+  "park_id": "d1df93a0-0f90-49d1-8d2c-9fb54fd0bbf7",
+  "confidence": 0.95,
+  "matched_alias": "溫馨",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "cae245023ed7c1f4945c8b99ff4a02c1ae272033",
+  "park_id": "79a05cd7-8a6d-438e-a7c7-c45209c515e6",
+  "confidence": 0.95,
+  "matched_alias": "台大",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "cc1516445eae76b96866537b88a3fde1a673a2f8",
+  "park_id": "afc5cb83-ded9-4a88-a026-a77b70c2d74d",
+  "confidence": 1.0,
+  "matched_alias": "中冠幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "cc7d6369248a64010f1d604a0b68bb73bdffcd0c",
+  "park_id": "473fc5a9-a0a1-4f7e-860e-39152ae43dfb",
+  "confidence": 0.95,
+  "matched_alias": "新店民安",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "cc7d6369248a64010f1d604a0b68bb73bdffcd0c",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 0.95,
+  "matched_alias": "新月",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "cc7d6369248a64010f1d604a0b68bb73bdffcd0c",
+  "park_id": "cedb09ac-5e6f-427d-b9ad-423024c71d88",
+  "confidence": 0.95,
+  "matched_alias": "永翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "ccbf68cb02ec204f7a28049a52324e7fe1dcd860",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "cdb6799499b8b9a7691255bea977402e294e8fcd",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 0.5,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "cdb6799499b8b9a7691255bea977402e294e8fcd",
+  "park_id": "694de2db-d20f-4fdc-9de3-d6da2603f574",
+  "confidence": 0.475,
+  "matched_alias": "及人",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "d1ec07a3011cc6a3675a17f36bf5c4b7b6439b29",
+  "park_id": "48ca7ef9-2087-4394-8a65-71b6463d8412",
+  "confidence": 0.95,
+  "matched_alias": "時代",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "d368e11361c63a7cb39d1788262bd63b219c5cd4",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d3691e4f96cfebe67aa2570e5a0963197322fd9e",
+  "park_id": "348398a1-1f14-42da-bc82-c7f6fb874e96",
+  "confidence": 1.0,
+  "matched_alias": "朱徠德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d4a39eafe31db5a271f0b7ace461138eff2d0f7e",
+  "park_id": "afc5cb83-ded9-4a88-a026-a77b70c2d74d",
+  "confidence": 1.0,
+  "matched_alias": "中冠幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d5033315db1134babd1d0243647799c894d88921",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d622bda463cef0ee7e7fd36bdd9afe38c7b1ed88",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d6e4689f0cf2e497ba96283a51b924484b21523f",
+  "park_id": "4273705a-5297-4025-a88b-f133cf5f6bca",
+  "confidence": 1.0,
+  "matched_alias": "吉尼爾幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "d7b9749469ceb6192d9779165b77ee7a6716a5d1",
+  "park_id": "201270ee-418d-451e-9220-a0670c3fd257",
+  "confidence": 0.95,
+  "matched_alias": "童心",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "d9be156a8c4bc38f91827bf89ef83f8160fa3b77",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "de3f2faa8a831f9eed26a53e957842f4f0eebb95",
+  "park_id": "0f57fead-e491-4569-8eb1-83341a6df287",
+  "confidence": 1.0,
+  "matched_alias": "欣園幼稚園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "e52f4966ce5bce7d7cc3b3a89b1f3990f4042f21",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "eac08775963d716cd520b1956e832145cb84d50b",
+  "park_id": "a07a496e-ee97-4a5d-8b66-7062910f3dce",
+  "confidence": 1.0,
+  "matched_alias": "立林口幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "eb86617386ce377ffe01f40131a6e50ce8cd7093",
+  "park_id": "473fc5a9-a0a1-4f7e-860e-39152ae43dfb",
+  "confidence": 0.95,
+  "matched_alias": "新店民安",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "eb86617386ce377ffe01f40131a6e50ce8cd7093",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 1.0,
+  "matched_alias": "新月幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "eb86617386ce377ffe01f40131a6e50ce8cd7093",
+  "park_id": "cedb09ac-5e6f-427d-b9ad-423024c71d88",
+  "confidence": 0.95,
+  "matched_alias": "永翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "efaab43ab31281a9d9061a6d277020a13c194bc5",
+  "park_id": "201270ee-418d-451e-9220-a0670c3fd257",
+  "confidence": 0.95,
+  "matched_alias": "童心",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f0b1c1c18696852f96455c1773f34d6d59c40ab4",
+  "park_id": "8d9f6d02-a023-4b7a-8c2f-6f29fc437f09",
+  "confidence": 1.0,
+  "matched_alias": "金美國小附幼",
+  "alias_kind": "tail"
+ },
+ {
+  "doc_id": "f2590fb0b3e511891b13b57f94c22ba3ba3b0d44",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "f2590fb0b3e511891b13b57f94c22ba3ba3b0d44",
+  "park_id": "d3d18119-54fa-46b0-924c-422220743708",
+  "confidence": 0.95,
+  "matched_alias": "重新",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f2974270f9a2f700a3b368474879d82fb1bbad58",
+  "park_id": "7d72d332-351e-4342-9050-09672d9f599d",
+  "confidence": 0.95,
+  "matched_alias": "新月",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f2974270f9a2f700a3b368474879d82fb1bbad58",
+  "park_id": "94d3801f-37d1-42d3-b1db-77922f84830e",
+  "confidence": 0.95,
+  "matched_alias": "立板橋",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f2ee0f8471ff6ed22b7ec823a6d5f1344aaebacb",
+  "park_id": "08917a82-ed8e-42ec-b59f-c2e756852234",
+  "confidence": 1.0,
+  "matched_alias": "欣勵德幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "f3477e8024961baf84d23e30305ce3d0a8bf762b",
+  "park_id": "60ff647e-9f81-40a8-8f7e-9aa54cac7dc8",
+  "confidence": 1.0,
+  "matched_alias": "學仕幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "f375c945cd6cd3ff0155124eb8bb25020f5cb563",
+  "park_id": "79a05cd7-8a6d-438e-a7c7-c45209c515e6",
+  "confidence": 0.95,
+  "matched_alias": "台大",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f6b4ef567850d0ce97081b2aa7b41d291cfe0908",
+  "park_id": "82394a26-2933-4adb-9f32-97f6000060f9",
+  "confidence": 0.95,
+  "matched_alias": "立土城",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f72787879f13e9d10a738937dab1ab704657b563",
+  "park_id": "4787abd9-937a-49fe-b11a-0cac6f97e748",
+  "confidence": 0.95,
+  "matched_alias": "柏翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "f90e4875d87ae6d735a19f42b8f2e3653b5508bb",
+  "park_id": "8d9f6d02-a023-4b7a-8c2f-6f29fc437f09",
+  "confidence": 1.0,
+  "matched_alias": "金美國小附幼",
+  "alias_kind": "tail"
+ },
+ {
+  "doc_id": "fbebb27825632ec8d793a7e69e9b13f55d6757f8",
+  "park_id": "cedb09ac-5e6f-427d-b9ad-423024c71d88",
+  "confidence": 0.95,
+  "matched_alias": "永翠",
+  "alias_kind": "short"
+ },
+ {
+  "doc_id": "fe1be31537e23dc576329391c36aaf956bfa1f4b",
+  "park_id": "efeb2820-084e-43fa-8008-4b3bc42c66f0",
+  "confidence": 1.0,
+  "matched_alias": "寶仁幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "ffa2a8131bd1164c8d5b6420a5d11bb012a09d95",
+  "park_id": "82171ef0-86b6-4c61-bef8-d6f4079bd78d",
+  "confidence": 1.0,
+  "matched_alias": "土城育全幼兒園",
+  "alias_kind": "core"
+ },
+ {
+  "doc_id": "ffa2a8131bd1164c8d5b6420a5d11bb012a09d95",
+  "park_id": "e17cc896-a8fb-471e-999a-7aa8993886cd",
+  "confidence": 0.95,
+  "matched_alias": "立新",
+  "alias_kind": "short"
+ }
+]
