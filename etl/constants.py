@@ -4,11 +4,27 @@ from datetime import date
 CUTOFF = date(2025, 1, 1)          # SPEC §1.2
 CITY = "新北市"
 
-# SPEC §5.0 四維度權重
+# SPEC §5.0 四維度權重（2026-09-12 依實測修正，見 docs/回測發現-v2權重與輿情.md）
+#
+# 原表為 違規 35 / 評鑑 20 / 輿情 15 / 營運 30（私立 50 / 28.6 / 21.4 / —）。
+# 兩處依實測改動，理由都不是「分數比較高」：
+#
+# 1. **輿情設為 None（不計分）**。實測該維度單獨 Precision@50 = 8.0%，
+#    低於隨機抽查的 10.9%；有 B 級輿情訊號的 11 區共 867 園，被罰率 10.5%，
+#    與全市無異。區級熱度買到的是覆蓋率，不是準確度。輿情資料仍照常產出
+#    並供前端展示（`media` 區塊、行政區熱力圖），只是不進風險分數。
+#
+# 2. **違規：評鑑改為 38 : 62**。依 SPEC §6.3 第 4 列那條實測 28.0% 的
+#    基準線（`裁罰次數 + 2×基礎評鑑未通過 + 3×行政處分`）的隱含比例。
+#    規格的權重表把最大權重給了較弱的維度——實測評鑑單獨 26.0%、
+#    違規單獨 24.0%——而規格自己最好的那條基準線，評鑑實際佔約 62%。
+#    **權重表與規格自己的實證基準線矛盾時，以實證那邊為準。**
+#
+# 公立與非營利保留營運 30%，其餘 70% 依同一個 38:62 分配。
 WEIGHTS = {
-    "公立":   {"violation": 0.35, "evaluation": 0.20, "sentiment": 0.15, "operation": 0.30},
-    "非營利": {"violation": 0.35, "evaluation": 0.20, "sentiment": 0.15, "operation": 0.30},
-    "私立":   {"violation": 0.50, "evaluation": 0.286, "sentiment": 0.214, "operation": None},
+    "公立":   {"violation": 0.266, "evaluation": 0.434, "sentiment": None, "operation": 0.30},
+    "非營利": {"violation": 0.266, "evaluation": 0.434, "sentiment": None, "operation": 0.30},
+    "私立":   {"violation": 0.38, "evaluation": 0.62, "sentiment": None, "operation": None},
 }
 
 # SPEC §5.6.0 營運維度的同儕群與公式

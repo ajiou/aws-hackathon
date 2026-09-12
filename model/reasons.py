@@ -9,7 +9,7 @@
 from .scoring import INDICATORS
 
 # code → (維度, 觸發條件, label 產生器)。條件與模板逐字對應 §4.6 的表。
-def _rules(f, pct):
+def _rules(f, pct, scored_dimensions=None):
     """pct 是該園在同儕群內的子指標百分位，用來填「同類型前 N%」。"""
     top_pct = lambda field: max(1, round(100 - (pct.get(field) or 0)))
     out = []
@@ -67,6 +67,14 @@ def _rules(f, pct):
             "查無切點前評鑑紀錄，可能為新立案園所")
 
     # ---- 輿情
+    # ADR-0001 後輿情不進分數，這三個 code 只在該維度重新被納入時才會出現。
+    # 保留實作是因為 §4.6 的碼表沒有廢除，前端的圖示對應也還在。
+    if not scored_dimensions or "sentiment" in scored_dimensions:
+        _media_rules(f, add)
+    return out
+
+
+def _media_rules(f, add):
     if (f.get("media_sri") or 0) >= 15:
         add("MEDIA_PARK", "sentiment", "media_sri",
             f"近期有 {f.get('media_event_count', 1)} 起負面報導，"
@@ -81,13 +89,16 @@ def _rules(f, pct):
     return out
 
 
-def build_reasons(feature_row, pcts, weights, finance=None):
+def build_reasons(feature_row, pcts, weights, finance=None):  # noqa: D401
     """回傳至多 3 條，依 weight 由大至小，同一維度至多 2 條。"""
     dim_weight = {d: (weights.get(d) or 0) for d in INDICATORS}
     sub_weight = {f: w for dim in INDICATORS for f, w, _ in INDICATORS[dim]}
 
+    # 只有進得了分數的維度才產生原因碼——輿情在 ADR-0001 後不計分，
+    # 讓它繼續出現在 reasons 等於在解釋一個沒有進入分數的東西。
+    scored_dims = {d for d, w in weights.items() if w}
     scored = []
-    for r in _rules(feature_row, pcts):
+    for r in _rules(feature_row, pcts, scored_dims):
         field = r.pop("_field")
         score = pcts.get(field)
         if score is None:

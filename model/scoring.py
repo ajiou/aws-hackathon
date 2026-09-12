@@ -130,18 +130,36 @@ def dimension_score(row, dim, pcts, finance=None):
 
 
 def risk_raw(row, dim_scores, weights):
-    """R_raw = Σ(w_k · Coverage_k · S_k) / Σ(w_k · Coverage_k)。SPEC §5.2。
+    """R_raw = Σ(w_k · Coverage_k · S_k) / Σ(w_k)，分母只算**適用**的維度。
 
-    維度整個缺席時（如私立沒有營運資料、或輿情 db 尚未到位）不必手動改權重表——
-    Coverage = 0 會讓該維度自動退出分母，其餘維度自動重正規化。
+    §5.1 原文是除以 `Σ(w_k · Coverage_k)`，也就是缺資料的維度整個退出分母、
+    其餘維度自動重正規化。**那對「不適用」是對的，對「有缺口」是錯的**——
+    見 ADR-0001。
+
+    兩件事必須分開：
+
+    | 情況 | 例子 | 處理 |
+    |---|---|---|
+    | **不適用** | 私立沒有營運維度（依法不需公告財報） | 退出分母。不然等於懲罰守法者 |
+    | **有資料缺口** | 137 園查無切點前評鑑紀錄 | **留在分母**，貢獻按覆蓋率打折 |
+
+    原文把兩者一視同仁，結果是：一家只有裁罰分數、查無評鑑紀錄的園，
+    整份分數由違規維度單獨決定並被放大到滿分基準——「沒資料」被當成
+    「這個維度不適用」。實測那 101 園被罰率 7.9%，**低於**母體的 10.9%，
+    卻被這個機制推進 top-50 佔掉 11 個名額、只命中 1 家。
+
+    改成分母固定後 Precision@50 從 24.0% 回到 26.0%，且不需要任何
+    調出來的常數——固定給缺失維度 20 分也是 26.0%，兩者同分。
     """
     num = den = 0.0
     for dim, (score, coverage) in dim_scores.items():
         weight = weights.get(dim)
-        if weight is None or score is None or coverage <= 0:
+        if weight is None:                 # 該園所類型不適用此維度 → 退出分母
+            continue
+        den += weight                      # 適用就留在分母，不因缺資料而縮
+        if score is None or coverage <= 0:
             continue
         num += weight * coverage * score
-        den += weight * coverage
     return (num / den if den else 0.0), den
 
 
@@ -170,7 +188,9 @@ def score_all(rows, weights_by_type, finance=None,
             "label": row["label"],
             "dimensions": dims,
             "raw": raw,
-            "coverage": round(weight_mass / sum(w for w in weights.values() if w), 4),
+            "coverage": round(weight_mass and
+                              sum(w * dims[d][1] for d, w in weights.items()
+                                  if w and dims[d][0] is not None) / weight_mass, 4),
         })
 
     # 組內百分位，只用 is_active 的園當分母

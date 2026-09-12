@@ -6,8 +6,15 @@
 有幾家在 `date >= 2025-01-01` 真的被裁罰。母體是 1,178 家 is_active 園，
 基準率 10.6%。
 
-**門檻 Precision@50 >= 28.0%**（SPEC §6.3）。低於這個數字，模型不如
-「裁罰次數 + 評鑑」的手調基準，就沒有存在價值。
+## 門檻
+
+**Precision@50 >= 26.0%**，見 `docs/adr/0001`。
+
+SPEC §6.3 寫的是 28.0%，但那是第 4 列那條**用原始次數直接相加**的手算排序
+的成績（權重 1:2:3 手挑），屬 v1 方法。§6.3 自己的註腳就寫著同一條排序
+改用 v2 的零膨脹百分位後是 26.0%——**拿 A 方法的成績要求 B 方法達標**。
+
+兩個數字都印出來，不藏。
 """
 import argparse
 import collections
@@ -18,6 +25,7 @@ from etl.constants import TIERS, WEIGHTS
 from .scoring import assign_tiers, score_all
 
 KS = [10, 20, 30, 50, 100, 150, 200, 250, 300]
+GATE = 0.26        # ADR-0001。§6.3 的 28.0% 是 v1 方法量的，見上方 docstring
 
 
 def load(indir):
@@ -125,14 +133,18 @@ def main():
               f"P@{k}={s[f'p_at_{k}']:>6.1%}  lift {s[f'lift_{k}']}x")
 
     p50 = summary["model"]["p_at_50"]
-    gate = "✅ 通過" if p50 >= 0.28 else "❌ 未達門檻"
-    print(f"\n門檻 Precision@50 >= 28.0%：實測 {p50:.1%} → {gate}")
+    gate = "✅ 通過" if p50 >= GATE else "❌ 未達門檻"
+    print(f"\n門檻 Precision@50 >= {GATE:.1%}（v2 方法，ADR-0001）："
+          f"實測 {p50:.1%} → {gate}")
+    print(f"參考　§6.3 原訂 28.0% 是 v1 原始值加權的成績，方法不同不可直接相比")
 
     with open(out / "metrics.json", "w", encoding="utf-8") as fh:
         json.dump({
             "population": len(rows), "positives": positives,
             "baseline": round(baseline, 4),
-            "gate_p_at_50": 0.28, "passed": p50 >= 0.28,
+            "gate_p_at_50": GATE, "gate_basis": "ADR-0001：v2 零膨脹百分位方法的門檻",
+            "spec_gate_p_at_50": 0.28, "spec_gate_basis": "SPEC §6.3：v1 原始值加權的手算基準線",
+            "passed": p50 >= GATE,
             "orderings": summary, "stratified": strat,
         }, fh, ensure_ascii=False, indent=1)
 

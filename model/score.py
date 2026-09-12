@@ -21,6 +21,8 @@ from .scoring import assign_tiers, score_all
 
 MODEL_VERSION = "risk-v2"
 DIM_NOTE = {
+    ("sentiment", None): "區級輿情熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
+                         "依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視",
     ("operation", "私立"): "私立幼兒園依法不需公告財務報告",
     ("operation", "非營利-無財報"): "本園未公告財務報告，營運維度不計分",
     ("operation", "公立-附設"): "本園為附設幼兒園，財務併入所屬學校，營運分數僅依收費明細計算",
@@ -41,14 +43,18 @@ def dimension_block(dim, score, coverage, weight, peer_group, itype):
     `applicable = false` 時 `score` **必須是 null，不得是 0**——0 分等於懲罰守法者。
     營運維度的 `validated` 永遠 false（§5.6.8，有財務資料的 33 園中被罰者僅個位數）。
     """
-    applicable = not (dim == "operation" and weight is None)
+    # 「不適用」指這類園所本來就不該有這個維度（私立沒有財報）。
+    # 輿情是另一回事——資料有、也照常展示，只是實測無鑑別力所以不計分，
+    # 因此 applicable 維持 true，由 note 說明為什麼沒有分數（ADR-0001）。
+    applicable = weight is not None
     return {
         "applicable": applicable,
         "score": round(score, 1) if (applicable and score is not None) else None,
         "coverage": round(coverage, 2),
         "weight": weight if applicable else None,
         "validated": dim != "operation",
-        "note": DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype)),
+        "note": (DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
+                 or DIM_NOTE.get((dim, None))),
     }
 
 
@@ -131,6 +137,10 @@ def main():
         assert not (op["applicable"] is False and op["score"] is not None), \
             "applicable=false 時 score 必須是 null"
         assert op["validated"] is False, "營運維度的 validated 必須永遠是 false"
+        assert it["dimensions"]["sentiment"]["score"] is None, \
+            "輿情不計分（ADR-0001），score 必須是 null"
+        assert not [r for r in it["reasons"] if r["dimension"] == "sentiment"], \
+            "輿情不計分時不得產生輿情原因碼"
     dump("scores", {"generated_at": now, "items": items})
 
     # ---- districts
