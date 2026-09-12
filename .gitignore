@@ -22,3 +22,7 @@ node_modules/
 Thumbs.db
 .vscode/
 .idea/
+
+# 本機執行產物
+out/
+*.parquet

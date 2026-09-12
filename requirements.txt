@@ -1,0 +1,8 @@
+# ETL 與模型
+pdfplumber>=0.11
+openpyxl>=3.1
+scikit-learn>=1.5
+numpy>=1.26
+
+# 後端（本機開發只需標準庫；部署到 Lambda 才要 boto3）
+boto3>=1.34
