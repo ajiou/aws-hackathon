@@ -19,7 +19,12 @@ function Row({ row, compact }: { row: ParkRow; compact?: boolean }) {
   const reasons = row.reasons ?? details.data?.reasons;
   return (
     <tr className={!row.is_active ? s.inactive : undefined}>
-      <td className={s.num}>{row.risk.rank}</td>
+      {compact && (
+        <td>
+          <TierBadge tier={row.risk.tier} />
+        </td>
+      )}
+      {!compact && <td className={s.num}>{row.risk.rank}</td>}
       <th scope="row" className={s.nameCell}>
         <Link to={`/park/${row.park_id}`}>{row.name}</Link>
         {!row.is_active && <p>已停辦</p>}
@@ -33,9 +38,11 @@ function Row({ row, compact }: { row: ParkRow; compact?: boolean }) {
             : "——"}
         </td>
       )}
-      <td>
-        <TierBadge tier={row.risk.tier} />
-      </td>
+      {!compact && (
+        <td>
+          <TierBadge tier={row.risk.tier} />
+        </td>
+      )}
       {!compact && <td className={s.num}>{row.pun_count}</td>}
       <td>
         {reasons ? (
@@ -68,10 +75,10 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
   }
   const headers = embedded
     ? [
-        ["名次", "risk"],
+        // 分級擺第一欄，稽核人員一眼就分得出優先序；名次改由排序承擔。
+        ["分級", "risk"],
         ["園名", "name"],
         ["設立別", ""],
-        ["分級", ""],
         ["上榜原因", ""],
       ]
     : [

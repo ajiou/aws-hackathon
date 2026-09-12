@@ -234,11 +234,11 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   ).toBeVisible();
   await expect(overview.locator("tbody tr").first()).toBeVisible();
   // 右側欄是窄版：行政區、加權總分、裁罰次數不列出來。
-  for (const column of ["行政區", "加權總分", "裁罰次數"])
+  for (const column of ["行政區", "加權總分", "裁罰次數", "名次"])
     await expect(
       overview.getByRole("columnheader", { name: column }),
     ).toHaveCount(0);
-  for (const column of ["名次", "園名", "設立別", "分級", "上榜原因"])
+  for (const column of ["分級", "園名", "設立別", "上榜原因"])
     await expect(
       overview.getByRole("columnheader", { name: new RegExp(column) }),
     ).toHaveCount(1);
