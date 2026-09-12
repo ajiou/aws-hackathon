@@ -162,7 +162,7 @@
 | `doc_analysis` 只標了 20% | SRI 只算得出 40 園 | 用 Bedrock 批次補標剩下 2,320 篇（1 RPS × 2,320 ≈ 39 分鐘） |
 | 輿情 A 級只綁到 40 園（3.3%） | 園級輿情特徵覆蓋率極低 | 見 §5.3 三層輿情設計——**不是用 A 級硬撐，而是用區級熱度覆蓋全母體** |
 | 137 園無任何切點前評鑑紀錄 | 評鑑特徵缺失 | 這 137 園被罰率僅 5.8%（lift 0.55x），多為新立案園。加 `eval_missing` 指示欄，**不可填 0** —— 填 0 會讓新園看起來像「評鑑全通過」 |
-| 私幼無財報（868 園、95.3% 的裁罰） | B+C 永遠只覆蓋 280 園 | 這是題目本身的縫，直接在簡報指出，不要假裝補得起來 |
+| 私幼無財報（868 園、95.3% 的裁罰） | 營運維度永遠只覆蓋 280 園 | 這是題目本身的縫，直接在簡報指出，不要假裝補得起來 |
 
 ---
 
@@ -244,12 +244,16 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
                    "note": "私立幼兒園依法不需公告財務報告"}
   },
   "reasons": [
-    {"code": "D_PUNISH_COUNT", "label": "切點前已被裁罰 5 次，全市前 3%", "weight": 0.41, "block": "D"},
-    {"code": "D_OWNER_PRIOR",  "label": "現任負責人名下他園亦有裁罰紀錄", "weight": 0.22, "block": "D"},
-    {"code": "A_TOWN_HEAT",    "label": "所在行政區近 90 天輿情熱度全市第 4", "weight": 0.11, "block": "A"}
+    {"code": "VIO_PUNISH_COUNT", "label": "切點前已被裁罰 5 次，同類型前 3%",
+     "weight": 0.41, "dimension": "violation", "validated": true},
+    {"code": "EVAL_FAIL", "label": "基礎評鑑 2 次未全數指標通過",
+     "weight": 0.22, "dimension": "evaluation", "validated": true},
+    {"code": "MEDIA_TOWN_HEAT", "label": "所在行政區近 90 天輿情熱度全市第 4",
+     "weight": 0.11, "dimension": "sentiment", "validated": true}
   ],
   "finance_flags": [
-    {"code": "F_PERSONNEL_EXEC", "label": "人事費執行率 51%，為樣本最低", "severity": 3, "year": 113}
+    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 51%，同儕中位數 90%",
+     "severity": 3, "year": 113, "validated": false}
   ],
   "media": {"sri": 0.0, "has_signal": false, "town_heat_per_park": 0.42, "last_negative_at": null},
   "timeline": [
@@ -279,54 +283,52 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
 ```json
 {
   "park_id": "00ac631e-...",
+  "institution_type": "私立",
   "cutoff": "2025-01-01",
   "label": false,
 
-  "a_type": "私立",
-  "a_count_approved": 90,
-  "a_area_per_child": 3.42,
-  "a_area_missing": false,
-  "a_floor_count": 2,
-  "a_years_since_reg": 28.4,
-  "a_reg_date_missing": false,
-  "a_chain_size": 1,
-  "a_is_pre_public": true,
-  "a_has_afterschool": false,
-  "a_monthly_fee": 12000,
-  "a_town_park_density": 162,
+  "vio_pun_weighted": 7.83,
+  "vio_pun_count": 5,
+  "vio_owner_prior_count": 3,
+  "vio_sibling_pun_count": 4,
+  "vio_abuse_count": 0,
+  "vio_days_since_last": 178,
+  "vio_cat_師資": 1, "vio_cat_超收": 2, "vio_cat_不當管教": 0,
+  "vio_cat_師生比": 2, "vio_cat_收費爭議": 0, "vio_cat_食安衛生": 0,
+  "vio_cat_交通車": 0, "vio_cat_設施安全": 0, "vio_cat_其他行政": 0,
+  "vio_owner_cross_park": true,
+  "vio_sibling_count": 7,
+  "vio_chain_size": 8,
+  "vio_archetype": "連鎖累犯",
 
-  "a_eval_base_fail_count": 2,
-  "a_eval_followup_count": 1,
-  "a_eval_admin_penalty": true,
-  "a_eval_admin_count": 2,
-  "a_eval_years_since": 1.8,
-  "a_eval_missing": false,
+  "eval_base_fail_count": 2,
+  "eval_admin_count": 2,
+  "eval_followup_count": 1,
+  "eval_admin_penalty": true,
+  "eval_years_since": 1.8,
+  "eval_missing": false,
 
-  "a_sri": 0.0,
-  "a_sri_has_signal": false,
-  "a_sri_top_severity": null,
-  "a_sri_is_burst": false,
-  "a_town_heat_per_park": 0.42,
-  "a_town_heat_rank": 4,
+  "media_sri": 0.0,
+  "media_has_signal": false,
+  "media_top_severity": null,
+  "media_is_burst": false,
+  "media_town_heat_per_park": 0.42,
+  "media_town_heat_rank": 4,
+  "media_last_negative_at": null,
 
-  "d_pun_count": 5,
-  "d_pun_weighted": 7.83,
-  "d_pun_days_since_last": 178,
-  "d_pun_abuse_count": 0,
-  "d_pun_cat_師資": 1, "d_pun_cat_超收": 2, "d_pun_cat_不當管教": 0,
-  "d_pun_cat_師生比": 2, "d_pun_cat_收費爭議": 0, "d_pun_cat_食安衛生": 0,
-  "d_pun_cat_交通車": 0, "d_pun_cat_設施安全": 0, "d_pun_cat_其他行政": 0,
-  "d_owner_prior_count": 3,
-  "d_owner_cross_park": true,
-  "d_sibling_pun_count": 4,
-  "d_sibling_count": 7,
-  "d_risk_archetype": "連鎖累犯"
+  "oper_applicable": false,
+
+  "display_count_approved": 90,
+  "display_area_per_child": 3.42,
+  "display_years_since_reg": 28.4,
+  "display_monthly_fee": 12000,
+  "display_town": "土城區"
 }
 ```
 
-**命名規則**：`vio_` / `eval_` / `media_` / `oper_` 前綴對應四個維度（§5.0）。這讓維度分數計算變成一行欄位篩選，也讓原因歸組不需查表。
+**命名規則**：`vio_` / `eval_` / `media_` / `oper_` 前綴對應四個維度（§5.0），`display_` 前綴是**不進模型、只供前端顯示**的欄位。這讓維度分數計算變成一行欄位篩選，也讓原因歸組不需查表。
 
-> 上例仍使用 v1 的 `a_` / `d_` 前綴，ETL 實作時一律改為四維度前綴：`a_eval_*` → `eval_*`、`a_sri_*` / `a_town_*` → `media_*`、`d_*` → `vio_*`、基本資料中仍保留的 `a_chain_size` 併入 `vio_`（它衡量的是同負責人的違規擴散面）。基本資料其餘欄位（lift 0.85–1.2x）不進模型，僅供前端顯示與分層。
+私立園的 `oper_applicable = false` 且**不帶任何 `oper_*` 數值欄位**——不是填 0，是整組不存在。完整欄位定義見 §4。
 
 **缺失值規則**：連續變數缺失填 `null`（不是 0），並一律附 `*_missing` 布林欄。訓練時才做中位數填補。
 
@@ -415,8 +417,17 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
     "overtime_exec_rate": 0.143
   },
   "peer_median_exec_rate": 0.90,
+  "sub_scores": {
+    "F": {"score": 42.1, "coverage": 1.00},
+    "H": {"score": 91.3, "coverage": 1.00},
+    "A": {"score": 66.7, "coverage": 0.85, "major_count": 1},
+    "E": {"score": 18.0, "coverage": 1.00}
+  },
+  "operation_score": 71.4,
+  "audit_floor_applied": 80,
+  "validated": false,
   "flags": [
-    {"code": "F_PERSONNEL_EXEC", "label": "人事費執行率 51%，為樣本最低",
+    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 51%，同儕中位數 90%",
      "severity": 3, "year": 113,
      "evidence": {"rate": 0.51, "peer_median": 0.90, "rank": "46/46"}}
   ],
@@ -424,7 +435,9 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
 }
 ```
 
-**公式待補**（§13 第 2 項）。介面已凍結，公式進來只需實作 `flags` 的產生邏輯。
+`sub_scores` 對應 §5.6 的 F／H／A／E 四個子維度。`audit_floor_applied` 記錄下限規則是否生效（80 或 90），`null` 表示未觸發。`validated` 永遠是 `false`，理由見 §4.4。
+
+> `operation_score` 已套用下限規則。若加權結果低於 `audit_floor_applied`，以下限值為準——這是規則覆蓋計算，必須可追溯。
 
 ### 3.9 `serving/districts.json` 與 `serving/curve.json`
 
@@ -497,135 +510,186 @@ def assert_no_banned(df):
 
 ## 4. 特徵字典
 
-所有特徵一律以 `CUTOFF = 2025-01-01` 為界計算。
+四個維度，對應 §5.0 的權重表。欄位前綴即維度：`vio_` / `eval_` / `media_` / `oper_`。
 
-### 4.1 A 區塊 — 基本資料（11 項）
+所有特徵一律以 `CUTOFF = 2025-01-01` 為界計算。每個特徵標明**風險方向**（上尾 / 下尾 / 雙尾）與**轉換方式**（零膨脹 / ECDF），供 §5.1 使用。
 
-| 欄位 | 型別 | 來源 | 實測 lift | 備註 |
-|---|---|---|---|---|
-| `type` | cat | `type` | — | 私立 12.0% / 公立 5.8% / 非營利 14.0%。**高共線性風險，見 §6.4 分層** |
-| `count_approved` | int | `count_approved` | 1.15x (≥150) | |
-| `area_per_child` | float | `size_in / count_approved` | 1.19x (<2 m²) | 擁擠度，師生比的代理變數 |
-| `floor_count` | int | `floor` 切分計數 | 1.03x | 弱 |
-| `years_since_reg` | float | `reg_date` → CUTOFF | 1.37x (5–15 年) | 非單調，建議分箱 |
-| `reg_date_missing` | bool | — | — | 23 園 |
-| `chain_size` | int | `owner` groupby | 1.31x (≥3) | `owner` 為 null 時設 1 |
-| `is_pre_public` | bool | `pre_public != "無"` | 0.96x | 無訊號，保留供敘事 |
-| `has_afterschool` | bool | `is_after` | — | |
-| `monthly_fee` | int | `monthly` | 1.19x (10k–20k) | |
-| `town_park_density` | int | 同區園數 | — | 稽查負荷代理變數 |
+### 4.1 違規維度 `vio_`
 
-> **誠實說明**：除 `chain_size` 與 `area_per_child` 外，基本資料欄位的 lift 都在 0.85–1.2x 之間，接近雜訊。基本資料的價值在於**分層與敘事**，不在於預測力。A 線的預測力來自評鑑與輿情。
+公立/非營利 35%、私立 50%。**全案最強的維度。**
 
-### 4.2 A 區塊 — 評鑑（6 項）✅ 已驗證
+| 欄位 | 型別 | 維度內權重 | 方向 | 轉換 | 實測 |
+|---|---|--:|---|---|---|
+| `vio_pun_weighted` | float | 40% | 上尾 | 零膨脹 | `Σ severity × 0.5^(days/540)`，見 §5.3 |
+| `vio_pun_count` | int | 20% | 上尾 | 零膨脹 | 0 次 8.4% → 3 次 21.9% |
+| `vio_owner_prior_count` | int | 20% | 上尾 | 零膨脹 | **無 8.6% → 有 14.5%（1.69x）** |
+| `vio_sibling_pun_count` | int | 10% | 上尾 | 零膨脹 | 無 10.1% → 有 13.6% |
+| `vio_abuse_count` | int | 10% | 上尾 | 零膨脹 | 0 次 10.3% → 1 次 23.1% |
 
-來源 `data/評鑑結果.json`，**僅取 `評鑑完成日 < CUTOFF` 的列**（丟棄 280 列：258 列日期在切點後、22 列「尚未接受評鑑」無日期）。
+輔助欄位（不直接計分，供原因碼與前端顯示使用）：
 
-| 欄位 | 型別 | 定義 | 實測 lift |
-|---|---|---|---|
-| `eval_base_fail_count` | int | 「基礎評鑑－非全數指標通過」次數 | **0/1/2/3 次 → 9.2% / 12.8% / 16.7% / 28.6%，單調，最高 2.71x** |
-| `eval_followup_count` | int | 「追蹤評鑑」列數 | **0/1/2 次 → 9.2% / 13.7% / 16.8%，單調，1.59x** |
-| `eval_admin_penalty` | bool | 曾出現「行政處分」列（幼照法第 51 條） | **22.9% vs 10.8%，2.16x**（35 園） |
-| `eval_admin_count` | int | 行政處分列數（同園可多次，反映違反次數） | 78 列 / 35 園 |
-| `eval_years_since` | float | 距最近一次評鑑年數 | 待測 |
-| `eval_missing` | bool | 無任何切點前評鑑紀錄 | 137 園，被罰率 5.8%（0.55x） |
+| 欄位 | 型別 | 用途 |
+|---|---|---|
+| `vio_days_since_last` | int | 最近一次裁罰距切點天數 → `VIO_RECENT` |
+| `vio_cat_*` | int × 9 | 各類別次數（師資/超收/不當管教/師生比/收費爭議/食安衛生/交通車/設施安全/其他行政）→ `VIO_CAT_CONCENTRATED` 與派工單的查核建議 |
+| `vio_owner_cross_park` | bool | 負責人跨園被罰（38 人）→ `VIO_CHAIN_REPEAT` |
+| `vio_sibling_count` | int | 兄弟園數 |
+| `vio_chain_size` | int | 同負責人名下園數（lift 1.31x）。**併入本維度**，因為它衡量的是違規的擴散面 |
+| `vio_archetype` | cat | 未被罰 730 / 單園被罰 320 / 負責人他園有前科 66 / 連鎖累犯 96 |
 
-**這是 A 區塊唯一的強訊號來源，也是全案第二強的特徵群（僅次於裁罰史）。**
+> `vio_chain_size` 用 `owner_key` 分組計算，`owner` 為 null 的 68 園一律設 1，**不可視為同一人**。
+
+### 4.2 評鑑維度 `eval_`
+
+公立/非營利 20%、私立 28.6%。來源 `data/評鑑結果.json`，**僅取 `評鑑完成日 < CUTOFF` 的列**（丟棄 280 列：258 列日期在切點後、22 列「尚未接受評鑑」無日期）。
+
+| 欄位 | 型別 | 維度內權重 | 方向 | 轉換 | 實測 lift |
+|---|---|--:|---|---|---|
+| `eval_base_fail_count` | int | 40% | 上尾 | 零膨脹 | **0/1/2/3 次 → 9.2% / 12.8% / 16.7% / 28.6%，單調，最高 2.71x** |
+| `eval_admin_count` | int | 35% | 上尾 | 零膨脹 | 曾受處分 **22.9% vs 10.8%，2.16x**（35 園 / 78 列） |
+| `eval_followup_count` | int | 25% | 上尾 | 零膨脹 | **0/1/2 次 → 9.2% / 13.7% / 16.8%，單調，1.59x** |
+
+輔助欄位：
+
+| 欄位 | 型別 | 用途 |
+|---|---|---|
+| `eval_admin_penalty` | bool | `eval_admin_count > 0`，供原因碼使用 |
+| `eval_years_since` | float | 距最近一次評鑑年數 |
+| `eval_missing` | bool | 137 園無切點前評鑑紀錄 → **`a = 0`，該維度 `Coverage = 0`，不以 0 分計** |
+
+> ⚠ **不可用 0 代表缺失。** `eval_base_fail_count = 0` 是「評鑑全數通過」，缺失是「沒有評鑑紀錄」。兩者被罰率 9.2% 與 5.8%，方向相反。
+
+此維度單獨的 Precision@50 = 24.0%，與違規維度相當——**兩者帶的是不同資訊**，見 §6.3。
 
 #### 洩漏檢查結果（2026-09-12 實測）
 
 | 檢查項 | 結果 | 判定 |
 |---|---|---|
-| 名稱 join（彙總 1,101 園 → `preschools.json`） | **1,101 / 1,101 完全相符** | ✅ 不需模糊比對。`系統架構.md` #10「26 園對不上名字」在此檔已不存在 |
-| 「行政處分」列的日期範圍 | 2015-06-22 ~ **2024-11-20**，切點後 **0 列** | ✅ **無洩漏**。原先擔心的「行政處分欄位與裁罰同源」不成立，可安心當特徵 |
-| 評鑑完成日最大值 | **2025-11-28** | ⚠ 有 258 列在切點後，**ETL 必須過濾** |
-| `園所彙總` 表的預聚合欄位 | 以全部列計算，含切點後 | ❌ **不可直接使用**，必須自行重算 |
+| 名稱 join（1,101 園 → `preschools.json`） | **1,101 / 1,101 完全相符** | ✅ 不需模糊比對 |
+| 「行政處分」列的日期範圍 | 2015-06-22 ~ **2024-11-20**，切點後 **0 列** | ✅ **無洩漏**，可安心當特徵 |
+| 評鑑完成日最大值 | **2025-11-28** | ⚠ 258 列在切點後，**ETL 必須過濾** |
+| 原始 xlsx 的 `園所彙總` 表 | 以全部列預聚合，含切點後 | ❌ **已於轉檔時捨棄** |
 
-> 「行政處分」的述文本身就寫著罰鍰金額與第幾次違反（40 列含「新臺幣」字樣），例如「該園未通過基礎評鑑，且經追蹤評鑑仍未改善，第一次違反幼照法第 51 條規定，處新臺幣 6 萬元」。這是**評鑑體系內的處分**（第 51 條，未通過評鑑不改善），與裁罰紀錄的第 8/16/26/33 條（超收、師生比、不當對待）是**不同法條、不同事件**，因此不是重複計算。
+> 「行政處分」的述文本身寫著罰鍰金額與第幾次違反（40 列含「新臺幣」）。這是**評鑑體系內的處分**（幼照法第 51 條，未通過評鑑不改善），與裁罰紀錄的第 8/16/26/33 條（超收、師生比、不當對待）是**不同法條、不同事件**，因此不是重複計算。
 
-### 4.3 A 區塊 — 輿情（6 項）
+### 4.3 輿情維度 `media_`
 
-見 §5.3 的三層設計。
+公立/非營利 15%、私立 21.4%。三層設計見 §5.5。
 
-| 欄位 | 型別 | 層級 | 覆蓋率 |
-|---|---|---|---|
-| `sri` | float 0–100 | 園級（A 連結） | 3.3% |
-| `sri_has_signal` | bool | 園級 | 100%（缺失指示） |
-| `sri_top_severity` | int 1–5 | 園級 | 3.3% |
-| `sri_is_burst` | bool | 園級 | 3.3% |
-| `town_heat_per_park` | float | 區級（B 連結） | **100%** |
-| `town_heat_rank` | int 1–29 | 區級 | **100%** |
+| 欄位 | 型別 | 層級 | 維度內權重 | 覆蓋率 |
+|---|---|---|--:|---|
+| `media_sri` | float 0–100 | L1 園級 | 60% | 3.3%（40 園） |
+| `media_town_heat_per_park` | float | L2 區級 | 40% | **100%** |
 
-### 4.4 D 區塊 — 裁罰（9 項）
+輔助欄位：
 
-| 欄位 | 型別 | 定義 | 實測 |
-|---|---|---|---|
-| `pun_count` | int | 切點前裁罰筆數 | 0 次 8.4% → 3 次 21.9% |
-| `pun_weighted` | float | `Σ severity(category) × 0.5^(days/540)` | §5.2 |
-| `pun_days_since_last` | int | 最近一次裁罰距切點天數 | |
-| `pun_abuse_count` | int | 不當管教次數 | 0 次 10.3% → 1 次 23.1% |
-| `pun_cat_*` | int × 9 | 各類別次數（師資/超收/不當管教/師生比/收費爭議/食安衛生/交通車/設施安全/其他行政） | |
-| `owner_prior_count` | int | 現任負責人名下他園切點前裁罰數 | **無 8.6% → 有 14.5%（1.69x）** |
-| `owner_cross_park` | bool | 負責人跨園被罰 | 38 人 |
-| `sibling_pun_count` | int | 兄弟園裁罰總數 | 無 10.1% → 有 13.6% |
-| `sibling_count` | int | 兄弟園數 | |
-| `risk_archetype` | cat | 未被罰 730 / 單園被罰 320 / 負責人他園有前科 66 / 連鎖累犯 96 | |
-
-### 4.5 B+C 區塊 — 財務（待補公式）
-
-**介面已定，公式待「千」與團隊提供。** 無論公式為何，輸出格式固定：
-
-```json
-{"code": "F_XXX", "label": "白話說明", "severity": 1, "year": 113, "evidence": {}}
-```
-
-已知可算（來自 `系統架構.md` 的實測）：
-
-| 指標 | 定義 | 已驗證 |
+| 欄位 | 型別 | 用途 |
 |---|---|---|
-| 人事費執行率 | 人事費決算數 / 預算數 | N09 安興 113 = 51%（46 份最低），該年因不當對待被罰 6 萬。**n=1 正樣本，僅作旗標不進分數** |
-| 代課代班費執行率 | 同上 | 用來區分「員額出缺未補」與「刻意省錢」 |
-| 加班費執行率 | 同上 | |
-| 收費偏離度 | 該園總收費 vs 同區同類型中位數 | 280 園可算 |
+| `media_has_signal` | bool | **缺失指示欄**。`sri = 0` 是「沒被報導」不是「安全」 |
+| `media_top_severity` | int 1–5 | 最嚴重事件等級 → 原因碼 |
+| `media_is_burst` | bool | 近 30 天 ≥2 起、此前 90 天無事件 |
+| `media_town_heat_rank` | int 1–29 | 區級熱度名次 → `MEDIA_TOWN_HEAT` |
+| `media_last_negative_at` | date | 最近一則負面報導日期 |
 
-**2026-09-12 決議變更**：財務不再只是旗標，已升為**營運維度**並進入風險分數，但**僅限公立／非營利**（347 園），私立一律 `applicable = false`。完整定義見 §5.6。
+> **L1 缺席時 `a = 0`，由 L2 撐起該維度。** 若只用 L1，96.7% 的園 `Coverage = 0`，該維度權重形同虛設。
 
-變更理由：營運維度影響的 347 園，正是監督式模型失效的區段（公立組 lift 0.86x，比隨機還差）。**一個有領域依據但未驗證的訊號，勝過一個已證實無效的訊號。**
+### 4.4 營運維度 `oper_`（僅公立／非營利）
 
-但它**無法以裁罰驗證**（280 園中僅 6 個正樣本），因此 `dimensions.operation.validated` 必須為 `false`，前端須顯示警語，簡報不得聲稱已驗證。旗標（💰）形式仍保留，見 §5.6。
+公立/非營利 30%、**私立 `applicable = false`、`score = null`、`Coverage = 0`**。
+
+完整公式見 §5.6，此處只列欄位。
+
+#### 公立 `O = 60%·F + 25%·E + 15%·C`
+
+| 欄位 | 子維度 | 方向 |
+|---|---|---|
+| `oper_expense_deviation` | F 財務 | 雙尾 |
+| `oper_tuition_exec_rate` | F | 下尾 |
+| `oper_deficit_ratio` | F | 上尾 |
+| `oper_cash_decrease_ratio` | F | 上尾 |
+| `oper_debt_ratio` / `oper_networth_decline` | F | 上尾 |
+| `oper_enroll_ratio` | E 招生 50% | 下尾 |
+| `oper_enroll_decline` | E 30% | 上尾 |
+| `oper_over_enroll` | E 20% | 上尾（確認超收 → 直接 100） |
+| `oper_fee_deviation` | C 收費 60% | 雙尾 |
+| `oper_fee_consistency` | C 25% | 上尾 |
+| `oper_fee_completeness` | C 15% | 上尾 |
+
+#### 非營利 `O = 30%·F + 35%·H + 25%·A + 10%·E`
+
+| 欄位 | 子維度 | 權重 | 方向 |
+|---|---|--:|---|
+| `oper_income_exec_deviation` | F | 等權 | 雙尾 |
+| `oper_expense_exec_deviation` | F | 等權 | 雙尾 |
+| `oper_deficit_ratio` | F | 等權 | 上尾 |
+| `oper_liquidity` | F | 等權 | 上尾 |
+| `oper_debt_ratio` | F | 等權 | 上尾 |
+| `oper_personnel_exec_rate` | **H 人事** | 25% | 下尾 |
+| `oper_teacher_salary_exec_rate` | H | 35% | 下尾 |
+| `oper_overtime_exec_rate` | H | 20% | 上尾 |
+| `oper_substitute_exec_rate` | H | 20% | 上尾 |
+| `oper_audit_score` | A 查核 | — | 上尾，見 §5.6 |
+| `oper_audit_major_count` | A | — | 觸發 80/90 下限 |
+| `oper_enroll_*` | E | 同公立 | — |
+
+> **H 人事是財報唯一能接上教保風險的橋。** 裁罰前三名全是人力問題（師資 318、超收 268、不當管教 206），而人力不足會在財報上留下「編了預算沒聘滿人」的痕跡。見 [`NARRATIVE.md`](NARRATIVE.md) §4.4。
+
+#### ⚠ 此維度無法以裁罰驗證
+
+有財報的 280 園中被裁罰過的僅 6 間。所有 `oper_*` 特徵的權重是**領域判斷手訂**，`dimensions.operation.validated` 一律 `false`。理由與取捨見 §5.6。
+
+### 4.5 不進模型的欄位
+
+基本資料 25 欄中，只有 `vio_chain_size` 進了模型（併入違規維度）。其餘一律**只供前端顯示與分層**，不進分數。
+
+| 欄位 | 實測 lift | 用途 |
+|---|---|---|
+| `type`（設立別） | 私立 12.0% / 公立 5.8% / 非營利 14.0% | **分層鍵**，決定權重表與同儕群 |
+| `town` | — | 分層、地圖、區級輿情 join |
+| `count_approved` | 1.15x (≥150) | 顯示、超收判定分母 |
+| `area_per_child` | 1.19x (<2 m²) | 顯示 |
+| `years_since_reg` | 1.37x (5–15 年) | 顯示 |
+| `monthly_fee` | 1.19x (10k–20k) | 顯示 |
+| `floor_count` / `is_pre_public` / `has_afterschool` | 0.85–1.1x | 顯示 |
+| `penalty` | — | ❌ **已刪除**，是洩漏，見 §2.4 |
+| `is_free5` / `shuttle` | 可用率 0% | ❌ 已丟棄 |
+
+> **誠實說明**：基本資料欄位的 lift 幾乎都在 0.85–1.2x 之間，接近雜訊。把它們排除在模型外是**實測後的決定**，不是疏漏。它們的價值在分層與敘事，不在預測力。這個立場的答法見 [`NARRATIVE.md`](NARRATIVE.md) §5.2。
 
 ### 4.6 原因碼表（reason codes）
 
 `serving/scores.json` 的 `reasons[].code` 只能取自下表。**後端依此產生 `label`，前端依此決定圖示與顏色**，兩邊不得自行新增。
 
-| code | block | 觸發條件 | label 模板 |
+| code | 維度 | 觸發條件 | label 模板 |
 |---|---|---|---|
-| `D_PUNISH_COUNT` | D | `d_pun_count >= 3` 或全市前 10% | 切點前已被裁罰 {n} 次，全市前 {pct}% |
-| `D_PUNISH_RECENT` | D | `d_pun_days_since_last <= 365` | 最近一次裁罰距切點僅 {days} 天 |
-| `D_ABUSE` | D | `d_pun_abuse_count >= 1` | 曾有 {n} 次幼兒不當對待裁罰紀錄 |
-| `D_OWNER_PRIOR` | D | `d_owner_prior_count >= 1` | 同一負責人名下另有 {n} 園，其中 {m} 園亦有裁罰紀錄 |
-| `D_CHAIN_REPEAT` | D | `d_risk_archetype == "連鎖累犯"` | 屬連鎖累犯樣態：負責人跨 {n} 園累計 {m} 次處分 |
-| `D_SIBLING` | D | `d_sibling_pun_count >= 2` | 同負責人之兄弟園累計 {n} 次裁罰 |
-| `D_CAT_CONCENTRATED` | D | 單一類別占該園裁罰 ≥ 50% 且 ≥ 2 次 | 歷史違規集中於{category}（{n} 次） |
-| `A_EVAL_FAIL` | A | `a_eval_base_fail_count >= 1` | 基礎評鑑 {n} 次未全數指標通過 |
-| `A_EVAL_ADMIN` | A | `a_eval_admin_penalty == true` | 曾受幼照法第 51 條行政處分 {n} 次 |
-| `A_EVAL_FOLLOWUP` | A | `a_eval_followup_count >= 1` | 曾接受追蹤評鑑 {n} 次 |
-| `A_EVAL_MISSING` | A | `a_eval_missing == true` | 查無切點前評鑑紀錄，可能為新立案園所 |
-| `A_MEDIA_PARK` | A | `a_sri >= 15` | 近期有 {n} 起負面報導，最高嚴重度 {sev} |
-| `A_MEDIA_BURST` | A | `a_sri_is_burst == true` | 輿情近 30 天出現爆發，此前 90 天無事件 |
-| `A_TOWN_HEAT` | A | `a_town_heat_rank <= 5` | 所在行政區近 90 天輿情熱度全市第 {rank} |
-| `A_CROWDED` | A | `a_area_per_child < 2.0` | 每生室內面積 {v} m²，低於全市第 15 百分位 |
-| `A_CHAIN_SIZE` | A | `a_chain_size >= 3` | 同一負責人名下共 {n} 園 |
-| `F_PERSONNEL_EXEC` | F | 人事費執行率 < 同儕 P10 | 人事費執行率 {pct}%，同儕中位數 {med}% |
-| `F_SUBSTITUTE_EXEC` | F | 代課代班費執行率 < 0.4 | 代課代班費執行率 {pct}% |
-| `F_FEE_DEVIATION` | F | `abs(deviation_pct) > 20` | 收費較同區同類型中位數{高/低} {pct}% |
+| `VIO_PUNISH_COUNT` | 違規 | `vio_pun_count >= 3` 或同類型前 10% | 切點前已被裁罰 {n} 次，同類型前 {pct}% |
+| `VIO_RECENT` | 違規 | `vio_days_since_last <= 365` | 最近一次裁罰距切點僅 {days} 天 |
+| `VIO_ABUSE` | 違規 | `vio_abuse_count >= 1` | 曾有 {n} 次幼兒不當對待裁罰紀錄 |
+| `VIO_OWNER_PRIOR` | 違規 | `vio_owner_prior_count >= 1` | 同一負責人名下另有 {n} 園，其中 {m} 園亦有裁罰紀錄 |
+| `VIO_CHAIN_REPEAT` | 違規 | `vio_archetype == "連鎖累犯"` | 屬連鎖累犯樣態：負責人跨 {n} 園累計 {m} 次處分 |
+| `VIO_SIBLING` | 違規 | `vio_sibling_pun_count >= 2` | 同負責人之兄弟園累計 {n} 次裁罰 |
+| `VIO_CAT_CONCENTRATED` | 違規 | 單一類別占該園裁罰 ≥ 50% 且 ≥ 2 次 | 歷史違規集中於{category}（{n} 次） |
+| `VIO_CHAIN_SIZE` | 違規 | `vio_chain_size >= 3` | 同一負責人名下共 {n} 園 |
+| `EVAL_FAIL` | 評鑑 | `eval_base_fail_count >= 1` | 基礎評鑑 {n} 次未全數指標通過 |
+| `EVAL_ADMIN` | 評鑑 | `eval_admin_penalty == true` | 曾受幼照法第 51 條行政處分 {n} 次 |
+| `EVAL_FOLLOWUP` | 評鑑 | `eval_followup_count >= 1` | 曾接受追蹤評鑑 {n} 次 |
+| `EVAL_MISSING` | 評鑑 | `eval_missing == true` | 查無切點前評鑑紀錄，可能為新立案園所 |
+| `MEDIA_PARK` | 輿情 | `media_sri >= 15` | 近期有 {n} 起負面報導，最高嚴重度 {sev} |
+| `MEDIA_BURST` | 輿情 | `media_is_burst == true` | 輿情近 30 天出現爆發，此前 90 天無事件 |
+| `MEDIA_TOWN_HEAT` | 輿情 | `media_town_heat_rank <= 5` | 所在行政區近 90 天輿情熱度全市第 {rank} |
+| `OPER_PERSONNEL_EXEC` | 營運 | 人事費執行率 < 同儕 P10 | 人事費執行率 {pct}%，同儕中位數 {med}% |
+| `OPER_SUBSTITUTE_EXEC` | 營運 | 代課代班費執行率 < 0.4 | 代課代班費執行率 {pct}% |
+| `OPER_AUDIT_MAJOR` | 營運 | `oper_audit_major_count >= 1` | 查核有 {n} 項重大缺失 |
+| `OPER_ENROLL_LOW` | 營運 | `oper_enroll_ratio` < 同儕 P10 | 實際招生為核定人數的 {pct}% |
+| `OPER_OVER_ENROLL` | 營運 | `oper_over_enroll == true` | 實際招生超過核定人數 {n} 人 |
+| `OPER_FEE_DEVIATION` | 營運 | `abs(oper_fee_deviation) > 20` | 收費較同區同類型中位數{高/低} {pct}% |
 
 **規則**：
 
-1. `reasons` 只取 `block` 為 `A` / `D` 的前 3 名；`F` 類別一律歸入 `finance_flags`，**不進 `reasons`、不影響分數**
-2. `weight` = 該特徵的標準化值 × 迴歸係數，用於排序
-3. 同一 block 內最多取 2 條，確保 A 與 D 都有代表（避免三條全是裁罰）
-4. label 中的所有 `{}` 佔位符必須有實際數值，**不得輸出帶佔位符的字串**
+1. `reasons` 取 `weight` 前 3 名，**同一維度最多 2 條**，確保不會三條全是違規
+2. `weight` = 該特徵的維度內權重 × 維度權重 × 標準化後的分數
+3. **`OPER_*` 類別必須附 `"validated": false`**，前端在該條原因旁顯示 ⓘ 警語
+4. label 中所有 `{}` 佔位符必須有實際數值，**不得輸出帶佔位符的字串**
 5. **任何 label 不得出現自然人姓名**（§10.1）
 
 ---
@@ -927,7 +991,11 @@ A = 100 × Σ(Severity_j × I(No_j)) / Σ(Severity_j × I(Applicable_j))
 | 4 | **裁罰 + 評鑑** | **28.0%** | **2.65x** |
 | 5 | 裁罰 + 不當對待 + 負責人 + 評鑑（手調權重） | 26.0% | 2.46x |
 
-**這是模型必須超過的門檻：Precision@50 ≥ 28%。** 目標 ≥ 34%（3.2x）。
+**這是模型必須超過的門檻：Precision@50 ≥ 28.0%。** 目標 ≥ 34%（3.2x）。
+
+> ⚠ **上表的第 4、5 列是原始值直接加權**（v1 做法）。v2 改用零膨脹百分位後，同一排序的 Precision@50 是 **26.0%**（見 §5.1）。
+>
+> **門檻仍訂在 28.0%。** 零膨脹百分位換來的是跨類型可比性與抗離群值，不是準確度——若 v2 跑不到 28.0%，代表營運維度與輿情三層沒有補回那 2 個百分點，該檢討的是維度設計，不是降低標準。
 
 三個從這張表讀出來的結論，都值得寫進簡報：
 
@@ -1368,7 +1436,7 @@ GeoJSON FeatureCollection，`properties` 含 `park_id / name / tier / risk_score
 | 階段 | 內容 | DATA/ML | BACKEND | FRONTEND | CLOUD |
 |---|---|---|---|---|---|
 | **M0** 契約凍結 | §8 API schema 定案、mock 資料產出 | 1h | 1h | — | — |
-| **M1** 資料層 | ETL → `curated/*.json`、雜湊個資、品質 assert | **4h** | — | 頁面骨架 3h | S3 + IaC 骨架 2h |
+| **M1** 資料層 | ETL → `curated/*.json`、雜湊個資、品質 assert、**營運維度 OCR 抽表**（46 份財報 + 61 個公立園年度） | **7h** | — | 頁面骨架 3h | S3 + IaC 骨架 2h |
 | **M2** 分數層 | A/D logistic、回測、**派工單原因與建議產生器** | **6h** | Lambda 讀 S3 + 4 支 API 3h | 搜尋頁 + 列表頁 4h | CloudFront + OAC 2h |
 | **M3** 完整功能 | XGBoost 挑戰者、效益曲線 | 3h | 剩餘 5 支 API（含 `/worklist`）3h | 地圖 + 詳情 + 熱力圖 5h + **派工單列印頁 2h** | 部署串接 2h |
 | **M4** 收尾 | Bedrock 輿情補標 2,320 篇、白話文生成 | 3h | 1h | 成效驗證頁 2h | 壓測 + 監控 1h |
@@ -1396,7 +1464,9 @@ aws-hackathon/
 ├── docs/                    文件（本檔在此）
 ├── etl/
 │   ├── build_curated.py     raw → curated，含個資雜湊
-│   ├── features.py          §4 特徵字典的實作
+│   ├── features.py          §4 特徵字典（vio_/eval_/media_/oper_）
+│   ├── operation.py         §5.6 營運維度：F/H/A/E 子分數與下限規則
+│   ├── ocr_extract.py       財報與決算抽表與核對（§3.10 第 8 步）
 │   └── quality.py           §2.2 品質檢查 + 洩漏 assert
 ├── model/
 │   ├── train.py             logistic v1 + XGBoost v2
@@ -1459,7 +1529,11 @@ aws-hackathon/
 - [ ] 評鑑 join 命中率 100%（1,101 / 1,101）
 - [ ] 回測 Precision@50 **≥ 28.0%**（否則不如 §6.3 的手調基準，模型沒有價值）
 - [ ] 分層結果（私立 / 公立 / 非營利）已產出並寫入 `curve.json`
-- [ ] `serving/scores.json` 每筆的 `reasons` 皆 1–3 條，`code` 全部在 §4.6 表內，無佔位符殘留
+- [ ] `serving/scores.json` 每筆的 `reasons` 皆 1–3 條，`code` 全部在 §4.6 表內，無佔位符殘留，同一維度不超過 2 條
+- [ ] 四維度分數與 `coverage` 皆已產出；私立園 `operation.applicable = false` 且 `score = null`（**不是 0**）
+- [ ] `dimensions.operation.validated` 一律為 `false`
+- [ ] 零膨脹轉換只套用在有自然零點且零值占比 > 20% 的指標，其餘用一般 ECDF（§5.1）
+- [ ] 權重敏感度已掃描（違規權重 40–60%），結果寫入 `model/metrics.json`
 
 ### 14.2 BACKEND
 
