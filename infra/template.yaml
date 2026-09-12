@@ -11,6 +11,13 @@ Parameters:
     Type: String
     Default: watchdog
     Description: Resource name prefix
+  DevCorsOrigins:
+    Type: String
+    Default: "http://localhost:5173,http://127.0.0.1:5173"
+    Description: >
+      Origins allowed to call the API cross-origin, for frontend development
+      against the deployed backend. Production is same-origin behind
+      CloudFront and needs none of this. Set to an empty string to disable.
   LogRetentionDays:
     Type: Number
     Default: 7
@@ -82,6 +89,7 @@ Resources:
       Environment:
         Variables:
           DATA_BUCKET: !Ref DataBucket
+          CORS_ORIGINS: !Ref DevCorsOrigins
       Policies:
         # Least privilege: read serving/ and the report PDFs only.
         # No writes, no curated/, no model/.
