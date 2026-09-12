@@ -212,6 +212,7 @@ class ParkSummary(Contract):
     risk: Risk
     pun_count: Count
     has_finance_flag: bool
+    reasons: list[Reason] = []
     has_media_signal: bool
 
 

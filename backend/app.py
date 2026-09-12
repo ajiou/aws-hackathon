@@ -219,6 +219,11 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
                     "pun_count": len(p.timeline),
                     "has_finance_flag": bool(p.finance_flags),
                     "has_media_signal": p.media.has_signal,
+                    # SPEC 9.2 rule 3: a score is never shown without its
+                    # reasons. Sending them with the list saves the frontend
+                    # one detail request per row - 50 per page, which
+                    # exhausted the function's reserved concurrency.
+                    "reasons": p.reasons,
                 }
                 for p in rows[start : start + size]
             ],

@@ -233,7 +233,8 @@ write("parks.json", {"total": len(lst), "page": 1, "size": 50, "items": [
      "town": r["town"], "lon": r["lon"], "lat": r["lat"], "is_active": r["is_active"],
      "risk": r["risk"], "pun_count": len(r["timeline"]),
      "has_finance_flag": bool(r["finance_flags"]),
-     "has_media_signal": r["media"]["has_signal"]}
+     "has_media_signal": r["media"]["has_signal"],
+     "reasons": r["reasons"]}
     for r in lst[:50]]})
 write("scores.json", {"generated_at": "2026-09-12T06:00:00Z", "items": full})
 write("risk-top.json", {"k": 50, "items": lst[:50]})
