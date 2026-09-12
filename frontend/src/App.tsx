@@ -3,7 +3,6 @@ import { NavLink, Link, Route, Routes, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   LayoutDashboard,
-  ListFilter,
   MapPinned,
   ChartNoAxesCombined,
   ClipboardList,
@@ -24,7 +23,6 @@ const Validation = lazy(() => import("./pages/Validation"));
 const Worklist = lazy(() => import("./pages/Worklist"));
 const navigation = [
   { path: "/", label: "總覽搜尋", icon: LayoutDashboard },
-  { path: "/risk", label: "風險列表", icon: ListFilter },
   { path: "/map", label: "地圖", icon: MapPinned },
   { path: "/validation", label: "成效驗證", icon: ChartNoAxesCombined },
   { path: "/worklist", label: "稽查派工單", icon: ClipboardList },
