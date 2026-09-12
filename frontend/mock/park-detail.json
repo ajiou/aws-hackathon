@@ -31,7 +31,7 @@
    },
    "sentiment": {
     "applicable": true,
-    "score": 54.6,
+    "score": 42.0,
     "coverage": 0.4,
     "weight": 0.214,
     "validated": true,
@@ -73,8 +73,8 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.546,
-   "town_heat_rank": 3,
+   "town_heat_per_park": 0.42,
+   "town_heat_rank": 10,
    "last_negative_at": null
   },
   "timeline": [
@@ -222,44 +222,44 @@
    "rank": 1,
    "rank_basis": "全市合併",
    "tier": "高",
-   "raw": 90.2844,
+   "raw": 87.588,
    "coverage": 1.0,
    "model_version": "risk-v2"
   }
  },
- "68ffc11c-17f1-41ca-9d11-408cb9591f3a": {
-  "park_id": "68ffc11c-17f1-41ca-9d11-408cb9591f3a",
-  "name": "新北市私立啟育幼兒園",
+ "9c99d6ee-31c4-472c-bdd4-14549f8f6103": {
+  "park_id": "9c99d6ee-31c4-472c-bdd4-14549f8f6103",
+  "name": "新北市私立實踐幼兒園",
   "institution_type": "私立",
   "peer_group": "私立",
-  "town": "三峽區",
-  "address": "[237]民生街59號1、2、3樓及民生街27巷14、16、18、20、22號各1樓",
-  "tel": "(02)26719995",
-  "lon": 121.375338,
-  "lat": 24.935975,
+  "town": "中和區",
+  "address": "[235]中山路2段312巷45弄9號、11號、13號、35號、37號1樓",
+  "tel": "(02)22471488",
+  "lon": 121.494669,
+  "lat": 25.004597,
   "is_active": 1,
-  "count_approved": 384,
-  "owner_key": "d39a632dc64d",
+  "count_approved": 130,
+  "owner_key": "5c527cd4b450",
   "dimensions": {
    "violation": {
     "applicable": true,
-    "score": 38,
+    "score": 62,
     "coverage": 1.0,
     "weight": 0.5,
     "validated": true,
     "note": null
    },
    "evaluation": {
-    "applicable": false,
-    "score": null,
-    "coverage": 0.0,
+    "applicable": true,
+    "score": 0,
+    "coverage": 1.0,
     "weight": 0.286,
     "validated": true,
-    "note": "查無切點前之評鑑紀錄，可能為新立案園所"
+    "note": null
    },
    "sentiment": {
     "applicable": true,
-    "score": 49.2,
+    "score": 42.0,
     "coverage": 0.4,
     "weight": 0.214,
     "validated": true,
@@ -277,7 +277,7 @@
   "reasons": [
    {
     "code": "VIO_PUNISH_COUNT",
-    "label": "切點前已被裁罰 2 次，同類型前 24%",
+    "label": "切點前已被裁罰 4 次，同類型前 18%",
     "weight": 0.4,
     "dimension": "violation",
     "validated": true
@@ -288,34 +288,59 @@
     "weight": 0.24,
     "dimension": "violation",
     "validated": true
-   },
-   {
-    "code": "EVAL_MISSING",
-    "label": "查無切點前評鑑紀錄，可能為新立案園所",
-    "weight": 0.08,
-    "dimension": "evaluation",
-    "validated": true
    }
   ],
   "finance_flags": [],
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.492,
-   "town_heat_rank": 6,
+   "town_heat_per_park": 0.42,
+   "town_heat_rank": 10,
    "last_negative_at": null
   },
   "timeline": [
    {
-    "date": "2020-02-03",
+    "date": "2019-01-23",
     "category": "師生比",
-    "law": "第38條第2項",
+    "law": "第26條第2項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：30,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2019-08-05",
+    "category": "師生比",
+    "law": "第25條第1項--不當管",
     "fine": 6000,
     "penalty_raw": "罰鍰：6,000元",
     "is_after_cutoff": false
    },
    {
-    "date": "2021-03-25",
+    "date": "2020-04-17",
+    "category": "師生比",
+    "law": "第26條第2項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：15,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2020-04-17",
+    "category": "師生比",
+    "law": "第12條第4項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：3,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2020-04-17",
+    "category": "師生比",
+    "law": "第25條第1項--不當管",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2020-07-09",
     "category": "超收",
     "law": "第8條第6項--招收人數",
     "fine": 6000,
@@ -325,13 +350,13 @@
   ],
   "has_fee": false,
   "risk": {
-   "score": 86.9,
+   "score": 87.1,
    "score_basis": "同儕群內百分位",
    "rank": 121,
    "rank_basis": "全市合併",
    "tier": "中",
-   "raw": 41.3569,
-   "coverage": 0.71,
+   "raw": 39.988,
+   "coverage": 1.0,
    "model_version": "risk-v2"
   }
  },
@@ -367,7 +392,7 @@
    },
    "sentiment": {
     "applicable": true,
-    "score": 22.2,
+    "score": 49.2,
     "coverage": 0.4,
     "weight": 0.214,
     "validated": true,
@@ -395,8 +420,8 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.222,
-   "town_heat_rank": 21,
+   "town_heat_per_park": 0.492,
+   "town_heat_rank": 6,
    "last_negative_at": null
   },
   "timeline": [],
@@ -407,7 +432,7 @@
    "rank": null,
    "rank_basis": "全市合併",
    "tier": null,
-   "raw": 6.6538,
+   "raw": 14.7462,
    "coverage": 0.71,
    "model_version": "risk-v2"
   }

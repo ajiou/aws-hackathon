@@ -1379,6 +1379,13 @@ def _load(key: str) -> dict:
 | `sort` | string | `risk`(預設) / `name` / `pun_count` |
 | `page` / `size` | int | 預設 1 / 50，size 上限 200 |
 
+> **列表項目必須帶 `reasons`。** §9.2 規則 3 要求任何顯示分數處同視野可見原因，
+> 而列表頁每一列都顯示分數。若列表不回 `reasons`，前端只能逐列去打
+> `/parks/{id}` 補——一頁 50 列就是 50 個請求，實測會打爆 §7.3 的
+> `ReservedConcurrentExecutions: 10`，API Gateway 直接回 503。
+> 這是 2026-09-12 在線上環境實測出來的：總覽頁單次載入發出 71 個請求，
+> 35 成功、36 被節流。多回這 50 筆 `reasons` 約增加 9 KB，換掉 50 個請求。
+
 ```json
 {
   "total": 1178, "page": 1, "size": 50,
@@ -1386,7 +1393,9 @@ def _load(key: str) -> dict:
     {"park_id": "...", "name": "...", "type": "私立", "town": "土城區",
      "lon": 121.44, "lat": 25.02, "is_active": 1,
      "risk": {"score": 87.4, "rank": 23, "tier": "高"},
-     "pun_count": 5, "has_finance_flag": false, "has_media_signal": false}
+     "pun_count": 5, "has_finance_flag": false, "has_media_signal": false,
+     "reasons": [{"code": "VIO_PUNISH_COUNT", "label": "切點前已被裁罰 5 次，同類型前 3%",
+                  "weight": 0.41, "dimension": "violation", "validated": true}]}
   ]
 }
 ```
