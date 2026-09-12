@@ -107,6 +107,20 @@ def load_parks():
     return parks
 
 
+def parse_fine(penalty_raw):
+    """從「罰鍰：60,000元」抽出金額，抽不到就回 None。
+
+    141 / 7,007 筆沒有金額：停止招生、減少招收人數、停辦、廢止設立許可。
+    這些實質嚴重度高於多數罰鍰，所以回 None 而不是 0——寫 0 會讓前端把最重
+    的案子顯示成「罰 0 元」。SPEC §2 第 10 項：嚴重度一律由 category 決定，
+    fine 只是給人看的顯示欄位，不進任何權重。
+    """
+    if not penalty_raw:
+        return None
+    m = re.search(r"罰鍰：\s*([0-9,]+)\s*元", str(penalty_raw))
+    return float(m.group(1).replace(",", "")) if m else None
+
+
 def load_punishments():
     """`punish.json` 的 key 是 `"負責人：姓名"` / `"行為人：姓名"`，value 的 `id` 是 park_id。
 
@@ -123,6 +137,7 @@ def load_punishments():
                 "date": parse_date(row.get("date")),
                 "law": (row.get("law") or "").strip(),
                 "penalty_raw": row.get("punishment"),
+                "fine": parse_fine(row.get("punishment")),
                 "target_role": role.strip() or None,
                 "target_key": hash_person(name),
             })

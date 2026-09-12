@@ -128,7 +128,10 @@ export default function Worklist() {
                       )}
                       <p>
                         附件：裁罰紀錄 {item.attachments.punishment_count} 筆 ｜
-                        評鑑歷程 {item.attachments.evaluation_count} 次
+                        評鑑歷程{" "}
+                        {item.attachments.evaluation_count === null
+                          ? "查無紀錄"
+                          : `${item.attachments.evaluation_count} 次`}
                       </p>
                       <p className={s.signoff}>
                         稽查結果　□未發現缺失　□限期改善　□移送裁處

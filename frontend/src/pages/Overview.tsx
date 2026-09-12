@@ -26,7 +26,9 @@ function Row({ row }: { row: ParkRow }) {
       <td>{row.town}</td>
       <td>{row.institution_type}</td>
       <td className={s.num}>
-        {reasons?.length ? row.risk.score.toFixed(1) : "——"}
+        {reasons?.length && row.risk.score !== null
+          ? row.risk.score.toFixed(1)
+          : "——"}
       </td>
       <td>
         <TierBadge tier={row.risk.tier} />

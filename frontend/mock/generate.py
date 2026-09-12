@@ -18,10 +18,13 @@ OUT = os.path.dirname(os.path.abspath(__file__))
 random.seed(20260912)
 
 CUTOFF = "2025-01-01"
+# 跟 out/serving/meta.json 一致。sentiment 是 None：ADR-0001 量測後把輿情移出計分。
+# mock 若繼續寫數字，契約上的 null 就永遠不會被測到——這正是上傳真實資料
+# 那天全部路由 500 的原因。
 WEIGHTS = {
-    "公立": {"violation": 0.35, "evaluation": 0.20, "sentiment": 0.15, "operation": 0.30},
-    "非營利": {"violation": 0.35, "evaluation": 0.20, "sentiment": 0.15, "operation": 0.30},
-    "私立": {"violation": 0.50, "evaluation": 0.286, "sentiment": 0.214, "operation": None},
+    "公立": {"violation": 0.266, "evaluation": 0.434, "sentiment": None, "operation": 0.30},
+    "非營利": {"violation": 0.266, "evaluation": 0.434, "sentiment": None, "operation": 0.30},
+    "私立": {"violation": 0.38, "evaluation": 0.62, "sentiment": None, "operation": None},
 }
 REASON = {
     "VIO_PUNISH_COUNT": "切點前已被裁罰 {n} 次，同類型前 {pct}%",
@@ -101,9 +104,12 @@ for pid, (p, gm) in base.items():
     oper = round(random.uniform(10, 95), 1) if has_oper else None
 
     w = WEIGHTS[p["type"]]
+    # 輿情權重為 None = 該維度不進分數（ADR-0001）。跟營運維度一樣，
+    # 權重與覆蓋率都算 0，而不是拿 0 分去拉低均值。
+    has_media = w["sentiment"] is not None
     parts = [("violation", vio, w["violation"], 1.0),
              ("evaluation", eva, w["evaluation"], 0.0 if e["n"] == 0 else 1.0),
-             ("sentiment", med, w["sentiment"], 1.0),
+             ("sentiment", med, w["sentiment"] or 0.0, 1.0 if has_media else 0.0),
              ("operation", oper, w["operation"] or 0.0, 1.0 if has_oper else 0.0)]
     num = sum(wt * cov * (sc or 0) for _, sc, wt, cov in parts)
     den = sum(wt * cov for _, _, wt, cov in parts) or 1.0
@@ -141,7 +147,8 @@ for pid, (p, gm) in base.items():
     coords = (gm or {}).get("coordinates") or [None, None]
     cap = str(p.get("count_approved", ""))
     records.append({
-        "park_id": pid, "name": p["title"], "institution_type": p["type"],
+        # SPEC §8.2：type 與 institution_type 兩個名字都在契約上且必須一致。
+        "park_id": pid, "name": p["title"], "institution_type": p["type"], "type": p["type"],
         "peer_group": pg, "town": p["town"], "address": p["address"], "tel": p["tel"],
         "lon": coords[0], "lat": coords[1], "is_active": p["is_active"],
         "count_approved": int(cap) if cap.isdigit() else None,
@@ -150,14 +157,22 @@ for pid, (p, gm) in base.items():
         "dimensions": {
             "violation": {"applicable": True, "score": vio, "coverage": 1.0,
                           "weight": w["violation"], "validated": True, "note": None},
+            # applicable=false 時 weight 也必須是 null，不是原本的權重。
+            # 前端拿 weight 畫「這個維度占幾成」的堆疊條，留著數字會畫出一段
+            # 根本沒計分的面積。Dimension.check_applicability 會擋。
             "evaluation": {"applicable": e["n"] > 0, "score": eva if e["n"] else None,
-                           "coverage": 1.0 if e["n"] else 0.0, "weight": w["evaluation"],
+                           "coverage": 1.0 if e["n"] else 0.0,
+                           "weight": w["evaluation"] if e["n"] else None,
                            "validated": True,
                            "note": None if e["n"] else "查無切點前之評鑑紀錄，可能為新立案園所"},
-            "sentiment": {"applicable": True, "score": med, "coverage": 0.4,
-                          "weight": w["sentiment"], "validated": True, "note": None},
+            "sentiment": {"applicable": has_media, "score": med if has_media else None,
+                          "coverage": 0.4, "weight": w["sentiment"], "validated": True,
+                          "note": None if has_media else (
+                              "區級輿情熱度實測無鑑別力，依 ADR-0001 不計入風險分數；"
+                              "輿情資料仍供本頁與行政區熱力圖檢視")},
             "operation": {"applicable": has_oper, "score": oper,
-                          "coverage": 1.0 if has_oper else 0.0, "weight": w["operation"],
+                          "coverage": 1.0 if has_oper else 0.0,
+                          "weight": w["operation"] if has_oper else None,
                           "validated": False,
                           "note": None if has_oper else (
                               "私立幼兒園依法不需公告財務報告" if p["type"] == "私立"
@@ -166,7 +181,7 @@ for pid, (p, gm) in base.items():
         "reasons": picked,
         "finance_flags": ([{"code": "OPER_PERSONNEL_EXEC",
                             "label": "人事費執行率 64%，同儕中位數 90%",
-                            "severity": 3, "year": 112}]
+                            "severity": 3, "year": 112, "validated": False}]
                           if has_oper and oper and oper > 80 else []),
         "media": {"sri": 0.0, "has_signal": False, "town_heat_per_park": round(med / 100, 3),
                   "town_heat_rank": town_rank, "last_negative_at": None},
@@ -194,7 +209,9 @@ for rs in by_pg.values():
         r["score"] = round(100 * i / (n - 1), 1) if n > 1 else 50.0
 for r in records:
     if r["is_active"] != 1:
-        r["rank"], r["tier"], r["score"] = None, None, 0.0
+        # 停辦園所的分數是 null，不是 0。score 0 在介面上讀起來是「風險最低」，
+        # 但實情是「根本沒參與排名」。SPEC §2：37 園不進排名不進分級。
+        r["rank"], r["tier"], r["score"] = None, None, None
 
 
 def strip(r):
@@ -230,6 +247,7 @@ write("meta.json", {
 })
 write("parks.json", {"total": len(lst), "page": 1, "size": 50, "items": [
     {"park_id": r["park_id"], "name": r["name"], "institution_type": r["institution_type"],
+     "type": r["institution_type"],
      "town": r["town"], "lon": r["lon"], "lat": r["lat"], "is_active": r["is_active"],
      "risk": r["risk"], "pun_count": len(r["timeline"]),
      "has_finance_flag": bool(r["finance_flags"]),
@@ -292,7 +310,7 @@ write("worklist.json", {
     "week": "2026-W37", "generated_at": "2026-09-12T06:00:00Z",
     "model": {"name": "risk-v2", "precision_at_50": 0.28, "baseline": 0.106},
     "items": [{"seq": i, "park_id": r["park_id"], "name": r["name"], "town": r["town"],
-               "institution_type": r["institution_type"],
+               "institution_type": r["institution_type"], "type": r["institution_type"],
                "count_approved": r["count_approved"], "address": r["address"], "tel": r["tel"],
                "risk": r["risk"], "reasons": worklist_reasons(r),
                "actions": [{"focus": "師生比", "why": "歷史違規集中於第 16 條第 4 項"},

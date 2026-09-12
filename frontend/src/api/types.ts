@@ -22,7 +22,9 @@ export const reasonSchema = z.object({
   validated: z.boolean(),
 });
 export const riskSchema = z.object({
-  score,
+  // 已停辦的 37 園 score / rank / tier 三個都是 null（SPEC §2）。
+  // 寫成必填數字會讓詳情頁在這些園所上整頁空白。
+  score: score.nullable(),
   rank: z.number().int().nonnegative().nullable(),
   tier: tierSchema.nullable(),
   coverage: ratio.optional(),
@@ -311,11 +313,14 @@ export const workItemSchema = z
     address: z.string(),
     tel: z.string(),
     risk: riskSchema,
-    reasons: z.array(z.string()).length(3),
+    // 至多 3 條，不是恆為 3。前 50 名裡有 4 園是零裁罰、純靠評鑑排上來的，
+    // 真實只給得出 2 條理由（SPEC §8.9 硬規則 1）。
+    reasons: z.array(z.string()).min(1).max(3),
     actions: z.array(actionSchema).max(3),
     attachments: z.object({
       punishment_count: z.number(),
-      evaluation_count: z.number(),
+      // 查無評鑑紀錄的新立案園所是 null，不是 0。
+      evaluation_count: z.number().nullable(),
     }),
   })
   .transform(normalizeType);

@@ -315,3 +315,21 @@ def test_real_scores_can_join_basic_parks(serving_dir, artifacts):
     write(serving_dir, "parks", basics)
     with TestClient(create_app(Settings(serving_dir=serving_dir))) as c:
         assert c.get(BASE + "/parks").json()["total"] == 3
+
+
+def test_dropped_dimension_weight_is_null_not_zero(client):
+    """SPEC 5.0: a dimension removed from scoring carries weight null.
+
+    ADR-0001 measured the sentiment dimension and took it out (district heat
+    scored 0.74x lift, below random). out/serving/meta.json therefore ships
+    sentiment: null. The schema originally allowed null only for operation,
+    so every route returned 500 the first time real data was uploaded - the
+    mock's sentiment: 0.15 had validated fine for weeks. Null and zero are
+    not interchangeable here: zero would claim the dimension was scored and
+    contributed nothing, null says it was never scored.
+    """
+    weights = client.get(BASE + "/meta").json()["weights"]
+    for institution, w in weights.items():
+        assert w["sentiment"] is None, institution
+        total = sum(v for v in w.values() if v is not None)
+        assert abs(total - 1.0) < 1e-6, (institution, total)

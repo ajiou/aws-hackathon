@@ -5,21 +5,21 @@
  "population": 1178,
  "weights": {
   "公立": {
-   "violation": 0.35,
-   "evaluation": 0.2,
-   "sentiment": 0.15,
+   "violation": 0.266,
+   "evaluation": 0.434,
+   "sentiment": null,
    "operation": 0.3
   },
   "非營利": {
-   "violation": 0.35,
-   "evaluation": 0.2,
-   "sentiment": 0.15,
+   "violation": 0.266,
+   "evaluation": 0.434,
+   "sentiment": null,
    "operation": 0.3
   },
   "私立": {
-   "violation": 0.5,
-   "evaluation": 0.286,
-   "sentiment": 0.214,
+   "violation": 0.38,
+   "evaluation": 0.62,
+   "sentiment": null,
    "operation": null
   }
  },

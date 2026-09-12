@@ -80,8 +80,18 @@ def main():
     media = load(args.indir, "media")
     fees = {r["park_id"] for r in load(args.indir, "fees", [])}
     finance = {r["park_id"]: r for r in load(args.indir, "finance", [])}
+    evaluations = load(args.indir, "evaluations", [])
     metrics = load(args.modeldir, "metrics", {})
     meta_in = load(args.indir, "meta", {})
+
+    # 派工單跟 meta 共用同一個 model 區塊，兩邊分開寫就會漂移。
+    model_block = {
+        "name": MODEL_VERSION,
+        "precision_at_50": metrics.get("orderings", {}).get("model", {}).get("p_at_50"),
+        "baseline": metrics.get("baseline"),
+        "lift": metrics.get("orderings", {}).get("model", {}).get("lift_at_50"),
+        "gate_passed": metrics.get("passed"),
+    }
 
     scored = assign_tiers(score_all(features, WEIGHTS, finance), TIERS)
     by_id = {s["park_id"]: s for s in scored}
@@ -92,6 +102,9 @@ def main():
         timeline[row["park_id"]].append({
             "date": row["date"], "category": row["category"], "law": row["law"],
             "penalty_raw": row["penalty_raw"], "is_after_cutoff": row["is_after_cutoff"],
+            # fine 可以是 None（停止招生、減招、停辦沒有金額）。
+            # 不可以被寫成 0，見 etl/sources.py parse_fine。
+            "fine": row.get("fine"),
         })
 
     items = []
@@ -102,7 +115,11 @@ def main():
         fin = finance.get(pid, {})
         items.append({
             "park_id": pid, "name": park["name"],
-            "institution_type": f["institution_type"], "peer_group": f["peer_group"],
+            "institution_type": f["institution_type"],
+            # SPEC §8.2 兩個名字都在契約上：列表用 type，詳情用 institution_type。
+            # 兩者必須一致，backend Park.check_park 會擋。
+            "type": f["institution_type"],
+            "peer_group": f["peer_group"],
             "town": park["town"], "address": park["address"], "tel": park["tel"],
             "lon": park["lon"], "lat": park["lat"], "is_active": park["is_active"],
             "count_approved": park["count_approved"], "owner_key": park["owner_key"],
@@ -191,14 +208,38 @@ def main():
     # ---- worklist：本週 50 個稽查名額，主線產出（§8.9）
     top = sorted(active, key=lambda i: i["risk"]["rank"])[:50]
     iso = datetime.now(timezone.utc).isocalendar()
+
+    # 該園每一類違規最常被引的法條，給 actions 的 why 引用用。
+    law_counts = collections.Counter(
+        (r["park_id"], r["category"], r["law"]) for r in punishments
+        if not r["is_after_cutoff"] and r["law"]
+    )
+    law_by_cat = {}
+    for (pid, cat, law), n in law_counts.most_common():
+        law_by_cat.setdefault((pid, cat), law)
+
+    # 評鑑檔沒有 park_id，是用園名 join 的（build_curated 實測 1,101/1,101 全中）。
+    by_name = {p["name"]: pid for pid, p in parks.items()}
+    eval_counts = collections.Counter(
+        by_name[r["園名"]] for r in evaluations if r.get("園名") in by_name)
+    pun_counts = collections.Counter(r["park_id"] for r in punishments)
+
     dump("worklist", {
-        "week": f"{iso[0]}-W{iso[1]:02d}", "generated_at": now, "model": MODEL_VERSION,
+        "week": f"{iso[0]}-W{iso[1]:02d}", "generated_at": now,
+        # SPEC §8.9 的 model 是整個 ModelMetrics，不是版本字串。
+        # 派工單要能自己交代「這份名單的命中率是多少」，列印出來時不能
+        # 另外再呼一次 /meta。
+        "model": model_block,
         "items": [{
             "seq": n, "park_id": i["park_id"], "name": i["name"], "town": i["town"],
-            "institution_type": i["institution_type"],
+            "institution_type": i["institution_type"], "type": i["institution_type"],
             "count_approved": i["count_approved"], "address": i["address"], "tel": i["tel"],
             "risk": i["risk"], "reasons": [r["label"] for r in i["reasons"]],
-            "check_items": _check_items(feat_by_id[i["park_id"]]),
+            "actions": _actions(feat_by_id[i["park_id"]], i, law_by_cat),
+            "attachments": {
+                "punishment_count": pun_counts.get(i["park_id"], 0),
+                "evaluation_count": eval_counts.get(i["park_id"]) or None,
+            },
         } for n, i in enumerate(top, 1)],
     })
     # 派工單不得出現自然人姓名（§14.2）
@@ -219,28 +260,43 @@ def main():
             "punishments": max(r["date"] for r in punishments),
             "media": media.get("as_of"), "fees": "115學年度",
         },
-        "model": {
-            "name": MODEL_VERSION,
-            "precision_at_50": metrics.get("orderings", {}).get("model", {}).get("p_at_50"),
-            "baseline": metrics.get("baseline"),
-            "lift": metrics.get("orderings", {}).get("model", {}).get("lift_at_50"),
-            "gate_passed": metrics.get("passed"),
-        },
+        "model": model_block,
     })
     print(f"→ {out}　scores {len(items)} 筆（{len(active)} 在營運）、"
           f"districts 29、worklist 50")
 
 
-def _check_items(f):
-    """派工單的查核建議：依該園歷史違規類別給，不是通用清單。"""
+def _actions(f, park, law_by_cat):
+    """派工單的查核重點。SPEC §8.9 硬規則 3：
+
+    每一條必須指向具體法條或核定數字，不能是「加強查核」這種空話。
+    稽查人員拿著這張單子走進園所，要知道第一眼要看哪裡；「例行查核」
+    等於沒講，也把模型排這園第几名的理由藏起來了。
+    """
+    actions = []
     cats = sorted(((k[len("vio_cat_"):], v) for k, v in f.items()
                    if k.startswith("vio_cat_") and v), key=lambda kv: -kv[1])
-    items = [f"{name}（歷史 {n} 次）" for name, n in cats[:3]]
-    if f.get("eval_base_fail_count"):
-        items.append("基礎評鑑未通過項目之改善情形")
-    if f.get("eval_missing"):
-        items.append("新立案園所首次訪視")
-    return items or ["例行查核"]
+    for name, n in cats[:2]:
+        law = law_by_cat.get((park["park_id"], name))
+        why = (f"歷史違規集中於{law}（{n} 次）" if law
+               else f"歷史有 {name} 裁罰 {n} 次")
+        actions.append({"focus": name, "why": why})
+    if f.get("vio_cat_超收") and park.get("count_approved"):
+        actions.append({
+            "focus": f"實際招收人數 vs 核定 {park['count_approved']} 人",
+            "why": f"歷史有超收裁罰 {f['vio_cat_超收']} 次",
+        })
+    if len(actions) < 3 and f.get("eval_base_fail_count"):
+        actions.append({
+            "focus": "基礎評鑑未通過項目之改善情形",
+            "why": f"基礎評鑑 {f['eval_base_fail_count']} 次未全數通過",
+        })
+    if len(actions) < 3 and f.get("eval_missing"):
+        actions.append({
+            "focus": "新立案園所首次訪視",
+            "why": "查無評鑑紀錄，尚未納入評鑑循環",
+        })
+    return actions[:3]
 
 
 if __name__ == "__main__":

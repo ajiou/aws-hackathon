@@ -12,7 +12,9 @@ from backend.config import Settings
 
 @pytest.fixture
 def artifacts():
-    weights = {"violation": 0.5, "evaluation": 0.286, "sentiment": 0.214, "operation": None}
+    # sentiment=None 跟真實 serving 資料一致（ADR-0001 把輿情移出計分）。
+    # 舊 fixture 寫 0.214，把 Weights.sentiment 不可為 None 的 bug 蔽了一整輪部署。
+    weights = {"violation": 0.38, "evaluation": 0.62, "sentiment": None, "operation": None}
     meta = {
         "version": "test-v1",
         "generated_at": "2026-09-12T06:00:00Z",
@@ -109,11 +111,14 @@ def artifacts():
         }
     ]
     rows[2]["institution_type"] = "非營利"
+    rows[2]["type"] = "非營利"
     rows[2]["peer_group"] = "非營利-無財報"
     rows[2]["timeline"] = []
     rows[2]["reasons"] = []
     rows[3]["is_active"] = 0
-    rows[3]["risk"] = {"score": 0, "rank": None, "tier": None}
+    # 已停辦的園所 score 是 null，不是 0。score 0 讀起來是「算過，風險最低」，
+    # 但實情是「根本沒進排名」。SPEC §2：37 園不進排名、不進分級。
+    rows[3]["risk"] = {"score": None, "rank": None, "tier": None}
     return {
         "meta": meta,
         "scores": {"items": rows},
@@ -153,7 +158,10 @@ def artifacts():
             "positives": 1,
             "baseline": 1 / 3,
             "points": [{"k": 1, "model": 1, "eval": 0, "punish": 1, "random": 1 / 3, "perfect": 1}],
-            "summary": {"precision_at_50": {"model": 0.28}, "stratified": {}},
+            "summary": {
+                "precision_at_50": {"model": 0.28, "random": 0.106},
+                "stratified": {},
+            },
         },
     }
 

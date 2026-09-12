@@ -55,8 +55,23 @@ class ModelMetrics(Contract):
 class Weights(Contract):
     violation: Ratio
     evaluation: Ratio
-    sentiment: Ratio
+    # None = 該維度沒進分數。兩種原因，形狀相同：
+    #   sentiment：ADR-0001 量測後移出計分（L2 區級熱度 lift 0.74x，低於隨機）
+    #   operation：私立與非營利-無財報沒有財報來源
+    # 原本只有 operation 允許 None，mock 的 sentiment 是 0.15 所以一直驗證過，
+    # 直到上傳真實 serving 資料才全面 500。mock fixture 已跟進改成 null。
+    sentiment: Ratio | None
     operation: Ratio | None
+
+    @model_validator(mode="after")
+    def check_sum(self):
+        total = sum(
+            w for w in (self.violation, self.evaluation, self.sentiment, self.operation)
+            if w is not None
+        )
+        if abs(total - 1.0) > 1e-6:
+            raise ValueError(f"有效維度權重總和需為 1.0，實為 {total}")
+        return self
 
 
 class PeerGroup(Contract):
@@ -80,7 +95,10 @@ class Meta(Contract):
 
 
 class Risk(Contract):
-    score: Score
+    # SPEC §2：is_active == 0 的 37 園（已停辦）保留供查詢，但不進排名、
+    # 不進分級。它們的 score/rank/tier 三個都是 null；排名分母是 1,178 而非 1,215。
+    # 在營園所必須有分數，由 Park.check_park 跟 ParkSummary 分別強制。
+    score: Score | None
     rank: Annotated[int, Field(ge=1)] | None
     tier: Tier | None
 
@@ -136,6 +154,9 @@ class FinanceFlag(Contract):
     label: str
     severity: Annotated[int, Field(ge=1, le=3)]
     year: int
+    # 查核表的項次（OPER_AUDIT_ITEM 專用）。稽查人員要能照這個號碼
+    # 去翻原始查核表，所以它是契約的一部分，不是不該出現的額外欄位。
+    no: int | None = None
     validated: Literal[False]
 
 
@@ -181,8 +202,12 @@ class Park(Contract):
     def check_park(self):
         if self.type != self.institution_type:
             raise ValueError("Institution aliases disagree")
-        if self.is_active and (self.risk.rank is None or self.risk.tier is None):
-            raise ValueError("Active parks require rank and tier")
+        if self.is_active and (
+            self.risk.score is None or self.risk.rank is None or self.risk.tier is None
+        ):
+            raise ValueError("Active parks require score, rank and tier")
+        if not self.is_active and self.risk.score is not None:
+            raise ValueError("Closed parks are excluded from ranking and carry no score")
         if self.institution_type == "私立" and self.dimensions.operation.applicable:
             raise ValueError("Operation cannot apply to private parks")
         if max(Counter(r.dimension for r in self.reasons).values(), default=0) > 2:
@@ -214,6 +239,14 @@ class ParkSummary(Contract):
     has_finance_flag: bool
     reasons: list[Reason] = []
     has_media_signal: bool
+
+    @model_validator(mode="after")
+    def check_scored(self):
+        # 列表只收在營園所（is_active Literal[1]），所以 Risk.score 改成可空之後，
+        # 這裡要把它收緊回來，否則前端排序會碰到 None。
+        if self.risk.score is None or self.risk.rank is None:
+            raise ValueError("Listed parks are always scored and ranked")
+        return self
 
 
 class ParkPage(Contract):
@@ -284,6 +317,15 @@ class CurveSummary(Contract):
     precision_at_50: dict[str, Ratio]
     stratified: dict[str, dict[str, float | None]]
 
+    @model_validator(mode="after")
+    def check_baselines(self):
+        # 成效驗證頁的整個論述是「模型 vs 隨機抽查」。少了 random 就只剩
+        # 一個孤零零的 26%，讀的人沒有尺。實測失踪過一次，所以寫成必填。
+        missing = {"model", "random"} - set(self.precision_at_50)
+        if missing:
+            raise ValueError(f"curve summary 缺少 {sorted(missing)}")
+        return self
+
 
 class Curve(Contract):
     population: Count
@@ -325,7 +367,10 @@ class WorkItem(BaseModel):
     address: str
     tel: str
     risk: Risk
-    reasons: list[str] = Field(min_length=3, max_length=3)
+    # 至多 3 條，至少 1 條。原本寫恆為 3，但前 50 名裡有 4 園是純靠評鑑
+    # 排上來的（零裁罰），真實只給得出 2 條。湊第三條就是編理由，
+    # 而派工單上的每一句話都會被稽查人員當成事實拿去問園方。
+    reasons: list[str] = Field(min_length=1, max_length=3)
     actions: list[Action] = Field(max_length=3)
     attachments: Attachments
 
