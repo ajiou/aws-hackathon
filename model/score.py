@@ -47,6 +47,12 @@ def dimension_block(dim, score, coverage, weight, peer_group, itype):
     # 輿情是另一回事——資料有、也照常展示，只是實測無鑑別力所以不計分，
     # 因此 applicable 維持 true，由 note 說明為什麼沒有分數（ADR-0001）。
     applicable = weight is not None
+    # 權重表的 key 是設立別（公立／非營利／私立），但營運維度的適用性取決於
+    # 同儕群：非營利-有財報 與 非營利-無財報 共用「非營利」的 30% 權重，
+    # 只看權重會把無財報那 41 園判成 applicable=true、score=null，
+    # 落進 FRONTEND §4.2 沒有定義的狀態。SPEC §5.6.0 明訂它是不適用。
+    if dim == "operation" and peer_group in ("私立", "非營利-無財報"):
+        applicable = False
     return {
         "applicable": applicable,
         "score": round(score, 1) if (applicable and score is not None) else None,
