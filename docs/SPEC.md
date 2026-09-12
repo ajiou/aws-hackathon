@@ -10,14 +10,22 @@
 
 ## 0. TL;DR — 工作切分
 
-| 軌道 | 負責範圍 | 產出物 | 對外介面 |
-|---|---|---|---|
-| **DATA/ML** | ETL、特徵工程、訓練、回測 | `curated/*.json`、`model.tar.gz`、`serving/*.json` | §3 資料契約 |
-| **BACKEND** | Lambda handlers、API Gateway | 8 支 API | §8 API 契約 |
-| **FRONTEND** | React SPA、6 頁 + 派工單列印頁 | S3 靜態站 | §8 API 契約 + §9 |
-| **CLOUD** | IaC、S3/CloudFront/OAC、IAM、CI | SAM/CDK template | §7 架構 |
+| 軌道 | 負責範圍 | 產出物 | 規格章節 | 驗收 |
+|---|---|---|---|---|
+| **DATA/ML** | ETL、特徵工程、訓練、回測 | `curated/*.json`、`model.tar.gz`、`serving/*.json` | §3 資料契約、§4 特徵、§5 分數、§6 驗證 | §14.1 |
+| **BACKEND** | Lambda handler、API Gateway | 9 支 API | §8 API 契約 | §14.2 |
+| **FRONTEND** | React SPA、6 頁 + 派工單列印頁 | S3 靜態站 | [`FRONTEND.md`](FRONTEND.md) | §14.3 |
+| **CLOUD** | IaC、S3/CloudFront/OAC、IAM | SAM template | §7 架構 | §14.4 |
 
-三軌的唯一耦合點是 **§8 API 契約**。契約定案後，前端可用 `mock/` 下的假資料獨立開發，不必等模型。
+四軌的唯一耦合點是 **§8 API 契約**。契約定案後，前端用 `mock/` 假資料獨立開發，不必等模型；後端用本機 `serving/` 目錄開發，不必等 AWS。各軌的本機啟動方式見 §15。
+
+### 文件導覽
+
+| 文件 | 給誰看 | 內容 |
+|---|---|---|
+| **`SPEC.md`**（本檔） | 全隊 | 定義、資料、模型、API、架構、合規、驗收 |
+| [`FRONTEND.md`](FRONTEND.md) | 前端 | 設計 token、元件庫、七頁版面、狀態、無障礙、列印 |
+| [`NARRATIVE.md`](NARRATIVE.md) | 簡報者 | 對外說明口徑、敘事結構、七個發現、Q&A 預備、Demo 腳本 |
 
 **關鍵前提**：本系統**不做線上推論**。母體固定 1,178 園、資料日更一次，分數在離線批次算好後寫入 S3，Lambda 只做讀取／篩選／聚合。SageMaker 只用在訓練與 Batch Transform，**不部署 Endpoint**。這省掉最大的成本與部署風險。
 
@@ -214,6 +222,218 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
 
 **`reasons` 規則**：固定回傳**至多 3 筆**，依 `weight` 由大至小。`label` 是白話句子，由後端組好，前端直接顯示，不做字串拼接。`code` 供前端決定圖示與顏色。
 
+### 3.4 `curated/features.json`
+
+模型的直接輸入。一列一園，欄位即 §4 特徵字典。
+
+```json
+{
+  "park_id": "00ac631e-...",
+  "cutoff": "2025-01-01",
+  "label": false,
+
+  "a_type": "私立",
+  "a_count_approved": 90,
+  "a_area_per_child": 3.42,
+  "a_area_missing": false,
+  "a_floor_count": 2,
+  "a_years_since_reg": 28.4,
+  "a_reg_date_missing": false,
+  "a_chain_size": 1,
+  "a_is_pre_public": true,
+  "a_has_afterschool": false,
+  "a_monthly_fee": 12000,
+  "a_town_park_density": 162,
+
+  "a_eval_base_fail_count": 2,
+  "a_eval_followup_count": 1,
+  "a_eval_admin_penalty": true,
+  "a_eval_admin_count": 2,
+  "a_eval_years_since": 1.8,
+  "a_eval_missing": false,
+
+  "a_sri": 0.0,
+  "a_sri_has_signal": false,
+  "a_sri_top_severity": null,
+  "a_sri_is_burst": false,
+  "a_town_heat_per_park": 0.42,
+  "a_town_heat_rank": 4,
+
+  "d_pun_count": 5,
+  "d_pun_weighted": 7.83,
+  "d_pun_days_since_last": 178,
+  "d_pun_abuse_count": 0,
+  "d_pun_cat_師資": 1, "d_pun_cat_超收": 2, "d_pun_cat_不當管教": 0,
+  "d_pun_cat_師生比": 2, "d_pun_cat_收費爭議": 0, "d_pun_cat_食安衛生": 0,
+  "d_pun_cat_交通車": 0, "d_pun_cat_設施安全": 0, "d_pun_cat_其他行政": 0,
+  "d_owner_prior_count": 3,
+  "d_owner_cross_park": true,
+  "d_sibling_pun_count": 4,
+  "d_sibling_count": 7,
+  "d_risk_archetype": "連鎖累犯"
+}
+```
+
+**命名規則**：`a_` / `d_` 前綴對應 A / D 區塊。這讓「分別訓練 A 模型與 D 模型」變成一行欄位篩選，也讓 SHAP 結果能直接歸組。
+
+**缺失值規則**：連續變數缺失填 `null`（不是 0），並一律附 `*_missing` 布林欄。訓練時才做中位數填補。
+
+> ⚠ **不可用 0 代表缺失。** `a_eval_base_fail_count = 0` 的語意是「評鑑全數通過」，`null` 的語意是「沒有評鑑紀錄」。這兩者的被罰率是 9.2% 與 5.8%，方向相反。
+
+### 3.5 `curated/punishments.json`
+
+```json
+{
+  "punish_id": "sha1(...)",
+  "park_id": "00ac631e-...",
+  "date": "2023-07-03",
+  "category": "超收",
+  "severity": 3,
+  "law": "第8條第6項",
+  "law_detail": "第8條第6項-超收逾15人幼兒園超收人數逾15人。",
+  "fine": 60000,
+  "penalty_raw": "罰鍰：60,000元",
+  "doc_no": "北教幼字第1120xxxxxx號",
+  "target_key": "b3f1a9c2e8d7",
+  "target_role": "負責人",
+  "is_after_cutoff": false
+}
+```
+
+**`target_key` 是雜湊，不是姓名**（§10.1）。`target_role` 保留「負責人 / 行為人」的區別，因為兩者的法律意義不同。
+
+### 3.6 `curated/media.json`
+
+輿情三層（§5.3）各存一段。
+
+```json
+{
+  "as_of": "2026-08-21",
+  "park_level": [
+    {"park_id": "...", "sri": 62.3, "event_count": 2, "doc_count": 3,
+     "last_event_date": "2026-07-14", "top_event_type": "不當管教",
+     "top_severity": 5, "is_burst": true}
+  ],
+  "district_level": [
+    {"town": "板橋區", "heat": 4.21, "doc_count": 38,
+     "candidate_pool": 162, "heat_per_park": 0.026, "rank": 4}
+  ],
+  "city_level": [
+    {"week": "2026-W33", "heat": 12.4, "doc_count": 21}
+  ]
+}
+```
+
+`park_level` 只含有 A 級連結的園（約 40 筆）。**其餘園所在 `features.json` 中 `a_sri_has_signal = false`，不是 `sri = 0` 的一筆紀錄** —— 兩者在建模時的意義不同。
+
+### 3.7 `curated/fees.json`
+
+```json
+{
+  "park_id": "03825d7c-...",
+  "school_year": 115,
+  "type": "公立",
+  "town": "萬里區",
+  "items": [
+    {"age": 5, "item": "學費", "period": "學期",
+     "term1_full": 7000, "term2_full": 7000,
+     "term1_half": 4500, "term2_half": 4500}
+  ],
+  "total_full_year": 40640,
+  "peer_median_full_year": 42100,
+  "deviation_pct": -3.5
+}
+```
+
+`peer_median` 的比較群是**同行政區 + 同設立別 + 同年齡**。群內樣本 < 5 時不計算偏離度，欄位為 `null`。
+
+### 3.8 `curated/finance.json`
+
+```json
+{
+  "park_id": "...",
+  "park_code": "N09",
+  "school_year": 113,
+  "metrics": {
+    "personnel_budget": 5268163,
+    "personnel_actual": 3361395,
+    "personnel_exec_rate": 0.638,
+    "teacher_salary_exec_rate": 0.690,
+    "substitute_exec_rate": 0.301,
+    "overtime_exec_rate": 0.143
+  },
+  "peer_median_exec_rate": 0.90,
+  "flags": [
+    {"code": "F_PERSONNEL_EXEC", "label": "人事費執行率 51%，為樣本最低",
+     "severity": 3, "year": 113,
+     "evidence": {"rate": 0.51, "peer_median": 0.90, "rank": "46/46"}}
+  ],
+  "source_pdf": "raw/pdf/{park_id}/113.pdf"
+}
+```
+
+**公式待補**（§13 第 2 項）。介面已凍結，公式進來只需實作 `flags` 的產生邏輯。
+
+### 3.9 `serving/districts.json` 與 `serving/curve.json`
+
+```json
+// districts.json
+{"as_of": "2026-09-12", "items": [
+  {"town": "板橋區", "park_count": 162, "high_risk_count": 11,
+   "medium_risk_count": 24, "high_risk_ratio": 0.068,
+   "media_heat": 4.21, "media_heat_per_park": 0.026, "media_rank": 4,
+   "pun_count_before_cutoff": 89, "pun_park_count": 41}
+]}
+
+// curve.json
+{"population": 1178, "positives": 128, "baseline": 0.106,
+ "points": [
+   {"k": 10, "model": 4, "eval": 3, "punish": 3, "random": 1.06, "perfect": 10},
+   {"k": 50, "model": 14, "eval": 12, "punish": 12, "random": 5.3, "perfect": 50}
+ ],
+ "summary": {
+   "precision_at_50": {"model": 0.280, "eval": 0.240, "punish": 0.240, "random": 0.106},
+   "stratified": {
+     "私立": {"n": 868, "baseline": 0.120, "p_at_20": 0.450, "p_at_50": 0.280, "lift_50": 2.34},
+     "非營利": {"n": 50, "baseline": 0.140, "p_at_10": 0.200, "lift_10": 1.43},
+     "公立": {"n": 294, "baseline": 0.058, "p_at_20": 0.050, "lift_20": 0.86}
+   }
+ }}
+```
+
+### 3.10 ETL 管線
+
+`etl/build_curated.py`，八個步驟，**每步結束後執行對應的 assert，失敗即中止**。
+
+| # | 步驟 | 輸入 | 輸出 | 出口檢查 |
+|---|---|---|---|---|
+| 1 | 載入母體 | `preschools.json` | 1,215 園 | `city == 新北市` 筆數 == 1215；`park_id` 唯一 |
+| 2 | **個資雜湊** | `owner`、`punishments.target` | `owner_key`、`target_key` | 輸出中無任何長度 2–4 的中文姓名欄位；`SALT` 來自環境變數且非空 |
+| 3 | 欄位清洗 | §2.2 的 11 項 | 型別正確的欄位 | `size_in` 全為 float 或 null；`floor_count` 全為 int 或 null；`is_free5`、`shuttle` 已移除 |
+| 4 | 裁罰整併 | `watchdog.db` `punishments` | `punishments.json` | 筆數 == 1423；`category` 無 null；`date` 格式一致 |
+| 5 | 評鑑整併 | `評鑒抓取.xlsx` `評鑑明細` | 評鑑特徵 | **`max(評鑑完成日) < CUTOFF`**；join 命中率 == 100%；丟棄列數 == 280 |
+| 6 | 輿情整併 | `watchdog.db` | `media.json` | `district_level` 覆蓋 29 區；`park_level` 所有 `park_id` 存在於母體 |
+| 7 | 特徵組裝 | 上述全部 | `features.json` | 筆數 == 1212；**所有帶日期來源的 `max(date) < CUTOFF`**；`label` 正樣本數 == 128 |
+| 8 | 財務與收費 | OCR、收費 json | `finance.json`、`fees.json` | `fees` 園數 == 280；所有 `park_id` 存在於母體 |
+
+#### 洩漏防護（`etl/quality.py`）
+
+```python
+def assert_no_leakage(df, date_cols, cutoff):
+    """任何帶日期的特徵來源，最大日期必須早於切點。"""
+    for col in date_cols:
+        mx = df[col].max()
+        assert mx < cutoff, f"LEAK: {col} max={mx} >= cutoff={cutoff}"
+
+def assert_no_pii(records):
+    """輸出中不得含自然人姓名。"""
+    banned = {"owner", "負責人", "行為人", "姓名", "target", "現任負責人"}
+    for r in records:
+        assert not (banned & set(r.keys())), f"PII field present: {banned & set(r.keys())}"
+```
+
+**這兩個 assert 是整條管線最重要的程式碼。** 洩漏會讓所有效能數字失效；個資會違反競賽規範第 2 條。兩者都是「跑得出結果但結果不能用」的失敗，必須靠 assert 而非靠人記得。
+
 ---
 
 ## 4. 特徵字典
@@ -310,6 +530,40 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
 | 收費偏離度 | 該園總收費 vs 同區同類型中位數 | 280 園可算 |
 
 **B+C 不進 RISK 分數**，理由：有財報的 280 園中被裁罰過的僅 6 間，6 個正樣本無法訓練任何模型。它作為**旗標**顯示（💰），並在簡報中作為「題目的縫」的論據。
+
+### 4.6 原因碼表（reason codes）
+
+`serving/scores.json` 的 `reasons[].code` 只能取自下表。**後端依此產生 `label`，前端依此決定圖示與顏色**，兩邊不得自行新增。
+
+| code | block | 觸發條件 | label 模板 |
+|---|---|---|---|
+| `D_PUNISH_COUNT` | D | `d_pun_count >= 3` 或全市前 10% | 切點前已被裁罰 {n} 次，全市前 {pct}% |
+| `D_PUNISH_RECENT` | D | `d_pun_days_since_last <= 365` | 最近一次裁罰距切點僅 {days} 天 |
+| `D_ABUSE` | D | `d_pun_abuse_count >= 1` | 曾有 {n} 次幼兒不當對待裁罰紀錄 |
+| `D_OWNER_PRIOR` | D | `d_owner_prior_count >= 1` | 同一負責人名下另有 {n} 園，其中 {m} 園亦有裁罰紀錄 |
+| `D_CHAIN_REPEAT` | D | `d_risk_archetype == "連鎖累犯"` | 屬連鎖累犯樣態：負責人跨 {n} 園累計 {m} 次處分 |
+| `D_SIBLING` | D | `d_sibling_pun_count >= 2` | 同負責人之兄弟園累計 {n} 次裁罰 |
+| `D_CAT_CONCENTRATED` | D | 單一類別占該園裁罰 ≥ 50% 且 ≥ 2 次 | 歷史違規集中於{category}（{n} 次） |
+| `A_EVAL_FAIL` | A | `a_eval_base_fail_count >= 1` | 基礎評鑑 {n} 次未全數指標通過 |
+| `A_EVAL_ADMIN` | A | `a_eval_admin_penalty == true` | 曾受幼照法第 51 條行政處分 {n} 次 |
+| `A_EVAL_FOLLOWUP` | A | `a_eval_followup_count >= 1` | 曾接受追蹤評鑑 {n} 次 |
+| `A_EVAL_MISSING` | A | `a_eval_missing == true` | 查無切點前評鑑紀錄，可能為新立案園所 |
+| `A_MEDIA_PARK` | A | `a_sri >= 15` | 近期有 {n} 起負面報導，最高嚴重度 {sev} |
+| `A_MEDIA_BURST` | A | `a_sri_is_burst == true` | 輿情近 30 天出現爆發，此前 90 天無事件 |
+| `A_TOWN_HEAT` | A | `a_town_heat_rank <= 5` | 所在行政區近 90 天輿情熱度全市第 {rank} |
+| `A_CROWDED` | A | `a_area_per_child < 2.0` | 每生室內面積 {v} m²，低於全市第 15 百分位 |
+| `A_CHAIN_SIZE` | A | `a_chain_size >= 3` | 同一負責人名下共 {n} 園 |
+| `F_PERSONNEL_EXEC` | F | 人事費執行率 < 同儕 P10 | 人事費執行率 {pct}%，同儕中位數 {med}% |
+| `F_SUBSTITUTE_EXEC` | F | 代課代班費執行率 < 0.4 | 代課代班費執行率 {pct}% |
+| `F_FEE_DEVIATION` | F | `abs(deviation_pct) > 20` | 收費較同區同類型中位數{高/低} {pct}% |
+
+**規則**：
+
+1. `reasons` 只取 `block` 為 `A` / `D` 的前 3 名；`F` 類別一律歸入 `finance_flags`，**不進 `reasons`、不影響分數**
+2. `weight` = 該特徵的標準化值 × 迴歸係數，用於排序
+3. 同一 block 內最多取 2 條，確保 A 與 D 都有代表（避免三條全是裁罰）
+4. label 中的所有 `{}` 佔位符必須有實際數值，**不得輸出帶佔位符的字串**
+5. **任何 label 不得出現自然人姓名**（§10.1）
 
 ---
 
@@ -516,7 +770,63 @@ ocr/*.pdf       ┘              │    └─> SageMaker                     �
 | 快取 | CloudFront 對 `/api/*` 設 TTL 60 s；資料日更一次，不需即時 |
 | IaC | AWS SAM，單一 `template.yaml`，`sam deploy --guided` |
 
-### 7.4 成本
+### 7.4 IaC 資源清單
+
+`infra/template.yaml`（SAM），資源前綴統一為 `watchdog-`。
+
+| 邏輯名稱 | 型別 | 關鍵設定 |
+|---|---|---|
+| `DataBucket` | `AWS::S3::Bucket` | `PublicAccessBlockConfiguration` 四項全 `true`；`BucketEncryption` SSE-S3 |
+| `SiteBucket` | `AWS::S3::Bucket` | 同上。**不啟用 WebsiteConfiguration** |
+| `SiteOAC` | `AWS::CloudFront::OriginAccessControl` | `SigningBehavior: always`，`OriginAccessControlOriginType: s3` |
+| `SiteBucketPolicy` | `AWS::S3::BucketPolicy` | 僅允許該 CloudFront distribution 的 `s3:GetObject` |
+| `Distribution` | `AWS::CloudFront::Distribution` | 見下方 behavior 設定 |
+| `ApiFunction` | `AWS::Serverless::Function` | Python 3.12 / 512 MB / 10s / `ReservedConcurrentExecutions: 10` |
+| `HttpApi` | `AWS::Serverless::HttpApi` | CORS `AllowOrigins` 限 CloudFront domain |
+| `ApiFunctionRole` | `AWS::IAM::Role` | 見下方最小權限 |
+
+#### CloudFront behaviors
+
+| Path pattern | Origin | 設定 |
+|---|---|---|
+| `/api/*` | HttpApi | TTL 60s；轉發 query string；不轉發 cookie |
+| `/*`（預設） | SiteBucket via OAC | TTL 3600s；`index.html` 為 root object |
+
+**SPA 路由**：`CustomErrorResponses` 將 403 與 404 對應到 `/index.html` 並回傳 **200**。缺這段的話 `/park/xxx` 直接輸入網址會 404。
+
+#### Lambda 最小權限
+
+```yaml
+Policies:
+  - Statement:
+      - Effect: Allow
+        Action: s3:GetObject
+        Resource: !Sub "${DataBucket.Arn}/serving/*"
+      - Effect: Allow
+        Action: s3:GetObject          # 財報 PDF 的 presigned URL
+        Resource: !Sub "${DataBucket.Arn}/raw/pdf/*"
+```
+
+**只給 `serving/` 與 `raw/pdf/` 的讀取權，不給 `curated/`、不給 `model/`、不給任何寫入權。** API 是純讀取服務，不需要更多。
+
+#### 部署順序
+
+```bash
+# 1. 基礎設施
+sam deploy --template infra/template.yaml --stack-name watchdog-infra \
+           --region us-west-2 --capabilities CAPABILITY_IAM
+
+# 2. 資料（本機 ETL 產出後上傳）
+aws s3 sync ./out/curated s3://<DataBucket>/curated/
+aws s3 sync ./out/serving s3://<DataBucket>/serving/
+
+# 3. 前端
+cd frontend && npm run build
+aws s3 sync dist/ s3://<SiteBucket>/ --delete
+aws cloudfront create-invalidation --distribution-id <id> --paths "/*"
+```
+
+### 7.5 成本
 
 批次架構下，主要成本是 SageMaker Training Job（ml.m5.large × 約 2 分鐘）與 CloudFront 流量。無 Endpoint、無 RDS、無常駐運算。黑客松額度內綽綽有餘。
 
@@ -529,6 +839,62 @@ Base: `https://<cloudfront-domain>/api/v1`
 全部 `GET`、無認證、回應 `application/json; charset=utf-8`。
 
 **契約凍結原則**：欄位只增不改不刪。前端依此開發，`mock/` 下放同 schema 的假資料。
+
+### 8.0 通用規範
+
+#### 回應標頭
+
+| 標頭 | 值 | 用途 |
+|---|---|---|
+| `Content-Type` | `application/json; charset=utf-8` | |
+| `x-request-id` | UUID | 前端錯誤畫面顯示此值，可對 CloudWatch Logs |
+| `x-data-version` | 同 `meta.version` | 前端偵測資料更新 |
+| `Cache-Control` | `public, max-age=60` | CloudFront 與瀏覽器皆快取 60 秒 |
+
+#### 錯誤格式
+
+所有非 2xx 回應統一格式：
+
+```json
+{"error": {"code": "PARK_NOT_FOUND", "message": "查無此園所", "request_id": "..."}}
+```
+
+| HTTP | code | 情境 |
+|---|---|---|
+| 400 | `INVALID_PARAM` | 參數格式錯誤（如 `k=abc`） |
+| 404 | `PARK_NOT_FOUND` | `park_id` 不存在 |
+| 500 | `INTERNAL_ERROR` | 未預期錯誤 |
+| 503 | `DATA_NOT_READY` | `serving/` 尚未產生（首次部署） |
+
+**錯誤訊息不得洩漏 AWS 資源名稱、bucket 名稱或 stack trace。**
+
+#### 分頁
+
+`page` 從 1 開始，`size` 預設 50、上限 200。回應一律含 `total` / `page` / `size`。
+
+#### Lambda 實作要點
+
+```python
+# backend/app.py — 單一 Lambda 函式，內部路由
+_CACHE = {}   # 模組層全域，跨 invocation 存活
+
+def _load(key: str) -> dict:
+    """冷啟時一次性載入 serving/*.json，之後走記憶體。"""
+    if key not in _CACHE:
+        obj = s3.get_object(Bucket=BUCKET, Key=f"serving/{key}.json")
+        _CACHE[key] = json.loads(obj["Body"].read())
+    return _CACHE[key]
+```
+
+| 要點 | 說明 |
+|---|---|
+| 單一函式 | 9 支 API 共用一個 Lambda，內部依 `rawPath` 路由。減少冷啟次數與部署複雜度 |
+| 模組層快取 | `serving/*.json` 共約 3 MB，冷啟載入一次，後續 invocation 直接命中記憶體 |
+| 快取失效 | 資料更新後手動 `aws lambda update-function-configuration` 改一個環境變數即可強制冷啟 |
+| 不連資料庫 | 全程只讀 S3。無 RDS、無 DynamoDB（v1） |
+| 逾時 | 10s。實際 p99 應 < 200ms（記憶體命中） |
+
+> **為什麼不用 DynamoDB**：母體 1,178 筆、資料日更一次、查詢模式固定。把 3 MB JSON 讀進記憶體後用 Python 篩選，比維護一套 DynamoDB schema 與 GSI 更快也更少出錯。若 v2 需要即時寫入（稽查結果回填）再引入。
 
 ### 8.1 `GET /meta`
 
@@ -660,69 +1026,43 @@ GeoJSON FeatureCollection，`properties` 含 `park_id / name / tier / risk_score
 
 ## 9. 前端規格
 
-React + Vite，部署為純靜態站。狀態管理用 URL query string（可分享、可回上一頁），不需 Redux。
+**完整規格見 [`FRONTEND.md`](FRONTEND.md)** —— 設計 token、元件庫、七頁版面、狀態設計、無障礙、列印樣式。本節只保留與 API 契約直接相關的對應關係，避免兩份文件產生分歧。
 
-| # | 頁面 | 路由 | 主要 API | 關鍵元件 |
+### 9.1 頁面與 API 對應
+
+| # | 頁面 | 路由 | 依賴的 API | FRONTEND.md |
 |---|---|---|---|---|
-| 1 | 總覽 / 搜尋 | `/` | `/parks`, `/meta` | 搜尋框、多選篩選、分頁表格 |
-| 2 | 地圖 | `/map` | `/map`, `/districts` | 點陣地圖 + 叢集、tier 著色、側邊欄 |
-| 3 | 單園詳情 | `/park/:id` | `/parks/{id}`, `/parks/{id}/brief` | 分數卡、原因前三、裁罰時間軸、財務旗標、財報 PDF 連結 |
-| 4 | 風險列表 | `/risk` | `/risk/top?k=50` | 純列表、每筆白話原因 ×3、💰 標記、**「產出本週派工單」按鈕** |
-| 5 | 行政區熱力圖 | `/districts` | `/districts` | Choropleth，著色依 `high_risk_ratio` |
-| 6 | 成效驗證 | `/validation` | `/curve`, `/meta` | 四線折線圖 + Precision@50 對照表 |
-| 7 | **稽查派工單** ★ | `/worklist` | `/worklist` | **列印檢視**，見 §9.3 |
+| 1 | 總覽 / 搜尋 | `/` | `GET /meta`、`GET /parks` | FRONTEND §5.1 |
+| 2 | 風險列表 | `/risk` | `GET /risk/top` | FRONTEND §5.2 |
+| 3 | 地圖 | `/map` | `GET /map`、`GET /districts` | FRONTEND §5.3 |
+| 4 | 單園詳情 | `/park/:id` | `GET /parks/{id}`、`GET /parks/{id}/brief` | FRONTEND §5.4 |
+| 5 | 行政區熱力圖 | `/districts` | `GET /districts` | FRONTEND §5.5 |
+| 6 | 成效驗證 | `/validation` | `GET /curve`、`GET /meta` | FRONTEND §5.6 |
+| 7 | **稽查派工單** ★ | `/worklist` | `GET /worklist` | FRONTEND §5.7 |
 
-### 9.3 稽查派工單頁（`/worklist`）
+### 9.2 三條不可違反的前端規則
 
-**這是本系統的主線產出，不是附加功能。** 它是痛點 4 的唯一對應功能，也是 Demo 的收尾畫面。
+這三條寫在 SPEC 而非只寫在 FRONTEND，因為它們是**系統層級的承諾**，不是設計偏好。
 
-它是 `/risk` 的**列印檢視**，共用同一份資料，不是獨立的第七個功能模組——實作成本約 2 小時。
+1. **分級只有三色，且不含綠色。** 低風險的語意是「本週不優先稽查」，不是「安全」或「合格」。系統無權發出合格證。同時不做連續色階——分數是百分位排名，不是絕對量值。
+2. **不顯示任何自然人姓名。** API 回傳的是 `owner_key` 雜湊值，前端沒有姓名可顯示。見 §10.1。
+3. **每個分數旁必須有「為什麼」。** 任何顯示風險分數的畫面，同一視野內必須可見 `reasons`。公部門依分數調度稽查人力，被稽查方有權知道理由。
 
-版面（A4 直式，每頁 2–3 家）：
+### 9.3 稽查派工單的內容規則
 
-```
-新北市教保機構稽查派工單          週次：2026-W37    產出：2026-09-12
-模型 logistic_v1｜Precision@50 = 28.0%（隨機基準 10.6%）
-────────────────────────────────────────────────────────
-1. ○○幼兒園（板橋區・私立・核定 120 人）        風險 第 3 名｜高
-   TEL 02-2xxxxxxx    新北市板橋區○○路○○號
+版面設計見 [`FRONTEND.md`](FRONTEND.md) §5.7。以下三條是**後端產生內容時的契約**：
 
-   為什麼在名單上
-     · 切點前已被裁罰 5 次，全市前 3%
-     · 基礎評鑑 2 次未全數通過，並曾受幼照法第 51 條行政處分
-     · 同一負責人名下另有 7 園，其中 3 園亦有裁罰紀錄
-
-   建議查核重點
-     · 師生比 —— 歷史違規集中於第 16 條第 4 項（3 次）
-     · 實際招收人數 vs 核定 120 人 —— 歷史有超收 2 次
-
-   附件：裁罰時間軸 6 筆 ｜ 評鑑歷程 4 次
-
-   稽查結果 □ 未發現缺失  □ 限期改善  □ 移送裁處     稽查員簽章 ______
-────────────────────────────────────────────────────────
-2. ...
-```
-
-**設計要點**：
-
-| 要點 | 理由 |
+| 規則 | 說明 |
 |---|---|
-| 頁首印出模型名稱與 Precision@50 | 稽查員有權知道這份名單的準確度，這也是可稽核性的一部分 |
-| 「為什麼在名單上」恰好 3 條 | 超過 3 條沒有人會讀完 |
-| 「建議查核重點」必須指向法條或數字 | 「加強查核」是廢話，「第 16 條第 4 項，歷史 3 次」才是指引 |
-| 底部留「稽查結果」勾選欄與簽章欄 | 讓它成為真正的公文格式，而不是網頁列印 |
-| **全頁不出現任何自然人姓名** | §10.1 |
-| 純 CSS `@media print`，不需 PDF 套件 | 成本最低，且列印結果可預期 |
+| `reasons` 恰好 3 條 | 超過 3 條沒有人會讀完。後端負責取前 3 名，前端不再篩選 |
+| `actions` 必須指向法條或核定數字 | 「加強查核」是廢話。正確形式是「師生比 — 歷史違規集中於第 16 條第 4 項（3 次）」。來源是該園歷史裁罰的 `category` 與 `law` 分布 |
+| 全文不得出現自然人姓名 | §10.1。後端輸出前須通過 `assert_no_pii` |
 
-### 9.1 前端必須遵守的三條
+派工單頁首必須印出模型名稱與 Precision@50 —— 稽查員有權知道這份名單的準確度，這也是可稽核性的一部分。
 
-1. **分級顏色只有三色**（高/中/低）。不做連續色階——連續色階會讓使用者誤以為分數有絕對意義，它只是排名。
-2. **不顯示任何人名。** 顯示「同一負責人名下 3 園」，不顯示是誰。見 §10.1。
-3. **每個分數旁必須有「為什麼」。** 沒有原因的分數在公部門場景不可用，這也是評審會問的第一個問題。
+### 9.4 Mock 資料
 
-### 9.2 Mock 資料
-
-`frontend/mock/` 下放與 §8 同 schema 的假資料，`VITE_API_BASE=mock` 時走本地檔案。前端 D0 即可開工，不等後端。
+`frontend/mock/` 下放與 §8 同 schema 的假資料，`VITE_API_BASE=mock` 時走本地檔案。前端 D0 即可開工，不等後端與模型。必須涵蓋的邊界案例見 [`FRONTEND.md`](FRONTEND.md) §9.4。
 
 ---
 
@@ -804,12 +1144,20 @@ aws-hackathon/
 ├── backend/
 │   ├── app.py               Lambda handler（單一函式，內部路由）
 │   └── template.yaml        SAM
-├── frontend/
+├── backend/
+│   └── local_server.py      §15.2 本機開發用，讀本機 serving/
+├── frontend/                詳見 FRONTEND.md §9.2
 │   ├── src/
 │   └── mock/                §9.2 假資料
-└── infra/
-    └── template.yaml        S3 / CloudFront / OAC
+├── infra/
+│   └── template.yaml        §7.4 S3 / CloudFront / OAC / Lambda / HttpApi
+└── out/                     本機執行產物（gitignore）
+    ├── curated/
+    ├── model/
+    └── serving/
 ```
+
+> `backend/` 底下同時有 `app.py`（Lambda handler）、`template.yaml`（SAM 函式定義）與 `local_server.py`。`infra/template.yaml` 只管基礎設施，兩者以 `!ImportValue` 串接。
 
 ---
 
@@ -828,6 +1176,110 @@ aws-hackathon/
 | 7 | ~~決策建議用模板或 LLM~~ | — | 派工單已升為主線（§8.9、§9.3）。模板版必須能單獨上線，LLM 只潤飾白話文 | ✅ 2026-09-12 拍板 |
 | 8 | 是否納入公校決算（+24 園） | B+C 覆蓋 280 → 304 園 | 時間允許再做，非關鍵路徑 | 待拍板 |
 | 9 | `評鑒抓取.xlsx` 是否移入 `data/` | 目前放在 `docs/`，語意上它是資料不是文件 | 建議移到 `data/評鑒抓取.xlsx` | 待拍板 |
+
+---
+
+## 14. 驗收標準
+
+每一軌「完成」的定義。每項都要能被另一個人獨立驗證，不是自己說了算。
+
+### 14.1 DATA/ML
+
+- [ ] `etl/build_curated.py` 一次跑完無 assert 失敗，產出 8 個 `curated/*.json`
+- [ ] **洩漏檢查通過**：所有帶日期來源 `max(date) < 2025-01-01`
+- [ ] **個資檢查通過**：`curated/` 與 `serving/` 全文 grep 不到任何自然人姓名欄位
+- [ ] `features.json` 1,212 筆，正樣本 128 筆
+- [ ] 評鑑 join 命中率 100%（1,101 / 1,101）
+- [ ] 回測 Precision@50 **≥ 28.0%**（否則不如 §6.3 的手調基準，模型沒有價值）
+- [ ] 分層結果（私立 / 公立 / 非營利）已產出並寫入 `curve.json`
+- [ ] `serving/scores.json` 每筆的 `reasons` 皆 1–3 條，`code` 全部在 §4.6 表內，無佔位符殘留
+
+### 14.2 BACKEND
+
+- [ ] 9 支 API 皆可回應，schema 與 §8 完全一致
+- [ ] 冷啟 < 3s，熱請求 p99 < 200ms
+- [ ] 錯誤格式統一，且不洩漏 bucket 名稱或 stack trace
+- [ ] `x-request-id` 每個回應都有，且能在 CloudWatch Logs 查到對應紀錄
+- [ ] `/parks/{id}` 傳入不存在的 id 回 404 而非 500
+- [ ] `/worklist` 回傳內容不含任何自然人姓名
+- [ ] IAM role 僅有 `serving/*` 與 `raw/pdf/*` 的 `s3:GetObject`
+
+### 14.3 FRONTEND
+
+見 [`FRONTEND.md`](FRONTEND.md) §10。摘要：
+
+- [ ] 七頁皆可直接以網址抵達；篩選狀態寫進 URL 可分享
+- [ ] 任何顯示分數處同視野可見原因
+- [ ] 四種狀態（載入 / 空 / 錯誤 / 缺資料）全部實作
+- [ ] 派工單列印每項不跨頁，灰階可讀
+- [ ] axe DevTools 零 critical；JS bundle < 250 KB gzip
+
+### 14.4 CLOUD
+
+- [ ] `sam deploy` 從零可重建全部資源
+- [ ] **S3 Block Public Access 四項全開**，`aws s3api get-public-access-block` 驗證
+- [ ] 直接存取 S3 物件 URL 回 403，經 CloudFront 回 200
+- [ ] `/park/xxx` 直接輸入網址正常載入（SPA fallback 生效）
+- [ ] 全部資源在 **us-west-2**
+- [ ] CloudWatch Logs 保留期已設定（建議 7 天，省成本）
+
+### 14.5 端到端
+
+- [ ] 從 `git clone` 到本機看到完整畫面，步驟 ≤ 5 且文件化（§15）
+- [ ] Demo 腳本（`NARRATIVE.md` §7）可在 8 分鐘內完整走完
+- [ ] 斷網情況下 Demo 仍可進行（mock 模式）
+
+---
+
+## 15. 本機開發
+
+四軌各自的啟動方式。**任何一軌都不應該為了啟動而等另一軌。**
+
+### 15.1 前端（不需要後端）
+
+```bash
+cd frontend
+npm install
+VITE_API_BASE=mock npm run dev      # → http://localhost:5173
+```
+
+讀 `frontend/mock/*.json`，七頁全部可操作。
+
+### 15.2 後端（不需要 AWS）
+
+```bash
+cd backend
+pip install -r requirements.txt
+SERVING_DIR=../out/serving python local_server.py   # → http://localhost:8000
+```
+
+`local_server.py` 用 Flask 包同一個 `app.handler`，從本機目錄讀 `serving/*.json` 而非 S3。前端改 `VITE_API_BASE=http://localhost:8000/api/v1` 即可串接。
+
+### 15.3 ETL 與模型
+
+```bash
+export WATCHDOG_SALT="<本機自訂，不進 git>"
+python etl/build_curated.py  --out ./out/curated
+python model/train.py        --in ./out/curated --out ./out/model
+python model/backtest.py     --in ./out/curated --model ./out/model
+python model/score.py        --in ./out/curated --model ./out/model --out ./out/serving
+```
+
+全程本機執行，不需要 AWS 憑證。`./out/` 已在 `.gitignore`。
+
+### 15.4 AWS 憑證
+
+競賽帳號的憑證是短期 STS token，**不可進 git**。建議放在專案外的檔案再 source：
+
+```powershell
+# 存在 repo 之外，例如 %USERPROFILE%\aws-env.ps1
+$Env:AWS_DEFAULT_REGION="us-west-2"
+$Env:AWS_ACCESS_KEY_ID="..."
+$Env:AWS_SECRET_ACCESS_KEY="..."
+$Env:AWS_SESSION_TOKEN="..."
+```
+
+`.gitignore` 已涵蓋 `.env`、`*credentials*`、`aws-env.ps1`、`.aws/`。
 
 ---
 
