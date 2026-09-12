@@ -52,6 +52,29 @@ $err = curl.exe -s "$api/parks/does-not-exist"
 Check "不存在的 park 回 PARK_NOT_FOUND" ($err -match "PARK_NOT_FOUND") $err
 Check "錯誤訊息不洩漏 bucket 名稱" (-not ($err -match $site)) "錯誤訊息含 bucket 名稱"
 
+# 5b. 九支路由全部可用。曾經有三支在線上 500（缺 s3:ListBucket 導致
+#     S3 對不存在的 optional 檔回 AccessDenied 而非 NoSuchKey），
+#     本機測試抓不到，只有打線上才會出現。
+$pid1 = (curl.exe -s "$api/parks?size=1" | python -c "import json,sys;print(json.load(sys.stdin)['items'][0]['park_id'])")
+$routes = @('/meta','/parks?size=2','/risk/top?k=2','/districts','/map','/curve','/worklist',
+            "/parks/$pid1", "/parks/$pid1/brief")
+$bad = @()
+foreach ($r in $routes) {
+    $code = (curl.exe -s -o NUL -w "%{http_code}" "$api$r")
+    if ($code -ne "200") { $bad += "$r -> $code" }
+}
+Check "九支 API 全部回 200" ($bad.Count -eq 0) ($bad -join "; ")
+
+# 5c. CORS 標頭必須隨 Origin 變動。CloudFront 若不把 Origin 納入 cache key，
+#     會把「不帶 Origin 取得、因此沒有 CORS 標頭」的回應快取起來，之後
+#     瀏覽器帶 Origin 來要就被擋。前端直連線上 API 開發時一定會踩到。
+$corsBad = @()
+foreach ($r in @('/meta', "/parks/$pid1", '/worklist')) {
+    $h = curl.exe -s -i -H "Origin: http://localhost:5173" "$api$r"
+    if (-not ($h | Select-String -Quiet "access-control-allow-origin")) { $corsBad += $r }
+}
+Check "帶 Origin 的請求都有 CORS 標頭" ($corsBad.Count -eq 0) ($corsBad -join "; ")
+
 # 6. Lambda IAM 只有唯讀
 $role = aws iam list-roles --query "Roles[?contains(RoleName,'watchdog')].RoleName" --output text
 $hasWrite = $false

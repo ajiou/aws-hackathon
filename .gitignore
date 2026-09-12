@@ -27,3 +27,9 @@ Thumbs.db
 out/
 *.parquet
 *.stackdump
+
+# 前端建置產物
+frontend/dist/
+frontend/.vite/
+frontend/node_modules/
+frontend/*.tsbuildinfo
