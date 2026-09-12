@@ -1,0 +1,24 @@
+# Credentials / secrets — never commit
+.env
+.env.*
+*.pem
+*credential*
+*credentials*
+aws-env.ps1
+aws-env.sh
+.aws/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Node
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
