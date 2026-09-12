@@ -7,7 +7,8 @@ test("seven pages support direct navigation and have no serious accessibility vi
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   for (const [path, title] of [
-    ["/", "教保機構風險總覽"],
+    ["/", "園所風險地圖"],
+    ["/overview", "教保機構風險總覽"],
     ["/risk", "風險列表 — 前 50 名"],
     [`/park/${parkId}`, "新北市私立景光幼兒園"],
     ["/districts", "行政區風險熱力圖"],
@@ -36,7 +37,7 @@ test("seven pages support direct navigation and have no serious accessibility vi
 test("URL filters survive reload, support chips, sorting, paging and empty state recovery", async ({
   page,
 }) => {
-  await page.goto("/?town=板橋區&type=私立&tier=高");
+  await page.goto("/overview?town=板橋區&type=私立&tier=高");
   await expect(page.locator("tbody tr").first()).toBeVisible();
   const first = await page.locator("tbody").innerText();
   await page.reload();
@@ -110,6 +111,7 @@ test("responsive widths never overflow the document", async ({ page }) => {
   for (const width of [1280, 1024, 768, 375])
     for (const path of [
       "/",
+      "/overview",
       "/risk",
       `/park/${parkId}`,
       "/districts",
@@ -141,17 +143,21 @@ test("responsive widths never overflow the document", async ({ page }) => {
 test("map selection exposes reasons and validation reports public-model limitation", async ({
   page,
 }) => {
-  await page.goto("/map");
+  // 地圖上的鍵盤下拉已移除，改用網址直接指定園所。
+  await page.goto(`/map?selected=${parkId}`);
   await page.waitForFunction(
     () => performance.getEntriesByName("watchdog-points").length > 0,
   );
-  await page.getByLabel("選擇園所（鍵盤操作）").selectOption(parkId);
+  const drawer = page.getByRole("complementary");
   await expect(
-    page.getByText("切點前已被裁罰 9 次，同類型前 3%"),
+    drawer.getByRole("heading", { name: "新北市私立景光幼兒園" }),
   ).toBeVisible();
-  await expect(page).toHaveURL(new RegExp(`selected=${parkId}`));
+  await expect(
+    drawer.getByText("曾受幼照法第 51 條行政處分 9 次"),
+  ).toBeVisible();
   await page.goto("/validation");
-  await expect(page.getByText("0.86x", { exact: true }).first()).toBeVisible();
+  // 不再釘死數字：模型重算後 lift 會變，這裡只確認成效頁真的算得出 lift。
+  await expect(page.getByText(/^\d+\.\d\dx$/).first()).toBeVisible();
   await page.screenshot({
     path: "test-results/validation.png",
     fullPage: true,

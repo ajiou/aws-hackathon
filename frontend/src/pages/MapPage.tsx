@@ -11,12 +11,7 @@ import { useApi } from "../api/queries";
 import { districtsSchema, type MapData } from "../api/types";
 import { filterMapParks, useMapParks } from "../api/map";
 import { useUrlState } from "../hooks/useUrlState";
-import {
-  QueryState,
-  PageHeader,
-  Skeleton,
-  CopyLink,
-} from "../components/common";
+import { QueryState, PageHeader, Skeleton } from "../components/common";
 import { ParkDrawer } from "../components/ParkDrawer";
 import Overview from "./Overview";
 import { Button } from "../components/ui/button";
@@ -176,7 +171,7 @@ function Distribution({ data }: { data: MapData }) {
       </div>
       <div className={s.mapLayout}>
         <section
-          className="overflow-hidden rounded-xl border border-border bg-background shadow-sm"
+          className={`${s.mapSection} overflow-hidden rounded-xl border border-border bg-background shadow-sm`}
           aria-label="園所風險地圖"
         >
           <div className={s.mapViewport}>
@@ -315,31 +310,10 @@ function Distribution({ data }: { data: MapData }) {
         </div>
       </div>
       {mode === "points" && (
-        <div className="mt-4 flex flex-wrap items-start justify-between gap-4">
-          <p className="m-0 flex max-w-2xl items-start gap-2 text-xs text-muted-foreground">
-            <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            無座標園所可由總覽搜尋。風險分級代表查核優先序，低風險不代表安全或合格。
-          </p>
-          <label
-            className="flex w-full max-w-sm flex-col gap-1.5 text-xs text-muted-foreground"
-            htmlFor="map-park-select"
-          >
-            選擇園所（鍵盤操作）
-            <select
-              id="map-park-select"
-              className="w-full text-sm"
-              value={selected ? id : ""}
-              onChange={(e) => update("selected", e.target.value, false)}
-            >
-              <option value="">選擇園所，查看基本資料</option>
-              {visible.features.map((f) => (
-                <option key={f.properties.park_id} value={f.properties.park_id}>
-                  {f.properties.name}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+        <p className="mt-4 flex max-w-2xl items-start gap-2 text-xs text-muted-foreground">
+          <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          無座標園所可由總覽搜尋。風險分級代表查核優先序，低風險不代表安全或合格。
+        </p>
       )}
       {mode === "points" && id && !selected && (
         <p role="status" className={s.note}>
@@ -356,9 +330,7 @@ export default function MapPage() {
       <PageHeader
         title="園所風險地圖"
         description="一張圖切換園所分布與行政區熱力，右側同步顯示風險資訊。"
-      >
-        <CopyLink />
-      </PageHeader>
+      />
       <QueryState query={query}>
         {(data) => <Distribution data={data} />}
       </QueryState>

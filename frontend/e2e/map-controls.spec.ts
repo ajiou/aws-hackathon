@@ -26,28 +26,52 @@ async function clickAnyDistrict(page: Page, canvas: Locator) {
     .toBe(true);
 }
 
-test("top search, map filters and accessible basic information drawer work together", async ({
+test("top search, map filters and accessible basic information panel work together", async ({
   page,
 }) => {
   await page.goto("/map");
-  const selector = page.getByLabel("選擇園所（鍵盤操作）");
-  await expect(selector).toBeVisible();
-  await expect
-    .poll(() => selector.locator("option").count())
-    .toBeGreaterThan(1);
-  const total = await selector.locator("option").count();
+  const mapRegion = page.getByRole("region", { name: "園所風險地圖" });
+  // 地圖上的鍵盤下拉已移除，園所數量改看地圖頁尾的即時計數。
+  const shown = async () =>
+    Number(
+      (await mapRegion.locator("strong").first().innerText()).replace(/,/g, ""),
+    );
+  await expect.poll(shown).toBeGreaterThan(1);
+  const total = await shown();
   const types = page.getByRole("group", { name: "設立別篩選" });
   await types.getByRole("button", { name: "非營利", exact: true }).click();
   await expect(page).toHaveURL(/type=/);
   await expect(
     types.getByRole("button", { name: "非營利", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
-  await expect
-    .poll(() => selector.locator("option").count())
-    .toBeLessThan(total);
-  const id = await selector.locator("option").nth(1).getAttribute("value");
-  await selector.selectOption(id!);
+  await expect.poll(shown).toBeLessThan(total);
+  const overview = page.getByRole("region", {
+    name: "教保機構風險總覽",
+    exact: true,
+  });
+  await expect(overview.locator("tbody tr").first()).toBeVisible();
+  const ids = await overview
+    .locator("tbody tr th a")
+    .evaluateAll((links) =>
+      links.map((a) => a.getAttribute("href")!.replace("/park/", "")),
+    );
   const drawer = page.getByRole("complementary");
+  // 名單上的園所不一定都有座標，挑到第一個開得起來的為止。
+  let opened = "";
+  for (const id of ids.slice(0, 4)) {
+    await page.goto(
+      `/map?${new URLSearchParams({ type: "非營利", selected: id })}`,
+    );
+    const shows = await drawer
+      .waitFor({ state: "visible", timeout: 4000 })
+      .then(() => true)
+      .catch(() => false);
+    if (shows) {
+      opened = id;
+      break;
+    }
+  }
+  expect(opened).not.toBe("");
   await expect(drawer).toBeVisible();
   await expect(drawer.getByText("非營利", { exact: true })).toBeVisible();
   await expect(drawer.getByText("地址", { exact: true })).toBeVisible();
@@ -60,20 +84,14 @@ test("top search, map filters and accessible basic information drawer work toget
   const map = page.locator("[data-map-canvas]");
   const mapBox = (await map.boundingBox())!;
   const drawerBox = (await drawer.boundingBox())!;
-  // 園所詳情現在是版面右欄，不再浮在地圖上：與地圖並排、頂端對齊。
+  // 園所詳情是版面右欄，不再浮在地圖上：與地圖並排、頂端對齊。
   expect(drawerBox.x).toBeGreaterThanOrEqual(mapBox.x + mapBox.width);
   expect(Math.abs(drawerBox.y - mapBox.y)).toBeLessThanOrEqual(4);
   await page.getByRole("button", { name: "Zoom in", exact: true }).click();
   await expect(drawer).toBeVisible();
-  // The drawer must allow selecting another kindergarten without closing first.
-  const nextId = await selector.locator("option").nth(2).getAttribute("value");
-  await selector.selectOption(nextId!);
-  await expect(page).toHaveURL(new RegExp(`selected=${nextId}`));
-  await expect(drawer).toBeVisible();
   await page.screenshot({ path: "test-results/map-drawer.png" });
   await page.keyboard.press("Escape");
   await expect(drawer).toHaveCount(0);
-  await expect(selector).toBeFocused();
   await expect(page).not.toHaveURL(/selected=/);
   await page.reload();
   await expect(
@@ -90,29 +108,19 @@ test("top search, map filters and accessible basic information drawer work toget
   await expect(page).toHaveURL(/\/map\?/);
   // 地圖與右側總覽現在同頁，兩邊都有空狀態標題，斷言要指明是地圖那一個。
   await expect(
-    page
-      .getByRole("region", { name: "園所風險地圖" })
-      .getByRole("heading", { name: "沒有符合條件的園所" }),
+    mapRegion.getByRole("heading", { name: "沒有符合條件的園所" }),
   ).toBeVisible();
   await page.getByRole("button", { name: "清除搜尋", exact: true }).click();
   await types.getByRole("button", { name: "全部", exact: true }).click();
-  await expect(selector.locator("option")).toHaveCount(total);
+  await expect.poll(shown).toBe(total);
   await expect(page.locator("[data-map-canvas]")).toHaveAttribute(
     "aria-busy",
     "false",
   );
   await page.screenshot({ path: "test-results/map-desktop.png" });
   await page.setViewportSize({ width: 375, height: 900 });
-  await page.reload();
-  await expect(page.locator("[data-map-canvas]")).toHaveAttribute(
-    "aria-busy",
-    "false",
-  );
-  await selector.selectOption(id!);
+  await page.goto(`/map?selected=${opened}`);
   await expect(drawer).toBeVisible();
-  await drawer.evaluate((element) =>
-    Promise.all(element.getAnimations().map((animation) => animation.finished)),
-  );
   const mobileMap = (await page.locator("[data-map-canvas]").boundingBox())!;
   const mobileDrawer = (await drawer.boundingBox())!;
   // 窄螢幕時右欄落到地圖下方，不覆蓋地圖。
@@ -137,7 +145,7 @@ test("search from another page navigates to the overview results", async ({
       .getByRole("searchbox", { name: "搜尋園名", exact: true })
       .fill("景光");
     await page.getByRole("button", { name: "搜尋", exact: true }).click();
-    await expect(page).toHaveURL(/\/\?q=/, { timeout: 2000 });
+    await expect(page).toHaveURL(/\/overview\?q=/, { timeout: 2000 });
   }).toPass({ timeout: 15_000 });
   await expect(
     page.getByRole("heading", { level: 1, name: "教保機構風險總覽" }),
@@ -236,6 +244,11 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
     overview.getByRole("button", { name: `移除${town}` }),
   ).toBeVisible();
   await expect(overview.locator("tbody tr").first()).toBeVisible();
+  // 右側欄以網站瀏覽為主，不放複製連結與列印。
+  await expect(overview.getByRole("button", { name: "複製連結" })).toHaveCount(
+    0,
+  );
+  await expect(overview.getByRole("button", { name: "列印" })).toHaveCount(0);
   // 右側欄是窄版：行政區、加權總分、裁罰次數不列出來。
   for (const column of ["行政區", "加權總分", "裁罰次數", "名次"])
     await expect(
@@ -250,6 +263,17 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   expect(
     await wrap.evaluate((el) => el.scrollWidth - el.clientWidth),
   ).toBeLessThanOrEqual(1);
+  // 右側欄與地圖同高，長表格在框內自己捲，不把頁面拉長。
+  const sideBox = (await overview.boundingBox())!;
+  const mapSectionBox = (await page
+    .getByRole("region", { name: "園所風險地圖" })
+    .boundingBox())!;
+  expect(Math.abs(sideBox.height - mapSectionBox.height)).toBeLessThanOrEqual(
+    4,
+  );
+  expect(
+    await wrap.evaluate((el) => el.scrollHeight - el.clientHeight),
+  ).toBeGreaterThan(0);
   // 切回園所分布時保留行政區篩選，地圖同時放大到該區的園所分布。
   await layers.getByRole("button", { name: "園所分布" }).click();
   await expect(page).toHaveURL(/mode=points/);
@@ -264,8 +288,15 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   await expect(page).toHaveURL(/mode=points/);
   await layers.getByRole("button", { name: "行政區熱力" }).click();
   await expect(page).toHaveURL(/mode=districts/);
-  await overview.getByRole("button", { name: /園名/ }).click();
-  await expect(page).toHaveURL(/sort=name/);
+  // 右側欄只有分級可排序（園名不再是排序鍵）。
+  await expect(
+    overview.getByRole("columnheader", { name: /園名/ }).getByRole("button"),
+  ).toHaveCount(0);
+  await overview
+    .getByRole("columnheader", { name: /分級/ })
+    .getByRole("button")
+    .click();
+  await expect(page).toHaveURL(/dir=asc/);
   await overview.getByRole("button", { name: "清除全部", exact: true }).click();
   await expect(page).toHaveURL(/mode=districts/);
   await expect(page).not.toHaveURL(/town=/);
@@ -273,6 +304,7 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   await expect(page).toHaveURL(/page=2/);
   await page.reload();
   await expect(overview.locator("tbody tr").first()).toBeVisible();
+  await page.waitForTimeout(1500);
   await page.screenshot({ path: "test-results/map-districts.png" });
   const violations = (
     await new AxeBuilder({ page }).analyze()

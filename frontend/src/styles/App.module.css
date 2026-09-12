@@ -430,13 +430,14 @@
   border: 1px solid var(--c-border-strong);
 }
 .map {
-  height: max(520px, calc(100dvh - 330px));
-  min-height: 520px;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 .mapViewport {
   position: relative;
-  min-height: 520px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 .parkDrawer {
@@ -473,12 +474,20 @@
 }
 .mapLayout {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
-  align-items: start;
+  /* 地圖佔畫面左半、資訊欄右半 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* 兩欄同高：右側欄不再被表格撐長，改成在框內自己捲。 */
+  grid-auto-rows: max(520px, calc(100dvh - 330px));
   gap: 24px;
 }
 .mapLayout > * {
   min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+.mapSection {
+  display: flex;
+  flex-direction: column;
 }
 .parkPanel {
   position: relative;
@@ -514,6 +523,28 @@
 }
 .districtOverview thead th {
   white-space: nowrap;
+}
+/* 右側欄自己是一個框：表頭、篩選、分頁固定，只有表格內部捲動。 */
+.districtOverview {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.districtOverview > section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.districtOverview [data-table-wrap] {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.districtOverview .parkPanel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 @media (max-width: 767px) {
   .districtLayout {

@@ -32,9 +32,6 @@ export function ParkDrawer({
       if (event.key === "Escape" && !event.defaultPrevented) {
         event.preventDefault();
         close.current();
-        document
-          .querySelector<HTMLSelectElement>("#map-park-select")
-          ?.focus({ preventScroll: true });
       }
     };
     document.addEventListener("keydown", escape);
@@ -51,12 +48,7 @@ export function ParkDrawer({
         size="icon"
         className="absolute right-3 top-3"
         aria-label="關閉園所資訊"
-        onClick={() => {
-          onClose();
-          document
-            .querySelector<HTMLSelectElement>("#map-park-select")
-            ?.focus({ preventScroll: true });
-        }}
+        onClick={onClose}
       >
         <X aria-hidden="true" />
       </Button>

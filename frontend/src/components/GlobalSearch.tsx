@@ -9,7 +9,8 @@ export function GlobalSearch() {
   const navigate = useNavigate();
   const urlSearch = new URLSearchParams(location.search).get("q") ?? "";
   const [search, setSearch] = useState(urlSearch);
-  const inline = location.pathname === "/" || location.pathname === "/map";
+  // 這幾頁的搜尋是就地篩選，其餘頁面則導到總覽搜尋。
+  const inline = ["/", "/map", "/overview"].includes(location.pathname);
   useEffect(() => {
     setSearch(urlSearch);
   }, [urlSearch, location.pathname]);
@@ -20,7 +21,10 @@ export function GlobalSearch() {
     params.delete("page");
     params.delete("selected");
     navigate(
-      { pathname: inline ? location.pathname : "/", search: params.toString() },
+      {
+        pathname: inline ? location.pathname : "/overview",
+        search: params.toString(),
+      },
       { replace },
     );
   }
@@ -33,7 +37,7 @@ export function GlobalSearch() {
     <form
       role="search"
       aria-label="園所搜尋"
-      className="relative ml-auto w-full max-w-sm"
+      className="relative ml-auto w-full max-w-sm min-w-48"
       onSubmit={(event) => {
         event.preventDefault();
         submit(search);
@@ -47,7 +51,7 @@ export function GlobalSearch() {
         type="search"
         aria-label="搜尋園名"
         placeholder={
-          location.pathname === "/map"
+          location.pathname === "/map" || location.pathname === "/"
             ? "搜尋地圖上的幼兒園…"
             : "搜尋幼兒園名稱…"
         }

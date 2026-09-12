@@ -19,30 +19,15 @@ function Row({ row, compact }: { row: ParkRow; compact?: boolean }) {
   const reasons = row.reasons ?? details.data?.reasons;
   return (
     <tr className={!row.is_active ? s.inactive : undefined}>
-      {compact && (
-        <td>
-          <TierBadge tier={row.risk.tier} />
-        </td>
-      )}
-      {!compact && <td className={s.num}>{row.risk.rank}</td>}
+      <td>
+        <TierBadge tier={row.risk.tier} />
+      </td>
       <th scope="row" className={s.nameCell}>
         <Link to={`/park/${row.park_id}`}>{row.name}</Link>
         {!row.is_active && <p>已停辦</p>}
       </th>
       {!compact && <td>{row.town}</td>}
       <td>{row.institution_type}</td>
-      {!compact && (
-        <td className={s.num}>
-          {reasons?.length && row.risk.score !== null
-            ? row.risk.score.toFixed(1)
-            : "——"}
-        </td>
-      )}
-      {!compact && (
-        <td>
-          <TierBadge tier={row.risk.tier} />
-        </td>
-      )}
       {!compact && <td className={s.num}>{row.pun_count}</td>}
       <td>
         {reasons ? (
@@ -77,17 +62,15 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
     ? [
         // 分級擺第一欄，稽核人員一眼就分得出優先序；名次改由排序承擔。
         ["分級", "risk"],
-        ["園名", "name"],
+        ["園名", ""],
         ["設立別", ""],
         ["上榜原因", ""],
       ]
     : [
-        ["名次", "risk"],
+        ["分級", "risk"],
         ["園名", "name"],
         ["行政區", ""],
         ["設立別", ""],
-        ["加權總分", "risk"],
-        ["分級", ""],
         ["裁罰次數", "pun_count"],
         ["上榜原因", ""],
       ];
@@ -98,8 +81,13 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
         title="教保機構風險總覽"
         description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
       >
-        <CopyLink />
-        <button onClick={() => window.print()}>列印</button>
+        {/* 地圖右側欄以網站瀏覽為主，複製連結與列印在那個情境用不到。 */}
+        {!embedded && (
+          <>
+            <CopyLink />
+            <button onClick={() => window.print()}>列印</button>
+          </>
+        )}
       </PageHeader>
       <FilterBar />
       <QueryState query={query}>

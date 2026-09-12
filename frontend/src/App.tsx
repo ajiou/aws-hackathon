@@ -3,7 +3,6 @@ import { NavLink, Link, Route, Routes, useLocation } from "react-router-dom";
 import {
   ShieldCheck,
   LayoutDashboard,
-  MapPinned,
   ChartNoAxesCombined,
   ClipboardList,
 } from "lucide-react";
@@ -21,9 +20,9 @@ const Districts = lazy(() => import("./pages/Districts"));
 const MapPage = lazy(() => import("./pages/MapPage"));
 const Validation = lazy(() => import("./pages/Validation"));
 const Worklist = lazy(() => import("./pages/Worklist"));
+// 地圖就是首頁，所以導覽列不再放它；點左上角標誌即可回到地圖。
 const navigation = [
-  { path: "/", label: "總覽搜尋", icon: LayoutDashboard },
-  { path: "/map", label: "地圖", icon: MapPinned },
+  { path: "/overview", label: "總覽搜尋", icon: LayoutDashboard },
   { path: "/validation", label: "成效驗證", icon: ChartNoAxesCombined },
   { path: "/worklist", label: "稽查派工單", icon: ClipboardList },
 ];
@@ -31,7 +30,12 @@ export default function App() {
   const meta = useMeta();
   const location = useLocation();
   useEffect(() => {
-    document.title = `${navigation.find(({ path }) => path === location.pathname)?.label ?? (location.pathname === "/districts" ? "行政區熱力" : "單園分析")} · 小小守護員`;
+    const named: Record<string, string> = {
+      "/": "園所風險地圖",
+      "/map": "園所風險地圖",
+      "/districts": "行政區熱力",
+    };
+    document.title = `${navigation.find(({ path }) => path === location.pathname)?.label ?? named[location.pathname] ?? "單園分析"} · 小小守護員`;
   }, [location.pathname]);
   return (
     <>
@@ -63,11 +67,10 @@ export default function App() {
             稽查決策輔助系統
           </span>
           <GlobalSearch />
-        </div>
-        <div className="flex min-w-0 items-center justify-between border-t border-border px-4 md:px-6">
+          {/* 導覽列接在搜尋框右邊，不再自成一排。 */}
           <nav
             aria-label="主要導覽"
-            className="flex min-w-0 gap-1 overflow-x-auto py-2"
+            className="flex min-w-0 gap-1 overflow-x-auto py-1"
           >
             {navigation.map(({ path, label, icon: Icon }) => (
               <NavLink
@@ -87,7 +90,7 @@ export default function App() {
             ))}
           </nav>
           {meta.data && (
-            <span className="ml-4 hidden shrink-0 text-xs text-muted-foreground xl:block">
+            <span className="hidden shrink-0 text-xs text-muted-foreground xl:block">
               {number(meta.data.population)} 園 · 資料至{" "}
               {meta.data.data_freshness.punishments}
               {isMock && " · 示範資料"}
@@ -99,7 +102,8 @@ export default function App() {
         <main id="main" className={s.content} tabIndex={-1}>
           <Suspense fallback={<Skeleton />}>
             <Routes>
-              <Route path="/" element={<Overview />} />
+              <Route path="/" element={<MapPage />} />
+              <Route path="/overview" element={<Overview />} />
               <Route path="/risk" element={<Risk />} />
               <Route path="/map" element={<MapPage />} />
               <Route path="/park/:id" element={<ParkDetail />} />

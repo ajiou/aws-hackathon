@@ -95,6 +95,8 @@ export default function MapCanvas({
           padding: { top: 100, bottom: 45, left: 30, right: 30 },
         },
         canvasContextAttributes: { preserveDrawingBuffer: true },
+        // 地圖變窄後完整版權列會折行、蓋掉左下角的說明，收成 ⓘ 按鈕。
+        attributionControl: { compact: true },
       });
       instance.current = map;
       map.addControl(new NavigationControl(), "top-left");
@@ -102,6 +104,20 @@ export default function MapCanvas({
       setFailed(true);
       return;
     }
+    // 地圖容器改由 flex 決定高度，掛載當下可能還是 0；不主動 resize 會留一片空白。
+    // 尺寸沒變就不呼叫 resize——resize 自己會改動 canvas，否則觀察者會一直互相觸發，
+    // 地圖永遠進不了 idle。
+    let width = 0,
+      height = 0;
+    const resize = new ResizeObserver(([entry]) => {
+      const w = Math.round(entry.contentRect.width),
+        h = Math.round(entry.contentRect.height);
+      if (w === width && h === height) return;
+      width = w;
+      height = h;
+      map.resize();
+    });
+    resize.observe(host.current);
     map.on("error", () => setTileError(true));
     map.on("sourcedataloading", () => setRendering(true));
     map.on("idle", () => setRendering(false));
@@ -258,6 +274,7 @@ export default function MapCanvas({
       }
     });
     return () => {
+      resize.disconnect();
       map.remove();
       instance.current = undefined;
     };
