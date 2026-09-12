@@ -6,6 +6,7 @@
 | 對應 | 系統規格 [`SPEC.md`](SPEC.md)、敘事策略 [`NARRATIVE.md`](NARRATIVE.md) |
 | 適用 | `frontend/` 目錄下所有實作 |
 | 前提 | 本文件只依賴 [`SPEC.md`](SPEC.md) §8 API 契約。契約凍結後，前端可完全獨立開發 |
+| 契約狀態 | **已凍結（2026-09-12）** —— [`SPEC.md`](SPEC.md) §13 除財務公式外全數結案 |
 
 ---
 
