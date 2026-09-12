@@ -131,9 +131,11 @@ test("responsive widths never overflow the document", async ({ page }) => {
       ).toBe(true);
     }
   await page.goto("/");
-  await page.getByRole("button", { name: "☰ 選單" }).click();
-  await page.keyboard.press("Escape");
-  await expect(page.getByRole("button", { name: "☰ 選單" })).toBeFocused();
+  const navigation = page.getByRole("navigation", { name: "主要導覽" });
+  await expect(navigation).toBeVisible();
+  await navigation.getByRole("link", { name: "稽查派工單" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/worklist/);
   await page.screenshot({ path: "test-results/mobile.png", fullPage: false });
 });
 test("map selection exposes reasons and validation reports public-model limitation", async ({

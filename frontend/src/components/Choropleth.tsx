@@ -37,10 +37,12 @@ export function Choropleth({
   districts,
   selected,
   onSelect,
+  onActivate,
 }: {
   districts: District[];
   selected?: string;
   onSelect: (town: string) => void;
+  onActivate?: (town: string) => void;
 }) {
   const boundaries = useBoundaries();
   const navigate = useNavigate();
@@ -88,16 +90,21 @@ export function Choropleth({
                     fill={`var(--c-heat-${heatLevel(d?.high_risk_ratio ?? 0)})`}
                     fillRule="evenodd"
                     tabIndex={0}
-                    role="link"
+                    role={onActivate ? "button" : "link"}
                     aria-label={`${town}，高風險比例 ${percent(d?.high_risk_ratio ?? 0)}，查看園所`}
                     onMouseEnter={() => onSelect(town)}
                     onFocus={() => onSelect(town)}
                     onClick={() =>
-                      navigate(`/?town=${encodeURIComponent(town)}`)
+                      onActivate
+                        ? onActivate(town)
+                        : navigate(`/?town=${encodeURIComponent(town)}`)
                     }
                     onKeyDown={(e) => {
-                      if (e.key === "Enter")
-                        navigate(`/?town=${encodeURIComponent(town)}`);
+                      if (e.key === "Enter" || (onActivate && e.key === " ")) {
+                        e.preventDefault();
+                        if (onActivate) onActivate(town);
+                        else navigate(`/?town=${encodeURIComponent(town)}`);
+                      }
                     }}
                   >
                     <title>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useApi, useMeta, usePark } from "../api/queries";
+import { useApi, usePark } from "../api/queries";
 import { parksSchema, type ParkRow } from "../api/types";
 import { useUrlState } from "../hooks/useUrlState";
 import { FilterBar, EmptyState } from "../components/FilterBar";
@@ -45,10 +45,12 @@ function Row({ row }: { row: ParkRow }) {
     </tr>
   );
 }
-export default function Overview() {
+export default function Overview({ embedded = false }: { embedded?: boolean }) {
   const { params, update, setParams } = useUrlState();
-  const meta = useMeta();
-  const query = useApi(`/parks?${params}`, parksSchema);
+  const parkParams = new URLSearchParams(params);
+  parkParams.delete("mode");
+  parkParams.delete("selected");
+  const query = useApi(`/parks?${parkParams}`, parksSchema);
   const sort = params.get("sort") ?? "risk",
     dir = params.get("dir") ?? "desc";
   function sortBy(key: string) {
@@ -73,16 +75,14 @@ export default function Overview() {
   return (
     <>
       <PageHeader
+        headingLevel={embedded ? 2 : 1}
         title="教保機構風險總覽"
         description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
       >
         <CopyLink />
         <button onClick={() => window.print()}>列印</button>
       </PageHeader>
-      <FilterBar
-        total={query.data?.total}
-        population={meta.data?.population ?? 1}
-      />
+      <FilterBar />
       <QueryState query={query}>
         {(data) =>
           !data.items.length ? (

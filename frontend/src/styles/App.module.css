@@ -1,65 +1,3 @@
-.topbar {
-  min-height: 56px;
-  background: var(--c-bg);
-  border-bottom: 1px solid var(--c-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 24px;
-  gap: 20px;
-}
-.brand {
-  font: var(--t-h3);
-  text-decoration: none;
-  color: var(--c-text);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.brandIcon {
-  color: var(--c-primary);
-  font-size: 26px;
-}
-.metadata {
-  text-align: right;
-  font: var(--t-caption);
-  color: var(--c-text-2);
-}
-.layout {
-  display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
-  min-height: calc(100vh - 57px);
-}
-.nav {
-  background: var(--c-bg);
-  border-right: 1px solid var(--c-border);
-  padding: 24px 16px;
-}
-.nav a {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px;
-  margin-bottom: 5px;
-  color: var(--c-text-2);
-  text-decoration: none;
-  border-radius: var(--r-md);
-}
-.nav a[aria-current="page"] {
-  background: var(--c-primary-bg);
-  color: var(--c-primary);
-  font-weight: 600;
-}
-.navIcon {
-  width: 20px;
-  text-align: center;
-  font-size: 18px;
-}
-.nav small {
-  display: block;
-  margin: 24px 12px;
-  color: var(--c-text-3);
-}
 .content {
   padding: 24px;
   min-width: 0;
@@ -186,8 +124,13 @@
 .filterRow {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 12px;
+  white-space: nowrap;
+}
+.clearFilters {
+  margin-left: auto;
+  flex-shrink: 0;
 }
 .search {
   display: flex;
@@ -243,13 +186,14 @@
   margin-top: 12px;
 }
 .chip {
+  display: inline-flex;
+  align-items: center;
   background: var(--c-primary-bg);
   color: var(--c-primary);
   border: 0;
+  border-radius: var(--r-full);
+  padding: 4px 12px;
   font: var(--t-small);
-}
-.resultCount {
-  margin-left: auto;
 }
 .pagination {
   display: flex;
@@ -455,20 +399,91 @@
   height: 12px;
   border: 1px solid var(--c-border-strong);
 }
-.mapLayout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
-  gap: 16px;
-}
 .map {
-  height: 620px;
-  border: 1px solid var(--c-border-strong);
-  border-radius: var(--r-lg);
+  height: max(520px, calc(100dvh - 330px));
+  min-height: 520px;
   overflow: hidden;
 }
-.mapSide {
-  max-height: 680px;
-  overflow: auto;
+.mapViewport {
+  position: relative;
+  min-height: 520px;
+  overflow: hidden;
+}
+.parkDrawer {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: 20;
+  width: min(400px, 45%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--c-bg);
+  border-left: 1px solid var(--c-border);
+  box-shadow: -8px 0 24px rgb(0 0 0 / 10%);
+  animation: drawer-enter 180ms ease-out;
+}
+.parkDrawer > * {
+  flex-shrink: 0;
+}
+@keyframes drawer-enter {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .parkDrawer {
+    animation: none;
+  }
+}
+.districtLayout {
+  display: grid;
+  grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
+  align-items: start;
+  gap: 24px;
+}
+.districtLayout > *,
+.districtOverview {
+  min-width: 0;
+}
+.districtOverview .header {
+  flex-wrap: wrap;
+}
+.districtOverview thead th,
+.districtOverview td:nth-child(3),
+.districtOverview td:nth-child(4) {
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .districtLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .mapViewport {
+    min-height: 460px;
+  }
+  .parkDrawer {
+    inset: auto 0 0;
+    width: 100%;
+    height: 60%;
+    padding: 20px;
+    border-left: 0;
+    border-top: 1px solid var(--c-border);
+    box-shadow: 0 -8px 24px rgb(0 0 0 / 10%);
+    animation-name: drawer-enter-mobile;
+  }
+}
+@keyframes drawer-enter-mobile {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 .districtShape {
   stroke: var(--c-border-strong);
@@ -532,9 +547,6 @@
   font: var(--t-caption);
   margin-top: 12px;
 }
-.mobileMenu {
-  display: none;
-}
 .skip {
   position: fixed;
   top: -80px;
@@ -578,10 +590,6 @@
 .tooltipWrap:focus-within .tooltip {
   display: block;
 }
-.drawerBackdrop {
-  display: none;
-}
-
 /* ---- 單園分析的三段方形結構 ----
    風險總分橫幅 → 建議查核重點／輿情訊號等寬並排 → 分頁。
    三段同寬、上下對齊，窄螢幕時中段與橫幅各自疊成一欄。 */
@@ -647,25 +655,8 @@
 }
 
 @media (min-width: 768px) and (max-width: 1279px) {
-  .layout {
-    grid-template-columns: 64px minmax(0, 1fr);
-  }
-  .nav {
-    padding: 20px 6px;
-  }
-  .nav a {
-    justify-content: center;
-    padding: 12px 8px;
-  }
-  .navLabel,
-  .nav small {
-    display: none;
-  }
   .content {
     padding: 20px;
-  }
-  .mapLayout {
-    grid-template-columns: minmax(0, 1fr) 290px;
   }
   /* 1280px 以下維度表擠不下權重欄，橫幅改成上下兩段 */
   .riskBand {
@@ -680,44 +671,6 @@
   }
 }
 @media (max-width: 767px) {
-  .topbar {
-    padding: 12px;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-  .brand {
-    font: var(--t-body-strong);
-  }
-  .metadata {
-    width: 100%;
-    text-align: left;
-  }
-  .layout {
-    display: block;
-  }
-  .mobileMenu {
-    display: block;
-  }
-  .nav {
-    display: none;
-  }
-  .navOpen {
-    display: block;
-    position: fixed;
-    inset: 0 auto 0 0;
-    width: 260px;
-    z-index: 51;
-    box-shadow: var(--shadow-panel);
-  }
-  .drawerBackdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    border: 0;
-    background: var(--c-text);
-    opacity: 0.35;
-    z-index: 50;
-  }
   .content {
     padding: 16px;
   }
@@ -725,7 +678,6 @@
     flex-direction: column;
   }
   .twoCol,
-  .mapLayout,
   .riskBand,
   .pair {
     grid-template-columns: 1fr;
@@ -755,18 +707,11 @@
     font: var(--t-h2);
   }
   .map {
-    height: 420px;
-  }
-  .mapSide {
-    max-height: 40vh;
-    overflow: auto;
+    height: 460px;
+    min-height: 460px;
   }
   .paper {
     padding: 14px;
-  }
-  .resultCount {
-    width: 100%;
-    margin-left: 0;
   }
   .reasons {
     min-width: 0;

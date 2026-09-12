@@ -1,17 +1,17 @@
-import { useEffect, useState } from "react";
+import { useId, useState } from "react";
 import { useUrlState } from "../hooks/useUrlState";
 import { useApi } from "../api/queries";
 import { districtsSchema } from "../api/types";
-import { isMock } from "../api/client";
-import { percent, number } from "../utils/format";
 import { QueryState } from "./common";
 import s from "../styles/App.module.css";
 function MultiSelect({
+  groupName,
   label,
   values,
   selected,
   onChange,
 }: {
+  groupName: string;
   label: string;
   values: string[];
   selected: string[];
@@ -19,7 +19,7 @@ function MultiSelect({
 }) {
   const [search, setSearch] = useState("");
   return (
-    <details className={s.multi}>
+    <details className={s.multi} name={groupName}>
       <summary>
         {label}
         {selected.length ? ` (${selected.length})` : ""}
@@ -54,47 +54,20 @@ function MultiSelect({
     </details>
   );
 }
-export function FilterBar({
-  total,
-  population,
-  map = false,
-}: {
-  total?: number;
-  population: number;
-  map?: boolean;
-}) {
+export function FilterBar({ map = false }: { map?: boolean }) {
+  const dropdownGroup = useId();
   const { params, update, clear } = useUrlState();
   const districts = useApi("/districts", districtsSchema);
-  const [search, setSearch] = useState(params.get("q") ?? "");
-  const urlSearch = params.get("q") ?? "";
-  useEffect(() => {
-    setSearch(urlSearch);
-  }, [urlSearch]);
-  useEffect(() => {
-    if (search === urlSearch) return;
-    const timer = setTimeout(() => update("q", search), 300);
-    return () => clearTimeout(timer);
-  }, [search, urlSearch]);
   const chips = [...params.entries()].filter(([key]) =>
     ["town", "type", "tier", "include_inactive", "q"].includes(key),
   );
   return (
     <section className={s.filters} data-filters aria-label="園所篩選">
       <div className={s.filterRow}>
-        {!map && (
-          <label className={s.search}>
-            搜尋園名
-            <input
-              type="search"
-              placeholder="輸入園名關鍵字"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </label>
-        )}
         <QueryState query={districts}>
           {(data) => (
             <MultiSelect
+              groupName={dropdownGroup}
               label="行政區"
               values={data.items
                 .map((d) => d.town)
@@ -106,6 +79,7 @@ export function FilterBar({
         </QueryState>
         {!map && (
           <MultiSelect
+            groupName={dropdownGroup}
             label="設立別"
             values={["公立", "私立", "非營利"]}
             selected={params.getAll("type")}
@@ -113,60 +87,35 @@ export function FilterBar({
           />
         )}
         <MultiSelect
+          groupName={dropdownGroup}
           label="分級"
           values={["高", "中", "低"]}
           selected={params.getAll("tier")}
           onChange={(v) => update("tier", v)}
         />
-        {!map && (
-          <>
-            <label
-              title={!isMock ? "目前正式 API 僅提供營運中園所" : undefined}
-            >
-              <input
-                type="checkbox"
-                disabled={!isMock}
-                checked={params.get("include_inactive") === "true"}
-                onChange={(e) =>
-                  update("include_inactive", e.target.checked ? "true" : "")
-                }
-              />{" "}
-              包含已停辦{!isMock && "（API 尚未支援）"}
-            </label>
-          </>
-        )}
-      </div>
-      <div className={s.chips}>
-        {chips.map(([key, value]) => (
-          <button
-            key={`${key}-${value}`}
-            className={s.chip}
-            aria-label={`移除${value}`}
-            onClick={() => {
-              if (key === "q") setSearch("");
-              update(
-                key,
-                params.getAll(key).filter((v) => v !== value),
-              );
-            }}
-          >
-            {key === "include_inactive" ? "已停辦" : value} ×
-          </button>
-        ))}
-        <button
-          onClick={() => {
-            setSearch("");
-            clear();
-          }}
-        >
+        <button className={s.clearFilters} onClick={clear}>
           清除全部
         </button>
-        <span className={s.resultCount} aria-live="polite">
-          {total === undefined
-            ? "正在取得筆數…"
-            : `共 ${number(total)} 筆 · 佔母體 ${percent(total / population)}`}
-        </span>
       </div>
+      {chips.length > 0 && (
+        <div className={s.chips}>
+          {chips.map(([key, value]) => (
+            <button
+              key={`${key}-${value}`}
+              className={s.chip}
+              aria-label={`移除${value}`}
+              onClick={() => {
+                update(
+                  key,
+                  params.getAll(key).filter((v) => v !== value),
+                );
+              }}
+            >
+              {key === "include_inactive" ? "已停辦" : value} ×
+            </button>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

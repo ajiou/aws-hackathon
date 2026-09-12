@@ -289,6 +289,7 @@ export const mapSchema = z.object({
         pun_count: z.number(),
         has_abuse: z.boolean(),
         town: z.string().optional(),
+        ...typeFields,
       }),
     }),
   ),

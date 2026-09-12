@@ -1,8 +1,18 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { NavLink, Link, Route, Routes, useLocation } from "react-router-dom";
+import {
+  ShieldCheck,
+  LayoutDashboard,
+  ListFilter,
+  MapPinned,
+  ChartNoAxesCombined,
+  ClipboardList,
+} from "lucide-react";
 import { useMeta } from "./api/queries";
 import { isMock } from "./api/client";
-import { Skeleton, QueryState } from "./components/common";
+import { Skeleton } from "./components/common";
+import { GlobalSearch } from "./components/GlobalSearch";
+import { cn } from "./lib/utils";
 import { number } from "./utils/format";
 import s from "./styles/App.module.css";
 const Overview = lazy(() => import("./pages/Overview"));
@@ -13,125 +23,81 @@ const MapPage = lazy(() => import("./pages/MapPage"));
 const Validation = lazy(() => import("./pages/Validation"));
 const Worklist = lazy(() => import("./pages/Worklist"));
 const navigation = [
-  ["/", "總覽搜尋", "⌕"],
-  ["/risk", "風險列表", "≡"],
-  ["/map", "地圖", "⌖"],
-  ["/districts", "行政區熱力", "▦"],
-  ["/validation", "成效驗證", "↗"],
-  ["/worklist", "稽查派工單", "▤"],
+  { path: "/", label: "總覽搜尋", icon: LayoutDashboard },
+  { path: "/risk", label: "風險列表", icon: ListFilter },
+  { path: "/map", label: "地圖", icon: MapPinned },
+  { path: "/validation", label: "成效驗證", icon: ChartNoAxesCombined },
+  { path: "/worklist", label: "稽查派工單", icon: ClipboardList },
 ];
 export default function App() {
   const meta = useMeta();
-  const [open, setOpen] = useState(false);
   const location = useLocation();
-  const nav = useRef<HTMLElement>(null);
-  const menu = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    setOpen(false);
-    document.title = `${navigation.find(([path]) => path === location.pathname)?.[1] ?? "單園分析"} · 小小守護員`;
+    document.title = `${navigation.find(({ path }) => path === location.pathname)?.label ?? (location.pathname === "/districts" ? "行政區熱力" : "單園分析")} · 小小守護員`;
   }, [location.pathname]);
-  useEffect(() => {
-    if (open) nav.current?.querySelector("a")?.focus();
-  }, [open]);
   return (
     <>
       <a href="#main" className={s.skip}>
         跳至主要內容
       </a>
-      <header className={s.topbar} data-topbar>
-        <Link className={s.brand} to="/">
-          <span className={s.brandIcon} aria-hidden="true">
-            ◇
-          </span>
-          <span>
-            小小守護員 <small>Smart Watchdog</small>
-          </span>
-        </Link>
-        <button
-          ref={menu}
-          className={s.mobileMenu}
-          aria-expanded={open}
-          aria-controls="main-navigation"
-          onClick={() => setOpen(!open)}
-        >
-          ☰ 選單
-        </button>
-        <div className={s.metadata}>
-          <QueryState query={meta}>
-            {(data) => (
-              <>
-                母體 {number(data.population)} 園 · 資料至{" "}
-                {data.data_freshness.punishments}
-                <br />
-                切點 {data.cutoff} · v{data.version}
-                {isMock && " · 示範資料"}
-              </>
-            )}
-          </QueryState>
-        </div>
-      </header>
-      <div className={s.layout} data-layout>
-        {open && (
-          <button
-            aria-label="關閉導覽選單"
-            className={s.drawerBackdrop}
-            onClick={() => {
-              setOpen(false);
-              menu.current?.focus();
-            }}
-          />
-        )}
-        <nav
-          ref={nav}
-          id="main-navigation"
-          className={`${s.nav} ${open ? s.navOpen : ""}`}
-          aria-label="主要導覽"
-          onKeyDown={(e) => {
-            if (!open) return;
-            if (e.key === "Escape") {
-              setOpen(false);
-              menu.current?.focus();
-            }
-            if (e.key === "Tab") {
-              const links = nav.current?.querySelectorAll("a");
-              if (!links?.length) return;
-              const first = links[0],
-                last = links[links.length - 1];
-              if (e.shiftKey && document.activeElement === first) {
-                e.preventDefault();
-                last.focus();
-              } else if (!e.shiftKey && document.activeElement === last) {
-                e.preventDefault();
-                first.focus();
-              }
-            }
-          }}
-        >
-          {navigation.map(([path, label, icon]) => (
-            <NavLink
-              key={path}
-              to={path}
-              end={path === "/"}
-              title={label}
-              aria-label={label}
-            >
-              <span className={s.navIcon} aria-hidden="true">
-                {icon}
-              </span>
-              <span className={s.navLabel}>{label}</span>
-            </NavLink>
-          ))}
-          <small>
+      <header
+        className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur-md"
+        data-topbar
+      >
+        <div className="flex flex-wrap items-center gap-4 px-4 py-4 md:flex-nowrap md:px-6">
+          <Link
+            className="flex shrink-0 items-center gap-3 text-foreground no-underline"
+            to="/"
+          >
+            <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-white">
+              <ShieldCheck aria-hidden="true" className="size-6" />
+            </span>
+            <span className="text-base font-semibold">
+              小小守護員{" "}
+              <small className="block text-xs font-normal tracking-wider text-muted-foreground">
+                SMART WATCHDOG
+              </small>
+            </span>
+          </Link>
+          <span className="hidden border-l border-border pl-4 text-xs text-muted-foreground lg:block">
             新北市教保機構
             <br />
             稽查決策輔助系統
-            <br />
-            <br />
-            分數代表查核優先序，
-            <br />
-            不等同違規認定。
-          </small>
-        </nav>
+          </span>
+          <GlobalSearch />
+        </div>
+        <div className="flex min-w-0 items-center justify-between border-t border-border px-4 md:px-6">
+          <nav
+            aria-label="主要導覽"
+            className="flex min-w-0 gap-1 overflow-x-auto py-2"
+          >
+            {navigation.map(({ path, label, icon: Icon }) => (
+              <NavLink
+                key={path}
+                to={path}
+                end={path === "/"}
+                className={({ isActive }) =>
+                  cn(
+                    "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground",
+                    isActive && "bg-accent text-primary",
+                  )
+                }
+              >
+                <Icon className="size-4" aria-hidden="true" />
+                <span>{label}</span>
+              </NavLink>
+            ))}
+          </nav>
+          {meta.data && (
+            <span className="ml-4 hidden shrink-0 text-xs text-muted-foreground xl:block">
+              {number(meta.data.population)} 園 · 資料至{" "}
+              {meta.data.data_freshness.punishments}
+              {isMock && " · 示範資料"}
+            </span>
+          )}
+        </div>
+      </header>
+      <div data-layout>
         <main id="main" className={s.content} tabIndex={-1}>
           <Suspense fallback={<Skeleton />}>
             <Routes>

@@ -80,14 +80,12 @@ export async function mockRequest(
       total: items.length,
       page,
       size,
-      items: items
-        .slice((page - 1) * size, page * size)
-        .map((p) => ({
-          ...p,
-          pun_count: p.timeline.length,
-          has_finance_flag: !!p.finance_flags.length,
-          has_media_signal: p.media.has_signal,
-        })),
+      items: items.slice((page - 1) * size, page * size).map((p) => ({
+        ...p,
+        pun_count: p.timeline.length,
+        has_finance_flag: !!p.finance_flags.length,
+        has_media_signal: p.media.has_signal,
+      })),
     };
   }
   if (url.pathname === "/map")
@@ -102,6 +100,7 @@ export async function mockRequest(
             park_id: p.park_id,
             name: p.name,
             town: p.town,
+            institution_type: p.institution_type,
             tier: p.risk.tier,
             risk_score: p.risk.score,
             pun_count: p.timeline.length,
