@@ -109,7 +109,9 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
           ) : (
             <>
               <div className={s.tableWrap} data-table-wrap>
-                <table className={s.dataTable}>
+                <table
+                  className={`${s.dataTable} ${embedded ? s.compactTable : ""}`}
+                >
                   <caption className={s.srOnly}>教保機構風險搜尋結果</caption>
                   <thead>
                     <tr>

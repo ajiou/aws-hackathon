@@ -101,6 +101,36 @@
 .dataTable {
   min-width: 1000px;
 }
+/* 地圖右側欄的窄版：欄位少，就該一次看完，不要左右捲。 */
+.compactTable {
+  min-width: 0;
+  width: 100%;
+}
+.compactTable .nameCell {
+  min-width: 0;
+  max-width: none;
+}
+.compactTable th:first-child,
+.compactTable td:first-child {
+  width: 4.5rem;
+}
+.compactTable .reasons {
+  min-width: 0;
+}
+/* 可排序的欄位標題是文字＋箭頭，不是按鈕外框。 */
+.dataTable thead th button {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+}
+.dataTable thead th button:hover {
+  background: none;
+  text-decoration: underline;
+}
 .nameCell {
   min-width: 200px;
   max-width: 320px;
@@ -482,9 +512,7 @@
 .districtOverview .header {
   flex-wrap: wrap;
 }
-.districtOverview thead th,
-.districtOverview td:nth-child(3),
-.districtOverview td:nth-child(4) {
+.districtOverview thead th {
   white-space: nowrap;
 }
 @media (max-width: 767px) {

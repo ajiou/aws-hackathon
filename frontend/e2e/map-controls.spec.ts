@@ -131,11 +131,14 @@ test("search from another page navigates to the overview results", async ({
   page,
 }) => {
   await page.goto("/validation");
-  await page
-    .getByRole("searchbox", { name: "搜尋園名", exact: true })
-    .fill("景光");
-  await page.getByRole("button", { name: "搜尋", exact: true }).click();
-  await expect(page).toHaveURL(/\/\?q=/);
+  // 同上：輸入太早會打在還沒接上事件的 input，重試到網址真的帶上 q 為止。
+  await expect(async () => {
+    await page
+      .getByRole("searchbox", { name: "搜尋園名", exact: true })
+      .fill("景光");
+    await page.getByRole("button", { name: "搜尋", exact: true }).click();
+    await expect(page).toHaveURL(/\/\?q=/, { timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await expect(
     page.getByRole("heading", { level: 1, name: "教保機構風險總覽" }),
   ).toBeVisible();
@@ -242,6 +245,11 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
     await expect(
       overview.getByRole("columnheader", { name: new RegExp(column) }),
     ).toHaveCount(1);
+  // 窄版表格要一次看完，不能左右捲。
+  const wrap = overview.locator("[data-table-wrap]");
+  expect(
+    await wrap.evaluate((el) => el.scrollWidth - el.clientWidth),
+  ).toBeLessThanOrEqual(1);
   // 切回園所分布時保留行政區篩選，地圖同時放大到該區的園所分布。
   await layers.getByRole("button", { name: "園所分布" }).click();
   await expect(page).toHaveURL(/mode=points/);
