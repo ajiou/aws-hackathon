@@ -65,10 +65,14 @@ python etl/ocr_extract.py
 
 ### 雲端
 
-```bash
-sam deploy --template infra/template.yaml --stack-name watchdog-infra \
-           --region us-west-2 --capabilities CAPABILITY_IAM
+```powershell
+. $HOME\aws-env.ps1          # 競賽憑證，不在 repo 裡
+.\infra\deploy.ps1           # 建立/更新 stack
+.\infra\upload.ps1 -UseMock  # 用 mock 跑通整條路徑
+.\infra\verify.ps1           # 驗收 SPEC §14.4，失敗回非零
 ```
+
+不需要 SAM CLI。細節見 [`infra/README.md`](infra/README.md)。
 
 ---
 
@@ -131,4 +135,5 @@ out/         本機執行產物（gitignore）
 | 模型與回測 | ⬜ 待實作 |
 | 前端 | ⬜ 待實作 |
 | IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
+| **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
 | 架構圖 | ✅ `docs/architecture.html` |
