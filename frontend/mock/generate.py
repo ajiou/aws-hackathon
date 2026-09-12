@@ -278,18 +278,36 @@ write("curve.json", {
                     "非營利": {"n": 50, "baseline": 0.140, "p_at_10": 0.200, "lift_10": 1.43},
                     "公立": {"n": 294, "baseline": 0.058, "p_at_20": 0.050, "lift_20": 0.86}}}})
 
+def worklist_reasons(row):
+    """Complete the mock worklist from existing signals; do not invent findings."""
+    labels = [x["label"] for x in row["reasons"]][:3]
+    if len(labels) < 3:
+        labels.append(f"所在行政區近 90 天輿情熱度全市第 {row['media']['town_heat_rank']}")
+    assert len(labels) == 3
+    return labels
+
+
 write("worklist.json", {
     "week": "2026-W37", "generated_at": "2026-09-12T06:00:00Z",
     "model": {"name": "risk-v2", "precision_at_50": 0.28, "baseline": 0.106},
     "items": [{"seq": i, "park_id": r["park_id"], "name": r["name"], "town": r["town"],
                "institution_type": r["institution_type"],
                "count_approved": r["count_approved"], "address": r["address"], "tel": r["tel"],
-               "risk": r["risk"], "reasons": [x["label"] for x in r["reasons"]][:3],
+               "risk": r["risk"], "reasons": worklist_reasons(r),
                "actions": [{"focus": "師生比", "why": "歷史違規集中於第 16 條第 4 項"},
                            {"focus": f"實際招收人數 vs 核定 {r['count_approved']} 人",
                             "why": "歷史有超收紀錄"}],
                "attachments": {"punishment_count": len(r["timeline"]), "evaluation_count": 4}}
               for i, r in enumerate(lst[:50], 1)]})
+
+write("briefs.json", {r["park_id"]: {
+    "park_id": r["park_id"], "source": "template", "summary": "",
+    "reasons": [x["label"] for x in r["reasons"]],
+    "actions": ([{"focus": "師生比", "why": "歷史違規集中於第 16 條第 4 項"},
+                 {"focus": f"實際招收人數 vs 核定 {r['count_approved']} 人",
+                  "why": "歷史有超收紀錄"}] if r in lst[:50] else []),
+    "generated_at": "2026-09-12T06:00:00Z"
+} for r in full})
 
 print(f"\n母體 {len(active)}｜高風險 50｜同儕群 "
       + "、".join(f"{k} {len(v)}" for k, v in sorted(by_pg.items())))

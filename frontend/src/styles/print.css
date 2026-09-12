@@ -1,0 +1,140 @@
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+  }
+  :root {
+    --c-text: #000;
+    --c-text-2: #000;
+    --c-text-3: #333;
+    --c-bg: #fff;
+    --c-bg-2: #fff;
+    --c-bg-3: #fff;
+    --c-border: #aaa;
+    --c-border-strong: #777;
+  }
+  body {
+    font-size: 11pt;
+    background: var(--c-bg);
+    color: var(--c-text);
+  }
+  .no-print,
+  button,
+  nav,
+  [data-topbar],
+  [data-filters],
+  [data-pagination] {
+    display: none !important;
+  }
+  [data-layout] {
+    display: block !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  [data-panel] {
+    box-shadow: none !important;
+    break-inside: avoid;
+  }
+  [role="tabpanel"],
+  [data-print-expand] {
+    display: block !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  [data-print-expand]::details-content {
+    display: block !important;
+    content-visibility: visible !important;
+  }
+  [data-table-wrap] {
+    overflow: visible !important;
+    border: 0 !important;
+  }
+  table {
+    min-width: 0 !important;
+    width: 100%;
+    font-size: 9pt;
+  }
+  td,
+  th {
+    padding: 5px !important;
+    overflow-wrap: anywhere;
+  }
+  thead {
+    display: table-header-group;
+  }
+  th {
+    position: static !important;
+  }
+  [data-paper] {
+    width: 100%;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    break-after: page;
+  }
+  [data-paper]:last-child {
+    break-after: auto;
+  }
+  [data-work-item] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    break-after: avoid;
+  }
+  a {
+    color: var(--c-text);
+    text-decoration: none;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    overflow-wrap: anywhere;
+  }
+  [data-tier] {
+    border: 1px solid var(--c-text) !important;
+    background: none !important;
+    color: var(--c-text) !important;
+  }
+  [data-tier="高"]::before {
+    content: "■ ";
+  }
+  [data-tier="中"]::before {
+    content: "▲ ";
+  }
+  [data-tier="低"]::before {
+    content: "● ";
+  }
+  [data-chart] {
+    max-height: 100mm;
+  }
+  [data-map-canvas] {
+    display: none !important;
+  }
+}
+
+@media print {
+  [data-timeline-item] {
+    display: list-item !important;
+  }
+}
+
+@media print {
+  .print-only[src] {
+    display: block !important;
+  }
+}
+
+@media print {
+  a[href="#main"] {
+    display: none !important;
+  }
+}
