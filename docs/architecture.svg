@@ -1,80 +1,10 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>系統架構 — 小小守護員 Smart Watchdog</title>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75;
-    --soft:#7a8399; --rule:rgba(45,49,66,0.12); --rule-solid:#bfc0c0;
-    --accent:#eb6c36; --link:#2e5aa8;
-  }
-  *{box-sizing:border-box}
-  body{
-    margin:0; background:var(--paper); color:var(--ink);
-    font-family:'Geist','Noto Sans TC',system-ui,sans-serif;
-    padding:3rem 1.5rem 3.5rem; line-height:1.5;
-  }
-  .wrap{max-width:1280px;margin:0 auto}
-  .eyebrow{
-    font-family:'Geist Mono',monospace; font-size:8px; letter-spacing:.18em;
-    text-transform:uppercase; color:var(--soft); margin:0 0 .6rem;
-  }
-  h1{
-    font-family:'Instrument Serif',serif; font-weight:400; font-size:2rem;
-    margin:0 0 .5rem; letter-spacing:.01em; line-height:1.2;
-  }
-  .sub{color:var(--muted); font-size:.875rem; margin:0 0 2.5rem; max-width:62ch; line-height:1.75}
-  .sub b{color:var(--ink);font-weight:500}
-  svg.diagram{width:100%;height:auto;display:block}
-  .metrics{
-    display:flex; flex-wrap:wrap; gap:0; margin:0 0 2.25rem;
-    border-top:1px solid var(--rule); border-bottom:1px solid var(--rule);
-  }
-  .metric{padding:.875rem 1.75rem .875rem 0; margin-right:1.75rem; border-right:1px solid var(--rule)}
-  .metric:last-child{border-right:none;margin-right:0}
-  .metric .k{font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--soft);display:block;margin-bottom:.15rem}
-  .metric .v{font-size:1rem;font-weight:600;font-variant-numeric:tabular-nums}
-  .metric .v span{font-size:.75rem;font-weight:400;color:var(--muted);margin-left:.25rem}
-  .cards{display:grid; grid-template-columns:1.15fr 1fr .95fr; gap:1rem; margin-top:2.75rem}
-  @media (max-width:880px){ .cards{grid-template-columns:1fr} .metric{border-right:none} }
-  .card{background:#fff; border:1px solid var(--rule); border-radius:6px; padding:1.375rem}
-  .card-header{display:flex;align-items:center;gap:.5rem;margin:.3rem 0 .8rem}
-  .card-dot{width:7px;height:7px;border-radius:50%;flex:none}
-  .dot-accent{background:var(--accent)} .dot-ink{background:var(--ink)} .dot-muted{background:var(--muted)}
-  .card h3{font-size:.9375rem;margin:0;font-weight:600}
-  .card ul{margin:0;padding-left:1.05rem;color:var(--muted);font-size:.8125rem;line-height:1.75}
-  .card li::marker{color:var(--soft)}
-  code{font-family:'Geist Mono',monospace;font-size:.75rem;color:var(--ink)}
-  footer{
-    margin-top:2.75rem;padding-top:1rem;border-top:1px solid var(--rule);
-    font-family:'Geist Mono',monospace;font-size:8px;letter-spacing:.12em;
-    text-transform:uppercase;color:var(--soft);
-  }
-</style>
-</head>
-<body>
-<div class="wrap">
-  <p class="eyebrow">2026 新北生成式 AI 黑客松 · 教育局</p>
-  <h1>小小守護員 Smart Watchdog — 系統架構</h1>
-  <p class="sub">六個公開資料源串成新北 1,178 家幼兒園的風險排序。分數在離線批次算好後寫入 S3，雲端只做唯讀遞送——<b>沒有線上推論</b>，也<b>沒有任何自然人姓名離開本機</b>。</p>
-
-  <div class="metrics">
-    <div class="metric"><span class="k">母體</span><span class="v">1,178<span>園</span></span></div>
-    <div class="metric"><span class="k">Precision@50</span><span class="v">28.0%<span>隨機 10.6%</span></span></div>
-    <div class="metric"><span class="k">相對提升</span><span class="v">2.65×</span></div>
-    <div class="metric"><span class="k">線上推論</span><span class="v">0<span>個 endpoint</span></span></div>
-    <div class="metric"><span class="k">姓名上雲</span><span class="v">0<span>筆</span></span></div>
-  </div>
-
-<svg class="diagram" viewBox="0 0 1240 736" role="img" aria-labelledby="arch-title arch-desc" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1240 736" role="img" aria-labelledby="arch-title arch-desc" xmlns="http://www.w3.org/2000/svg">
   <title id="arch-title">小小守護員系統架構</title>
   <desc id="arch-desc">上方為每日一次的離線批次層：六個公開資料源經過 ETL 與個資雜湊，交由 Bedrock 與 SageMaker 運算，結果寫入 S3 資料層。下方為線上服務層：稽查員經 CloudFront 取得前端與 API，Lambda 只讀取 S3 上算好的靜態分數，不做線上推論。</desc>
 
   <defs>
+    <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Sans+TC:wght@400;500;600&amp;display=swap');</style>
     <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0, 8 3, 0 6" fill="#4f5d75"/>
     </marker>
@@ -325,41 +255,3 @@
   <text x="912" y="692" fill="#4f5d75" font-size="9"
         font-family="'Geist','Noto Sans TC',sans-serif">已雜湊的資料</text>
 </svg>
-
-  <div class="cards">
-    <div class="card">
-      <p class="eyebrow">設計決定 01</p>
-      <div class="card-header"><span class="card-dot dot-accent"></span><h3>個資不上雲</h3></div>
-      <ul>
-        <li>競賽規範第 2 條禁止匯入個人資料</li>
-        <li>裁罰紀錄的行為人與 <code>owner</code> 都是真實姓名</li>
-        <li>ETL 以 <code>HMAC-SHA256</code> 雜湊，SALT 存本機環境變數</li>
-        <li>雜湊後仍可 groupby，跨園連結能力零損失</li>
-      </ul>
-    </div>
-    <div class="card">
-      <p class="eyebrow">設計決定 02</p>
-      <div class="card-header"><span class="card-dot dot-ink"></span><h3>不做線上推論</h3></div>
-      <ul>
-        <li>母體固定 1,178 園，資料日更一次</li>
-        <li>分數離線批次算好寫入 <code>serving/*.json</code></li>
-        <li>Lambda 冷啟載入 3 MB 進記憶體，無資料庫</li>
-        <li>省掉 Endpoint 的成本與部署風險</li>
-      </ul>
-    </div>
-    <div class="card">
-      <p class="eyebrow">合規 · 已驗收 11/11</p>
-      <div class="card-header"><span class="card-dot dot-muted"></span><h3>規範對照</h3></div>
-      <ul>
-        <li>S3 Block Public Access 四項全開</li>
-        <li>前端走 OAC，不用 Website Hosting</li>
-        <li>Bedrock ≤ 1 RPS，全部離線批次</li>
-        <li>資源全在 <code>us-west-2</code></li>
-      </ul>
-    </div>
-  </div>
-
-  <footer>小小守護員 Smart Watchdog · 規格見 docs/SPEC.md §7 · 已部署 d2p0ksy36o4foe.cloudfront.net · 2026-09-12</footer>
-</div>
-</body>
-</html>

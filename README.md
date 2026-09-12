@@ -17,7 +17,7 @@
 | 後端 | [`docs/SPEC.md`](docs/SPEC.md) §8 API 契約（**已凍結**） |
 | 前端 | [`docs/FRONTEND.md`](docs/FRONTEND.md) 全部 |
 | 雲端 | [`docs/SPEC.md`](docs/SPEC.md) §7、§10 合規限制 + [`infra/README.md`](infra/README.md) |
-| 簡報要放架構圖 | [`docs/architecture.html`](docs/architecture.html) — 瀏覽器開啟即可 |
+| 簡報要放架構圖 | [`docs/architecture.html`](docs/architecture.html) 瀏覽器開啟；投影片直接用 `docs/architecture.png`（2560×1519 透明底）或 `.svg` |
 | 簡報 | [`docs/NARRATIVE.md`](docs/NARRATIVE.md) |
 
 ---
@@ -136,4 +136,4 @@ out/         本機執行產物（gitignore）
 | 前端 | ⬜ 待實作 |
 | IaC | ✅ `infra/template.yaml` + deploy / upload / verify 腳本 |
 | **已部署環境** | ✅ https://d2p0ksy36o4foe.cloudfront.net — SPEC §14.4 驗收 **11/11 通過** |
-| 架構圖 | ✅ `docs/architecture.html` |
+| 架構圖 | ✅ `docs/architecture.html` + `.svg` + `.png`（2× 與 1×） |
