@@ -11,6 +11,7 @@
 
 | 你是 | 讀 |
 |---|---|
+| **分到任務的人** | **[`docs/ASSIGNMENTS.md`](docs/ASSIGNMENTS.md)** — 找到你的角色，整段貼給你的 AI |
 | 任何人（第一次） | 本檔 + [`docs/NARRATIVE.md`](docs/NARRATIVE.md) §3.0 系統說明 |
 | DATA / ML | [`docs/SPEC.md`](docs/SPEC.md) §1–§6 |
 | 後端 | [`docs/SPEC.md`](docs/SPEC.md) §8 API 契約（**已凍結**） |
@@ -123,6 +124,8 @@ out/         本機執行產物（gitignore）
 | 後端骨架 | ✅ 9 支路由全通，已對 mock 煙霧測試 |
 | ETL 基礎 | ✅ constants / pii / quality |
 | 財報抽表 | ✅ 46/46 份成功 |
+| 財報抽表（公立決算 21 園） | ⬜ 待實作（表格結構已確認可抽） |
+| 實際招生數 | ✅ `docs/總說明/*.md` 已是文字檔，含班級數 |
 | `build_curated.py` | ⬜ 待實作 |
 | 模型與回測 | ⬜ 待實作 |
 | 前端 | ⬜ 待實作 |

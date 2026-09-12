@@ -25,7 +25,8 @@
 |---|---|---|
 | **`SPEC.md`**（本檔） | 全隊 | 定義、資料、模型、API、架構、合規、驗收 |
 | [`FRONTEND.md`](FRONTEND.md) | 前端 | 設計 token、元件庫、七頁版面、狀態、無障礙、列印 |
-| [`NARRATIVE.md`](NARRATIVE.md) | 簡報者 | 對外說明口徑、敘事結構、七個發現、Q&A 預備、Demo 腳本 |
+| [`NARRATIVE.md`](NARRATIVE.md) | 簡報者 | 對外說明口徑、敘事結構、九個發現、Q&A 預備、Demo 腳本 |
+| [`ASSIGNMENTS.md`](ASSIGNMENTS.md) | 全隊 | 五個角色的任務簡報，可整段貼給各自的 AI |
 
 **關鍵前提**：本系統**不做線上推論**。母體固定 1,178 園、資料日更一次，分數在離線批次算好後寫入 S3，Lambda 只做讀取／篩選／聚合。SageMaker 只用在訓練與 Batch Transform，**不部署 Endpoint**。這省掉最大的成本與部署風險。
 
@@ -611,7 +612,7 @@ def assert_no_banned(df):
 | `oper_deficit_ratio` | F | 上尾 |
 | `oper_cash_decrease_ratio` | F | 上尾 |
 | `oper_debt_ratio` / `oper_networth_decline` | F | 上尾 |
-| `oper_enroll_ratio` | E 招生 50% | 下尾 |
+| `oper_enroll_ratio` | E 招生 50% | 下尾 |　※ 實際招生數來源：`docs/總說明/*.md`
 | `oper_enroll_decline` | E 30% | 上尾 |
 | `oper_over_enroll` | E 20% | 上尾（確認超收 → 直接 100） |
 | `oper_fee_deviation` | C 收費 60% | 雙尾 |
