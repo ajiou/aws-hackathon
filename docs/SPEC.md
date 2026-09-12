@@ -253,8 +253,8 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
      "weight": 0.11, "dimension": "sentiment", "validated": true}
   ],
   "finance_flags": [
-    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 51%，同儕中位數 90%",
-     "severity": 3, "year": 113, "validated": false}
+    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 64%，同儕中位數 90%",
+     "severity": 3, "year": 112, "validated": false}
   ],
   "media": {"sri": 0.0, "has_signal": false, "town_heat_per_park": 0.42, "last_negative_at": null},
   "timeline": [
@@ -430,9 +430,9 @@ s3://ntpc-watchdog-<suffix>/          （private，Block Public Access 全開）
   "audit_floor_applied": 80,
   "validated": false,
   "flags": [
-    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 51%，同儕中位數 90%",
-     "severity": 3, "year": 113,
-     "evidence": {"rate": 0.51, "peer_median": 0.90, "rank": "46/46"}}
+    {"code": "OPER_PERSONNEL_EXEC", "label": "人事費執行率 64%，同儕中位數 90%",
+     "severity": 3, "year": 112,
+     "evidence": {"rate": 0.64, "peer_median": 0.90, "rank": "3/46"}}
   ],
   "source_pdf": "raw/pdf/{park_id}/113.pdf"
 }
@@ -999,7 +999,7 @@ O = 40%·F + 45%·H + 15%·E
 
 > **低加班費、低代課費不自動判定為風險**，需看同儕與年度變化。預算為 0 時不除以零，該子項 `a = 0`。
 
-裁罰前三名合計占 51%（師資 318、超收 268、不當管教 206、師生比 151）全是人力問題，而人力不足會在財報留下「編了預算卻沒聘滿人」的痕跡。實測 46 份財報的人事費執行率中位數 90%，最低的 N09 安興 113 學年度為 51%，該園該年因不當對待被裁罰 6 萬元。**n = 1，機制假說而非統計證據**，見 [`NARRATIVE.md`](NARRATIVE.md) §4.4。
+裁罰前三名合計占 51%（師資 318、超收 268、不當管教 206、師生比 151）全是人力問題，而人力不足會在財報留下「編了預算卻沒聘滿人」的痕跡。46 份財報已全數抽表成功（`etl/ocr_extract.py`），人事費執行率中位數 90%。N09 安興 **112 學年度為 64%（46 份中第 3 低）**，該學年被裁罰 3 次不當管教。**n = 1，機制假說而非統計證據**，見 [`NARRATIVE.md`](NARRATIVE.md) §4.4。
 
 **E 招生**：公式同公立-獨立。
 

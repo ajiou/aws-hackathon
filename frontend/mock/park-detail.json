@@ -1,0 +1,415 @@
+{
+ "d3529bca-98d5-4761-9ff3-40ee3716d1dc": {
+  "park_id": "d3529bca-98d5-4761-9ff3-40ee3716d1dc",
+  "name": "新北市私立景光幼兒園",
+  "institution_type": "私立",
+  "peer_group": "私立",
+  "town": "中和區",
+  "address": "[235]景新街467巷35弄16,18號各1樓",
+  "tel": "(02)29427833",
+  "lon": 121.514137,
+  "lat": 24.989038,
+  "is_active": 1,
+  "count_approved": 40,
+  "owner_key": "5b49f69dfcfa",
+  "dimensions": {
+   "violation": {
+    "applicable": true,
+    "score": 100,
+    "coverage": 1.0,
+    "weight": 0.5,
+    "validated": true,
+    "note": null
+   },
+   "evaluation": {
+    "applicable": true,
+    "score": 100,
+    "coverage": 1.0,
+    "weight": 0.286,
+    "validated": true,
+    "note": null
+   },
+   "sentiment": {
+    "applicable": true,
+    "score": 54.6,
+    "coverage": 0.4,
+    "weight": 0.214,
+    "validated": true,
+    "note": null
+   },
+   "operation": {
+    "applicable": false,
+    "score": null,
+    "coverage": 0.0,
+    "weight": null,
+    "validated": false,
+    "note": "私立幼兒園依法不需公告財務報告"
+   }
+  },
+  "reasons": [
+   {
+    "code": "VIO_PUNISH_COUNT",
+    "label": "切點前已被裁罰 9 次，同類型前 3%",
+    "weight": 0.4,
+    "dimension": "violation",
+    "validated": true
+   },
+   {
+    "code": "EVAL_ADMIN",
+    "label": "曾受幼照法第 51 條行政處分 9 次",
+    "weight": 0.28,
+    "dimension": "evaluation",
+    "validated": true
+   },
+   {
+    "code": "EVAL_FAIL",
+    "label": "基礎評鑑 2 次未全數指標通過",
+    "weight": 0.26,
+    "dimension": "evaluation",
+    "validated": true
+   }
+  ],
+  "finance_flags": [],
+  "media": {
+   "sri": 0.0,
+   "has_signal": false,
+   "town_heat_per_park": 0.546,
+   "town_heat_rank": 3,
+   "last_negative_at": null
+  },
+  "timeline": [
+   {
+    "date": "2018-09-07",
+    "category": "超收",
+    "law": "第8條第6項--招收人數",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2018-12-28",
+    "category": "師生比",
+    "law": "第43條第2項",
+    "fine": 60000,
+    "penalty_raw": "罰鍰：60,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-03-08",
+    "category": "師生比",
+    "law": "第43條第2項",
+    "fine": 60000,
+    "penalty_raw": "罰鍰：60,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-03-08",
+    "category": "超收",
+    "law": "第8條第6項--招收人數",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：12,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-03-08",
+    "category": "師生比",
+    "law": "第38條第2項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-05-04",
+    "category": "師生比",
+    "law": "第41條第4項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-12-23",
+    "category": "師生比",
+    "law": "第41條第4項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：15,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2022-07-18",
+    "category": "師生比",
+    "law": "第41條第4項幼兒園追蹤",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：30,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2022-07-18",
+    "category": "師生比",
+    "law": "第41條第4項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：30,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-09-13",
+    "category": "超收",
+    "law": "第8條第6項-超收逾15",
+    "fine": 60000,
+    "penalty_raw": "罰鍰：60,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-09-13",
+    "category": "師生比",
+    "law": "第16條第4項幼兒園班級",
+    "fine": 60000,
+    "penalty_raw": "罰鍰：60,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-12-08",
+    "category": "超收",
+    "law": "第8條第6項-超收逾15",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：150,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-12-08",
+    "category": "師生比",
+    "law": "第16條第1項-班級人數",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：150,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-12-08",
+    "category": "超收",
+    "law": "第8條第6項-改建幼兒園",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2023-12-08",
+    "category": "師生比",
+    "law": "第16條第3項教保服務機",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2024-02-16",
+    "category": "師生比",
+    "law": "第16條第4項幼兒園班級",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：300,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2024-02-16",
+    "category": "師生比",
+    "law": "第32條第2項幼兒園進用",
+    "fine": 60000,
+    "penalty_raw": "罰鍰：60,000元",
+    "is_after_cutoff": false
+   }
+  ],
+  "has_fee": false,
+  "risk": {
+   "score": 100.0,
+   "score_basis": "同儕群內百分位",
+   "rank": 1,
+   "rank_basis": "全市合併",
+   "tier": "高",
+   "raw": 90.2844,
+   "coverage": 1.0,
+   "model_version": "risk-v2"
+  }
+ },
+ "68ffc11c-17f1-41ca-9d11-408cb9591f3a": {
+  "park_id": "68ffc11c-17f1-41ca-9d11-408cb9591f3a",
+  "name": "新北市私立啟育幼兒園",
+  "institution_type": "私立",
+  "peer_group": "私立",
+  "town": "三峽區",
+  "address": "[237]民生街59號1、2、3樓及民生街27巷14、16、18、20、22號各1樓",
+  "tel": "(02)26719995",
+  "lon": 121.375338,
+  "lat": 24.935975,
+  "is_active": 1,
+  "count_approved": 384,
+  "owner_key": "d39a632dc64d",
+  "dimensions": {
+   "violation": {
+    "applicable": true,
+    "score": 38,
+    "coverage": 1.0,
+    "weight": 0.5,
+    "validated": true,
+    "note": null
+   },
+   "evaluation": {
+    "applicable": false,
+    "score": null,
+    "coverage": 0.0,
+    "weight": 0.286,
+    "validated": true,
+    "note": "查無切點前之評鑑紀錄，可能為新立案園所"
+   },
+   "sentiment": {
+    "applicable": true,
+    "score": 49.2,
+    "coverage": 0.4,
+    "weight": 0.214,
+    "validated": true,
+    "note": null
+   },
+   "operation": {
+    "applicable": false,
+    "score": null,
+    "coverage": 0.0,
+    "weight": null,
+    "validated": false,
+    "note": "私立幼兒園依法不需公告財務報告"
+   }
+  },
+  "reasons": [
+   {
+    "code": "VIO_PUNISH_COUNT",
+    "label": "切點前已被裁罰 2 次，同類型前 24%",
+    "weight": 0.4,
+    "dimension": "violation",
+    "validated": true
+   },
+   {
+    "code": "VIO_OWNER_PRIOR",
+    "label": "同一負責人名下另有 3 園，其中 1 園亦有裁罰紀錄",
+    "weight": 0.24,
+    "dimension": "violation",
+    "validated": true
+   },
+   {
+    "code": "EVAL_MISSING",
+    "label": "查無切點前評鑑紀錄，可能為新立案園所",
+    "weight": 0.08,
+    "dimension": "evaluation",
+    "validated": true
+   }
+  ],
+  "finance_flags": [],
+  "media": {
+   "sri": 0.0,
+   "has_signal": false,
+   "town_heat_per_park": 0.492,
+   "town_heat_rank": 6,
+   "last_negative_at": null
+  },
+  "timeline": [
+   {
+    "date": "2020-02-03",
+    "category": "師生比",
+    "law": "第38條第2項",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   },
+   {
+    "date": "2021-03-25",
+    "category": "超收",
+    "law": "第8條第6項--招收人數",
+    "fine": 6000,
+    "penalty_raw": "罰鍰：6,000元",
+    "is_after_cutoff": false
+   }
+  ],
+  "has_fee": false,
+  "risk": {
+   "score": 86.9,
+   "score_basis": "同儕群內百分位",
+   "rank": 121,
+   "rank_basis": "全市合併",
+   "tier": "中",
+   "raw": 41.3569,
+   "coverage": 0.71,
+   "model_version": "risk-v2"
+  }
+ },
+ "0565243e-7cbe-4e7b-bbdd-af5681fb3cd6": {
+  "park_id": "0565243e-7cbe-4e7b-bbdd-af5681fb3cd6",
+  "name": "新北市私立蘆洲北大幼兒園",
+  "institution_type": "私立",
+  "peer_group": "私立",
+  "town": "蘆洲區",
+  "address": "[247]三民路臨86號",
+  "tel": "(02)22810602",
+  "lon": 121.4683477,
+  "lat": 25.0894398,
+  "is_active": 0,
+  "count_approved": 90,
+  "owner_key": "0b91808de1a1",
+  "dimensions": {
+   "violation": {
+    "applicable": true,
+    "score": 0,
+    "coverage": 1.0,
+    "weight": 0.5,
+    "validated": true,
+    "note": null
+   },
+   "evaluation": {
+    "applicable": false,
+    "score": null,
+    "coverage": 0.0,
+    "weight": 0.286,
+    "validated": true,
+    "note": "查無切點前之評鑑紀錄，可能為新立案園所"
+   },
+   "sentiment": {
+    "applicable": true,
+    "score": 22.2,
+    "coverage": 0.4,
+    "weight": 0.214,
+    "validated": true,
+    "note": null
+   },
+   "operation": {
+    "applicable": false,
+    "score": null,
+    "coverage": 0.0,
+    "weight": null,
+    "validated": false,
+    "note": "私立幼兒園依法不需公告財務報告"
+   }
+  },
+  "reasons": [
+   {
+    "code": "EVAL_MISSING",
+    "label": "查無切點前評鑑紀錄，可能為新立案園所",
+    "weight": 0.08,
+    "dimension": "evaluation",
+    "validated": true
+   }
+  ],
+  "finance_flags": [],
+  "media": {
+   "sri": 0.0,
+   "has_signal": false,
+   "town_heat_per_park": 0.222,
+   "town_heat_rank": 21,
+   "last_negative_at": null
+  },
+  "timeline": [],
+  "has_fee": false,
+  "risk": {
+   "score": 0.0,
+   "score_basis": "同儕群內百分位",
+   "rank": null,
+   "rank_basis": "全市合併",
+   "tier": null,
+   "raw": 6.6538,
+   "coverage": 0.71,
+   "model_version": "risk-v2"
+  }
+ }
+}

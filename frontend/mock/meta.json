@@ -1,0 +1,74 @@
+{
+ "version": "1.0.0-mock",
+ "generated_at": "2026-09-12T06:00:00Z",
+ "cutoff": "2025-01-01",
+ "population": 1178,
+ "weights": {
+  "公立": {
+   "violation": 0.35,
+   "evaluation": 0.2,
+   "sentiment": 0.15,
+   "operation": 0.3
+  },
+  "非營利": {
+   "violation": 0.35,
+   "evaluation": 0.2,
+   "sentiment": 0.15,
+   "operation": 0.3
+  },
+  "私立": {
+   "violation": 0.5,
+   "evaluation": 0.286,
+   "sentiment": 0.214,
+   "operation": null
+  }
+ },
+ "peer_groups": {
+  "公立-獨立": {
+   "n": 21
+  },
+  "公立-附設": {
+   "n": 269
+  },
+  "私立": {
+   "n": 835
+  },
+  "非營利-有財報": {
+   "n": 16
+  },
+  "非營利-無財報": {
+   "n": 37
+  }
+ },
+ "score_basis": "同儕群內百分位（ECDF by peer_group）",
+ "rank_basis": "全市合併排序（R_raw）",
+ "unvalidated_dimensions": [
+  "operation"
+ ],
+ "tiers": {
+  "high": [
+   1,
+   50
+  ],
+  "medium": [
+   51,
+   200
+  ],
+  "low": [
+   201,
+   1178
+  ]
+ },
+ "data_freshness": {
+  "punishments": "2026-08-21",
+  "media": "2026-08-21",
+  "evaluation": "2025-11-28",
+  "fees": "115學年度"
+ },
+ "model": {
+  "name": "risk-v2",
+  "precision_at_50": 0.28,
+  "baseline": 0.106,
+  "lift": 2.64
+ }
+}

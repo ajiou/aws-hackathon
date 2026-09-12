@@ -1,0 +1,116 @@
+{
+ "population": 1178,
+ "positives": 128,
+ "baseline": 0.106,
+ "points": [
+  {
+   "k": 10,
+   "model": 3,
+   "eval": 2,
+   "punish": 2,
+   "random": 1.06,
+   "perfect": 10
+  },
+  {
+   "k": 20,
+   "model": 6,
+   "eval": 5,
+   "punish": 5,
+   "random": 2.12,
+   "perfect": 20
+  },
+  {
+   "k": 30,
+   "model": 8,
+   "eval": 7,
+   "punish": 7,
+   "random": 3.18,
+   "perfect": 30
+  },
+  {
+   "k": 50,
+   "model": 14,
+   "eval": 12,
+   "punish": 12,
+   "random": 5.3,
+   "perfect": 50
+  },
+  {
+   "k": 75,
+   "model": 12,
+   "eval": 11,
+   "punish": 11,
+   "random": 7.95,
+   "perfect": 75
+  },
+  {
+   "k": 100,
+   "model": 16,
+   "eval": 14,
+   "punish": 14,
+   "random": 10.6,
+   "perfect": 100
+  },
+  {
+   "k": 150,
+   "model": 24,
+   "eval": 21,
+   "punish": 21,
+   "random": 15.9,
+   "perfect": 128
+  },
+  {
+   "k": 200,
+   "model": 32,
+   "eval": 28,
+   "punish": 28,
+   "random": 21.2,
+   "perfect": 128
+  },
+  {
+   "k": 250,
+   "model": 40,
+   "eval": 35,
+   "punish": 35,
+   "random": 26.5,
+   "perfect": 128
+  },
+  {
+   "k": 300,
+   "model": 48,
+   "eval": 42,
+   "punish": 42,
+   "random": 31.8,
+   "perfect": 128
+  }
+ ],
+ "summary": {
+  "precision_at_50": {
+   "model": 0.28,
+   "eval": 0.24,
+   "punish": 0.24,
+   "random": 0.106
+  },
+  "stratified": {
+   "私立": {
+    "n": 868,
+    "baseline": 0.12,
+    "p_at_20": 0.45,
+    "p_at_50": 0.28,
+    "lift_50": 2.34
+   },
+   "非營利": {
+    "n": 50,
+    "baseline": 0.14,
+    "p_at_10": 0.2,
+    "lift_10": 1.43
+   },
+   "公立": {
+    "n": 294,
+    "baseline": 0.058,
+    "p_at_20": 0.05,
+    "lift_20": 0.86
+   }
+  }
+ }
+}
