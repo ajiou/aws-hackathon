@@ -11,5 +11,13 @@ export function useUrlState() {
       return next;
     });
   }
-  return { params, update, clear: () => setParams({}), setParams };
+  function clear() {
+    setParams((previous) => {
+      const next = new URLSearchParams();
+      const mode = previous.get("mode");
+      if (mode) next.set("mode", mode);
+      return next;
+    });
+  }
+  return { params, update, clear, setParams };
 }

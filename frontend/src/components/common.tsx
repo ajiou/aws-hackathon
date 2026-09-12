@@ -116,15 +116,18 @@ export function PageHeader({
   title,
   description,
   children,
+  headingLevel = 1,
 }: {
   title: string;
   description?: string;
   children?: ReactNode;
+  headingLevel?: 1 | 2;
 }) {
+  const Heading = headingLevel === 1 ? "h1" : "h2";
   return (
     <header className={s.header}>
       <div>
-        <h1>{title}</h1>
+        <Heading>{title}</Heading>
         {description && <p>{description}</p>}
       </div>
       <div className={`${s.actions} no-print`}>{children}</div>

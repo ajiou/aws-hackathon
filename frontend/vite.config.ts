@@ -1,10 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import { readFileSync, readdirSync } from "node:fs";
 // Ship fixtures only for an explicitly selected mock build. No raw data is served.
 export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
+    tailwindcss(),
     {
       name: "watchdog-mock",
       configureServer(server) {
@@ -36,5 +39,6 @@ export default defineConfig(({ mode }) => ({
     },
   ],
   worker: { format: "es" },
+  resolve: { alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) } },
   build: { target: "es2022" },
 }));
