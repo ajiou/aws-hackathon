@@ -11,6 +11,7 @@ import { useMeta } from "./api/queries";
 import { isMock } from "./api/client";
 import { Skeleton } from "./components/common";
 import { GlobalSearch } from "./components/GlobalSearch";
+import { ChatWidget } from "./components/ChatWidget";
 import { cn } from "./lib/utils";
 import { number } from "./utils/format";
 import s from "./styles/App.module.css";
@@ -148,6 +149,7 @@ export default function App() {
           </Suspense>
         </main>
       </div>
+      <ChatWidget />
     </>
   );
 }

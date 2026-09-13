@@ -1,5 +1,10 @@
 import { ApiError, fetchJson } from "./client";
-import { parkSchema, worklistSchema } from "./types";
+import {
+  chatResponseSchema,
+  parkSchema,
+  worklistSchema,
+  type ChatResponse,
+} from "./types";
 import { z } from "zod";
 const cache = new Map<string, unknown>();
 async function file(name: string, signal?: AbortSignal) {
@@ -186,4 +191,52 @@ export async function mockRequest(
     };
   }
   throw new ApiError(404, "mock", "查無此資源");
+}
+// 示範模式沒有 Bedrock：只做園名比對，回一段固定格式的假回答，讓畫面流程可 Demo。
+export async function mockChat(body: {
+  message: string;
+  park_id?: string;
+}): Promise<ChatResponse> {
+  await new Promise((resolve) => setTimeout(resolve, 600));
+  const scores = z
+    .object({ items: z.array(parkSchema) })
+    .parse(await file("scores")).items;
+  const core = (name: string) =>
+    name.replace(/^新北市(立|私立)?|^私立|幼兒園$/g, "");
+  const text = body.message.replace(/幼稚園/g, "幼兒園");
+  const found = body.park_id
+    ? scores.filter((p) => p.park_id === body.park_id)
+    : scores.filter(
+        (p) => core(p.name).length >= 2 && text.includes(core(p.name)),
+      );
+  const card = (p: (typeof scores)[number]) => ({
+    park_id: p.park_id,
+    name: p.name,
+    town: p.town,
+    institution_type: p.institution_type,
+    is_active: p.is_active,
+    tier: p.risk.tier,
+    rank: p.risk.rank,
+  });
+  if (found.length > 1)
+    return chatResponseSchema.parse({
+      source: "candidates",
+      answer: `找到 ${found.length} 家名稱相符的園所，請點選要查詢的那一家。`,
+      candidates: found.slice(0, 5).map(card),
+    });
+  const park = found[0];
+  const citation = {
+    law: "幼兒教育及照顧法",
+    article: "第16條",
+    snippet: "三歲以上至入國民小學前幼兒，每班以三十人為限。",
+    url: "https://edu.law.moe.gov.tw/LawContent.aspx?id=GL000542",
+  };
+  return chatResponseSchema.parse({
+    source: "llm",
+    park: park ? card(park) : null,
+    citations: [citation],
+    answer: park
+      ? `（示範資料）${park.name}目前為${park.risk.tier ?? "未分級"}風險，全市第 ${park.risk.rank ?? "—"} 名。\n\n風險現況\n- ${park.reasons.map((r) => r.label).join("\n- ") || "目前資料未觸發原因碼"}\n\n建議稽查重點\n- 核對各班幼兒人數與教保服務人員配置《幼兒教育及照顧法》第16條`
+      : "（示範資料）班級人數：三歲以上至入國民小學前幼兒，每班以三十人為限《幼兒教育及照顧法》第16條。",
+  });
 }

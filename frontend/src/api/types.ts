@@ -402,3 +402,35 @@ export type MapData = z.infer<typeof mapSchema>;
 export type WorkItem = z.infer<typeof workItemSchema>;
 export type MediaPark = z.infer<typeof mediaParkSchema>;
 export type MediaCoverage = NonNullable<Park["media_coverage"]>[number];
+// 稽查 AI 助手（ADR-0005）。POST /chat，不走 useApi 快取。
+export const chatParkSchema = z.object({
+  park_id: z.string(),
+  name: z.string(),
+  town: z.string(),
+  institution_type: z.enum(["公立", "私立", "非營利"]),
+  is_active: z.union([z.literal(0), z.literal(1)]),
+  tier: tierSchema.nullable(),
+  rank: z.number().nullable(),
+});
+export const chatResponseSchema = z.object({
+  source: z.enum(["llm", "fallback", "candidates", "blocked"]),
+  answer: z.string(),
+  park: chatParkSchema.nullable().optional(),
+  candidates: z.array(chatParkSchema).default([]),
+  parks: z.array(chatParkSchema).default([]),
+  citations: z
+    .array(
+      z.object({
+        law: z.string(),
+        article: z.string(),
+        snippet: z.string(),
+        url: z.string().nullable().optional(),
+      }),
+    )
+    .default([]),
+  unverified_refs: z.array(z.string()).default([]),
+  // false：後端法規知識庫尚未啟用（基礎模式），回答不附法規依據
+  laws_enabled: z.boolean().default(true),
+});
+export type ChatPark = z.infer<typeof chatParkSchema>;
+export type ChatResponse = z.infer<typeof chatResponseSchema>;
