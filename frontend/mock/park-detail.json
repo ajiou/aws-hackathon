@@ -74,8 +74,8 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.078,
-   "town_heat_rank": 29,
+   "town_heat_per_park": 0.132,
+   "town_heat_rank": 26,
    "last_negative_at": null
   },
   "media_coverage": [],
@@ -219,6 +219,13 @@
     "weight": 0.18,
     "dimension": "operation",
     "validated": false
+   },
+   {
+    "code": "MEDIA_TOWN_HEAT",
+    "label": "所在行政區近 90 天輿情熱度全市第 1",
+    "weight": 0.12,
+    "dimension": "sentiment",
+    "validated": true
    }
   ],
   "finance_flags": [
@@ -233,8 +240,8 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.33,
-   "town_heat_rank": 15,
+   "town_heat_per_park": 0.582,
+   "town_heat_rank": 1,
    "last_negative_at": null
   },
   "media_coverage": [],
@@ -312,8 +319,8 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.24,
-   "town_heat_rank": 20,
+   "town_heat_per_park": 0.312,
+   "town_heat_rank": 16,
    "last_negative_at": null
   },
   "media_coverage": [],

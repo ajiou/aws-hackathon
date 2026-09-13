@@ -81,29 +81,46 @@ describe("frozen API contracts", () => {
   });
 });
 
-// 輿情維度一律不計分（ADR-0001），但「為什麼不計分」對兩種園是不同的事實：
-// 有園級訊號的 14 園是樣本太小無從驗證，其餘是區級熱度實測無鑑別力。
-// 對有訊號的園寫「區級熱度無鑑別力」，等於否認它自己頁面上那幾篇明文點名的
-// 報導——稽查人員看到會直接不信這張表。這裡兩邊都釘住。
+// 輿情維度一律不計分（ADR-0001），但「為什麼」對三種園是三件不同的事實。
+// 只寫一句，另外兩種就會在自己的頁面上讀到假話。最嚴重的是第二種：報導全在
+// 切點之後那 22 園，2026 年的虐童案都在這裡，說成「本園無明文點名的報導」
+// 是直接說謊——它們的頁面下方就列著十幾則。
 describe("sentiment dimension explains itself correctly", () => {
   const items = read("scores").items as Array<{
     media: { has_signal: boolean };
+    media_coverage?: Array<{ is_after_cutoff: boolean }>;
     dimensions: { sentiment: { weight: number | null; note: string | null } };
   }>;
-  it("never scores the dimension and never mixes up the two reasons", () => {
-    const signalled = items.filter((p) => p.media.has_signal);
-    expect(signalled.length).toBeGreaterThan(0);
-    expect(signalled.length).toBeLessThan(items.length);
+  const state = (p: (typeof items)[number]) => {
+    if (p.media.has_signal) return "pre-cutoff";
+    const coverage = p.media_coverage ?? [];
+    return coverage.length ? "post-cutoff-only" : "none";
+  };
+  it("covers all three states in the fixture", () => {
+    const seen = new Set(items.map(state));
+    expect([...seen].sort()).toEqual([
+      "none",
+      "post-cutoff-only",
+      "pre-cutoff",
+    ]);
+  });
+  it("never scores the dimension and never tells a park the wrong story", () => {
     for (const park of items) {
       const { weight, note } = park.dimensions.sentiment;
       expect(weight).toBeNull();
       expect(note).toBeTruthy();
-      if (park.media.has_signal) {
+      if (state(park) === "pre-cutoff") {
         expect(note).toContain("樣本太小");
-        expect(note).not.toContain("區級熱度實測無鑑別力");
+      } else if (state(park) === "post-cutoff-only") {
+        // 有報導卻被說成沒有，是這三句話裡最傷的一種錯。
+        expect(note).not.toContain("本園無明文點名的報導");
+        expect(note).toContain("全部落在資料切點");
       } else {
         expect(note).toContain("區級熱度實測無鑑別力");
       }
+      // 只有完全沒有報導的園才適用那句區級熱度的說明。
+      if (note!.includes("區級熱度實測無鑑別力"))
+        expect(park.media_coverage ?? []).toHaveLength(0);
     }
   });
 });
