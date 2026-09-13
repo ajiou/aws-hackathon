@@ -26,8 +26,19 @@ from .reasons import build_reasons
 from .scoring import assign_tiers, score_all
 
 MODEL_VERSION = "risk-v2"
+# 輿情維度整個不計分，但兩種園的理由不一樣，只給一句話會把其中一種說錯：
+#   有園級訊號（L1，切點前 14 園）——不是「無鑑別力」，是樣本太小無從驗證。
+#     對這 14 園寫「區級熱度無鑑別力」等於否認它自己頁面上那幾篇明文點名的
+#     報導，稽查人員看到會直接不信這張表。
+#   只有區級熱度（L2，其餘 1,201 園）——實測 P@50 8.0%，低於隨機的 10.9%。
+# 兩句都指向同一個決定（ADR-0001），但講的是不同的事實。
+SENTIMENT_L1_NOTE = (
+    "本園有切點前明文點名的報導，但全市僅 14 園有園級輿情訊號，樣本太小無法"
+    "驗證預測力，依 ADR-0001 暫不計入風險分數；報導明細仍列於本頁下方"
+)
 DIM_NOTE = {
-    ("sentiment", None): "區級輿情熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
+    ("sentiment", None): "本園無明文點名的報導，僅有所在行政區的輿情熱度；"
+                         "區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
                          "依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視",
     ("operation", "私立"): "私立幼兒園依法不需公告財務報告",
     ("operation", "非營利-無財報"): "本園未公告財務報告，營運維度不計分",
@@ -43,7 +54,7 @@ def load(indir, name, default=None):
         return json.load(fh)
 
 
-def dimension_block(dim, score, coverage, weight, peer_group, itype):
+def dimension_block(dim, score, coverage, weight, peer_group, itype, has_media_signal=False):
     """§3.3 的 dimensions 規則。
 
     `applicable = false` 時 `score` **必須是 null，不得是 0**——0 分等於懲罰守法者。
@@ -65,7 +76,8 @@ def dimension_block(dim, score, coverage, weight, peer_group, itype):
         "coverage": round(coverage, 2),
         "weight": weight if applicable else None,
         "validated": dim != "operation",
-        "note": (DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
+        "note": (SENTIMENT_L1_NOTE if (dim == "sentiment" and has_media_signal)
+                 else DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
                  or DIM_NOTE.get((dim, None))),
     }
 
@@ -133,7 +145,8 @@ def main():
             "count_approved": park["count_approved"], "owner_key": park["owner_key"],
             "dimensions": {
                 dim: dimension_block(dim, *s["dimensions"][dim], weights.get(dim),
-                                     f["peer_group"], f["institution_type"])
+                                     f["peer_group"], f["institution_type"],
+                                     f.get("media_has_signal", False))
                 for dim in s["dimensions"]
             },
             "reasons": build_reasons(f, s["pcts"], weights, finance),

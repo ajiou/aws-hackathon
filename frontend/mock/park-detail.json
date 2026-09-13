@@ -36,7 +36,7 @@
     "coverage": 0.4,
     "weight": null,
     "validated": true,
-    "note": "區級輿情熱度實測無鑑別力，依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
+    "note": "本園無明文點名的報導，僅有所在行政區的輿情熱度；區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
    },
    "operation": {
     "applicable": false,
@@ -74,10 +74,11 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.24,
-   "town_heat_rank": 20,
+   "town_heat_per_park": 0.078,
+   "town_heat_rank": 29,
    "last_negative_at": null
   },
+  "media_coverage": [],
   "timeline": [
    {
     "date": "2022-02-16",
@@ -193,7 +194,7 @@
     "coverage": 0.4,
     "weight": null,
     "validated": true,
-    "note": "區級輿情熱度實測無鑑別力，依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
+    "note": "本園無明文點名的報導，僅有所在行政區的輿情熱度；區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
    },
    "operation": {
     "applicable": true,
@@ -232,10 +233,11 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.402,
-   "town_heat_rank": 11,
+   "town_heat_per_park": 0.33,
+   "town_heat_rank": 15,
    "last_negative_at": null
   },
+  "media_coverage": [],
   "timeline": [],
   "has_fee": true,
   "risk": {
@@ -286,7 +288,7 @@
     "coverage": 0.4,
     "weight": null,
     "validated": true,
-    "note": "區級輿情熱度實測無鑑別力，依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
+    "note": "本園無明文點名的報導，僅有所在行政區的輿情熱度；區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
    },
    "operation": {
     "applicable": false,
@@ -310,10 +312,11 @@
   "media": {
    "sri": 0.0,
    "has_signal": false,
-   "town_heat_per_park": 0.276,
-   "town_heat_rank": 18,
+   "town_heat_per_park": 0.24,
+   "town_heat_rank": 20,
    "last_negative_at": null
   },
+  "media_coverage": [],
   "timeline": [],
   "has_fee": false,
   "risk": {

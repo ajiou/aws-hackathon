@@ -944,7 +944,7 @@
    },
    "pun_count": 2,
    "has_finance_flag": false,
-   "has_media_signal": false,
+   "has_media_signal": true,
    "reasons": [
     {
      "code": "VIO_PUNISH_COUNT",
@@ -1542,7 +1542,7 @@
    },
    "pun_count": 1,
    "has_finance_flag": false,
-   "has_media_signal": false,
+   "has_media_signal": true,
    "reasons": [
     {
      "code": "EVAL_ADMIN",
