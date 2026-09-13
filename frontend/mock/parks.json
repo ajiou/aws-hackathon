@@ -944,7 +944,7 @@
    },
    "pun_count": 2,
    "has_finance_flag": false,
-   "has_media_signal": true,
+   "has_media_signal": false,
    "reasons": [
     {
      "code": "VIO_PUNISH_COUNT",
@@ -1542,7 +1542,7 @@
    },
    "pun_count": 1,
    "has_finance_flag": false,
-   "has_media_signal": true,
+   "has_media_signal": false,
    "reasons": [
     {
      "code": "EVAL_ADMIN",
@@ -1786,6 +1786,13 @@
      "label": "同一負責人名下另有 3 園，其中 1 園亦有裁罰紀錄",
      "weight": 0.24,
      "dimension": "violation",
+     "validated": true
+    },
+    {
+     "code": "MEDIA_TOWN_HEAT",
+     "label": "所在行政區近 90 天輿情熱度全市第 1",
+     "weight": 0.12,
+     "dimension": "sentiment",
      "validated": true
     }
    ]

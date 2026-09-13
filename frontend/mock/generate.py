@@ -111,6 +111,11 @@ for pid, (p, gm) in base.items():
     # （見 model/score.py 的 SENTIMENT_L1_NOTE）。mock 若一律 False，前端那條
     # 分支就永遠沒被畫過——契約凍結後靠 mock 開發的東西一律要在 mock 出現。
     has_l1_media = abs(hash(("l1", p["id"]))) % 84 == 0
+    # 第三種園：有明文點名的報導，但全部在切點之後。真實資料有 22 園，
+    # 2026 年的虐童案全落在這一類——維度說明必須跟「完全沒有報導」分開，
+    # 否則會在它自己的頁面上寫「本園無明文點名的報導」，而下方就列著十幾則。
+    # mock 若沒有這一類，那條分支永遠不會被畫到。
+    has_after_media = not has_l1_media and abs(hash(("after", p["id"]))) % 55 == 0
     parts = [("violation", vio, w["violation"], 1.0),
              ("evaluation", eva, w["evaluation"], 0.0 if e["n"] == 0 else 1.0),
              ("sentiment", med, w["sentiment"] or 0.0, 1.0 if has_media else 0.0),
@@ -172,10 +177,15 @@ for pid, (p, gm) in base.items():
             "sentiment": {"applicable": has_media, "score": med if has_media else None,
                           "coverage": 1.0 if has_l1_media else 0.4,
                           "weight": w["sentiment"], "validated": True,
+                          # 三種園三句話，跟 model/score.py 的分支一一對應。
                           "note": None if has_media else (
                               "本園有切點前明文點名的報導，但全市僅 14 園有園級輿情訊號，"
                               "樣本太小無法驗證預測力，依 ADR-0001 暫不計入風險分數；"
                               "報導明細仍列於本頁下方" if has_l1_media else
+                              f"本園有 2 則明文點名的報導，但全部落在資料切點（{CUTOFF}）之後。"
+                              "用切點後的事實去預測切點後的裁罰是資料洩漏，因此不計入風險分數"
+                              "——這不代表這些報導不重要，請直接看本頁下方的報導明細"
+                              if has_after_media else
                               "本園無明文點名的報導，僅有所在行政區的輿情熱度；"
                               "區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
                               "依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視")},
@@ -212,7 +222,8 @@ for pid, (p, gm) in base.items():
                  "〔示範資料〕教育局回應午餐衛生查核，非真實報導"),
                 ("2024-08-27", "超收", 2, "媒體報導",
                  "〔示範資料〕招生人數查核，非真實報導"),
-            ]] if has_l1_media else []),
+            ] if (has_l1_media or d >= CUTOFF)]
+            if (has_l1_media or has_after_media) else []),
         "timeline": [
             {"date": r["日期"], "category": "超收" if "第8條" in r["條文"] else "師生比",
              "law": r["條文"][:12],

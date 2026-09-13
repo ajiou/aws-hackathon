@@ -26,16 +26,29 @@ from .reasons import build_reasons
 from .scoring import assign_tiers, score_all
 
 MODEL_VERSION = "risk-v2"
-# 輿情維度整個不計分，但兩種園的理由不一樣，只給一句話會把其中一種說錯：
-#   有園級訊號（L1，切點前 14 園）——不是「無鑑別力」，是樣本太小無從驗證。
-#     對這 14 園寫「區級熱度無鑑別力」等於否認它自己頁面上那幾篇明文點名的
-#     報導，稽查人員看到會直接不信這張表。
-#   只有區級熱度（L2，其餘 1,201 園）——實測 P@50 8.0%，低於隨機的 10.9%。
-# 兩句都指向同一個決定（ADR-0001），但講的是不同的事實。
+# 輿情維度整個不計分（ADR-0001），但「為什麼」對三種園是三件不同的事實。
+# 只寫一句，另外兩種就會在自己的頁面上讀到假話：
+#
+#   14 園  切點前有明文點名的報導 → 不是無鑑別力，是樣本太小無從驗證
+#   22 園  只有切點後的報導       → 報導確實存在而且往往最嚴重（2026 年的
+#          虐童案全落在這一類），但拿切點後的事實去預測切點後的裁罰是資料
+#          洩漏。對這 22 園寫「本園無明文點名的報導」是直接說謊——它們的
+#          頁面下方就列著十幾則。
+#   1,179 園 完全沒有報導          → 只有區級熱度，實測 P@50 8.0% < 隨機 10.9%
 SENTIMENT_L1_NOTE = (
     "本園有切點前明文點名的報導，但全市僅 14 園有園級輿情訊號，樣本太小無法"
     "驗證預測力，依 ADR-0001 暫不計入風險分數；報導明細仍列於本頁下方"
 )
+
+
+def sentiment_after_cutoff_note(count):
+    return (
+        f"本園有 {count} 則明文點名的報導，但全部落在資料切點"
+        f"（{CUTOFF.isoformat()}）之後。用切點後的事實去預測切點後的裁罰是資料洩漏，"
+        "因此不計入風險分數——這不代表這些報導不重要，請直接看本頁下方的報導明細"
+    )
+
+
 DIM_NOTE = {
     ("sentiment", None): "本園無明文點名的報導，僅有所在行政區的輿情熱度；"
                          "區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
@@ -54,7 +67,8 @@ def load(indir, name, default=None):
         return json.load(fh)
 
 
-def dimension_block(dim, score, coverage, weight, peer_group, itype, has_media_signal=False):
+def dimension_block(dim, score, coverage, weight, peer_group, itype,
+                    has_media_signal=False, after_cutoff_articles=0):
     """§3.3 的 dimensions 規則。
 
     `applicable = false` 時 `score` **必須是 null，不得是 0**——0 分等於懲罰守法者。
@@ -76,9 +90,13 @@ def dimension_block(dim, score, coverage, weight, peer_group, itype, has_media_s
         "coverage": round(coverage, 2),
         "weight": weight if applicable else None,
         "validated": dim != "operation",
-        "note": (SENTIMENT_L1_NOTE if (dim == "sentiment" and has_media_signal)
-                 else DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
-                 or DIM_NOTE.get((dim, None))),
+        "note": (
+            SENTIMENT_L1_NOTE if (dim == "sentiment" and has_media_signal)
+            else sentiment_after_cutoff_note(after_cutoff_articles)
+            if (dim == "sentiment" and after_cutoff_articles)
+            else DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
+            or DIM_NOTE.get((dim, None))
+        ),
     }
 
 
@@ -101,6 +119,11 @@ def main():
     finance = {r["park_id"]: r for r in load(args.indir, "finance", [])}
     evaluations = load(args.indir, "evaluations", [])
     media_coverage = load(args.indir, "media_coverage", [])
+    # 切點後的報導則數。維度說明要靠它分辨「沒有報導」與「報導全在切點之後」
+    # ——後者是 22 園，2026 年的虐童案全在這一類，說成「沒有報導」是說謊。
+    after_cutoff_articles = collections.Counter(
+        r["park_id"] for r in media_coverage if r.get("is_after_cutoff")
+    )
     metrics = load(args.modeldir, "metrics", {})
     meta_in = load(args.indir, "meta", {})
 
@@ -146,7 +169,8 @@ def main():
             "dimensions": {
                 dim: dimension_block(dim, *s["dimensions"][dim], weights.get(dim),
                                      f["peer_group"], f["institution_type"],
-                                     f.get("media_has_signal", False))
+                                     f.get("media_has_signal", False),
+                                     after_cutoff_articles.get(pid, 0))
                 for dim in s["dimensions"]
             },
             "reasons": build_reasons(f, s["pcts"], weights, finance),

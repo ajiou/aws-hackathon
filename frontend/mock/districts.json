@@ -7,9 +7,9 @@
    "high_risk_count": 4,
    "medium_risk_count": 4,
    "high_risk_ratio": 0.1333,
-   "media_heat": 2.82,
-   "media_heat_per_park": 0.094,
-   "media_rank": 3,
+   "media_heat": 1.12,
+   "media_heat_per_park": 0.0373,
+   "media_rank": 19,
    "pun_count_before_cutoff": 51
   },
   {
@@ -18,9 +18,9 @@
    "high_risk_count": 2,
    "medium_risk_count": 6,
    "high_risk_ratio": 0.0952,
-   "media_heat": 1.2,
-   "media_heat_per_park": 0.0571,
-   "media_rank": 22,
+   "media_heat": 3.9,
+   "media_heat_per_park": 0.1857,
+   "media_rank": 1,
    "pun_count_before_cutoff": 14
   },
   {
@@ -29,9 +29,9 @@
    "high_risk_count": 5,
    "medium_risk_count": 7,
    "high_risk_ratio": 0.0735,
-   "media_heat": 4.76,
-   "media_heat_per_park": 0.07,
-   "media_rank": 20,
+   "media_heat": 3.62,
+   "media_heat_per_park": 0.0532,
+   "media_rank": 16,
    "pun_count_before_cutoff": 72
   },
   {
@@ -40,9 +40,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 4,
    "high_risk_ratio": 0.0714,
-   "media_heat": 0.96,
-   "media_heat_per_park": 0.0686,
-   "media_rank": 15,
+   "media_heat": 2.74,
+   "media_heat_per_park": 0.1957,
+   "media_rank": 1,
    "pun_count_before_cutoff": 8
   },
   {
@@ -51,9 +51,9 @@
    "high_risk_count": 5,
    "medium_risk_count": 10,
    "high_risk_ratio": 0.0556,
-   "media_heat": 2.5,
-   "media_heat_per_park": 0.0278,
-   "media_rank": 24,
+   "media_heat": 2.01,
+   "media_heat_per_park": 0.0223,
+   "media_rank": 6,
    "pun_count_before_cutoff": 116
   },
   {
@@ -62,9 +62,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 2,
    "high_risk_ratio": 0.0526,
-   "media_heat": 3.67,
-   "media_heat_per_park": 0.1932,
-   "media_rank": 16,
+   "media_heat": 4.9,
+   "media_heat_per_park": 0.2579,
+   "media_rank": 23,
    "pun_count_before_cutoff": 6
   },
   {
@@ -73,9 +73,9 @@
    "high_risk_count": 3,
    "medium_risk_count": 7,
    "high_risk_ratio": 0.0517,
-   "media_heat": 2.31,
-   "media_heat_per_park": 0.0398,
-   "media_rank": 23,
+   "media_heat": 1.99,
+   "media_heat_per_park": 0.0343,
+   "media_rank": 18,
    "pun_count_before_cutoff": 33
   },
   {
@@ -84,9 +84,9 @@
    "high_risk_count": 8,
    "medium_risk_count": 16,
    "high_risk_ratio": 0.0506,
-   "media_heat": 1.99,
-   "media_heat_per_park": 0.0126,
-   "media_rank": 29,
+   "media_heat": 3.31,
+   "media_heat_per_park": 0.0209,
+   "media_rank": 26,
    "pun_count_before_cutoff": 197
   },
   {
@@ -95,9 +95,9 @@
    "high_risk_count": 3,
    "medium_risk_count": 12,
    "high_risk_ratio": 0.0469,
-   "media_heat": 4.59,
-   "media_heat_per_park": 0.0717,
-   "media_rank": 29,
+   "media_heat": 0.98,
+   "media_heat_per_park": 0.0153,
+   "media_rank": 16,
    "pun_count_before_cutoff": 70
   },
   {
@@ -106,9 +106,9 @@
    "high_risk_count": 2,
    "medium_risk_count": 11,
    "high_risk_ratio": 0.04,
-   "media_heat": 3.79,
-   "media_heat_per_park": 0.0758,
-   "media_rank": 29,
+   "media_heat": 3.4,
+   "media_heat_per_park": 0.068,
+   "media_rank": 6,
    "pun_count_before_cutoff": 29
   },
   {
@@ -117,9 +117,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 5,
    "high_risk_ratio": 0.04,
-   "media_heat": 3.57,
-   "media_heat_per_park": 0.1428,
-   "media_rank": 25,
+   "media_heat": 0.71,
+   "media_heat_per_park": 0.0284,
+   "media_rank": 5,
    "pun_count_before_cutoff": 38
   },
   {
@@ -128,9 +128,9 @@
    "high_risk_count": 4,
    "medium_risk_count": 14,
    "high_risk_ratio": 0.0357,
-   "media_heat": 4.79,
-   "media_heat_per_park": 0.0428,
-   "media_rank": 28,
+   "media_heat": 3.74,
+   "media_heat_per_park": 0.0334,
+   "media_rank": 20,
    "pun_count_before_cutoff": 123
   },
   {
@@ -139,9 +139,9 @@
    "high_risk_count": 3,
    "medium_risk_count": 13,
    "high_risk_ratio": 0.0349,
-   "media_heat": 4.51,
-   "media_heat_per_park": 0.0524,
-   "media_rank": 25,
+   "media_heat": 2.2,
+   "media_heat_per_park": 0.0256,
+   "media_rank": 8,
    "pun_count_before_cutoff": 67
   },
   {
@@ -150,9 +150,9 @@
    "high_risk_count": 3,
    "medium_risk_count": 7,
    "high_risk_ratio": 0.0326,
-   "media_heat": 1.49,
-   "media_heat_per_park": 0.0162,
-   "media_rank": 11,
+   "media_heat": 4.18,
+   "media_heat_per_park": 0.0454,
+   "media_rank": 19,
    "pun_count_before_cutoff": 96
   },
   {
@@ -161,9 +161,9 @@
    "high_risk_count": 2,
    "medium_risk_count": 6,
    "high_risk_ratio": 0.0299,
-   "media_heat": 4.92,
-   "media_heat_per_park": 0.0734,
-   "media_rank": 12,
+   "media_heat": 4.61,
+   "media_heat_per_park": 0.0688,
+   "media_rank": 11,
    "pun_count_before_cutoff": 74
   },
   {
@@ -172,9 +172,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 6,
    "high_risk_ratio": 0.02,
-   "media_heat": 4.48,
-   "media_heat_per_park": 0.0896,
-   "media_rank": 15,
+   "media_heat": 1.34,
+   "media_heat_per_park": 0.0268,
+   "media_rank": 26,
    "pun_count_before_cutoff": 24
   },
   {
@@ -183,9 +183,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 5,
    "high_risk_ratio": 0.0169,
-   "media_heat": 3.7,
-   "media_heat_per_park": 0.0627,
-   "media_rank": 5,
+   "media_heat": 0.53,
+   "media_heat_per_park": 0.009,
+   "media_rank": 24,
    "pun_count_before_cutoff": 57
   },
   {
@@ -194,9 +194,9 @@
    "high_risk_count": 1,
    "medium_risk_count": 9,
    "high_risk_ratio": 0.0164,
-   "media_heat": 2.81,
-   "media_heat_per_park": 0.0461,
-   "media_rank": 25,
+   "media_heat": 4.76,
+   "media_heat_per_park": 0.078,
+   "media_rank": 7,
    "pun_count_before_cutoff": 26
   },
   {
@@ -205,9 +205,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 2,
    "high_risk_ratio": 0.0,
-   "media_heat": 4.03,
-   "media_heat_per_park": 0.403,
-   "media_rank": 27,
+   "media_heat": 4.14,
+   "media_heat_per_park": 0.414,
+   "media_rank": 14,
    "pun_count_before_cutoff": 1
   },
   {
@@ -216,9 +216,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 2,
    "high_risk_ratio": 0.0,
-   "media_heat": 2.83,
-   "media_heat_per_park": 0.4043,
-   "media_rank": 25,
+   "media_heat": 4.3,
+   "media_heat_per_park": 0.6143,
+   "media_rank": 12,
    "pun_count_before_cutoff": 0
   },
   {
@@ -227,8 +227,8 @@
    "high_risk_count": 0,
    "medium_risk_count": 1,
    "high_risk_ratio": 0.0,
-   "media_heat": 4.79,
-   "media_heat_per_park": 0.5988,
+   "media_heat": 4.51,
+   "media_heat_per_park": 0.5637,
    "media_rank": 11,
    "pun_count_before_cutoff": 3
   },
@@ -238,9 +238,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 1,
    "high_risk_ratio": 0.0,
-   "media_heat": 2.95,
-   "media_heat_per_park": 0.4214,
-   "media_rank": 23,
+   "media_heat": 2.66,
+   "media_heat_per_park": 0.38,
+   "media_rank": 1,
    "pun_count_before_cutoff": 1
   },
   {
@@ -249,9 +249,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 1.24,
-   "media_heat_per_park": 0.4133,
-   "media_rank": 25,
+   "media_heat": 1.77,
+   "media_heat_per_park": 0.59,
+   "media_rank": 7,
    "pun_count_before_cutoff": 0
   },
   {
@@ -260,9 +260,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 2.39,
-   "media_heat_per_park": 0.478,
-   "media_rank": 28,
+   "media_heat": 1.71,
+   "media_heat_per_park": 0.342,
+   "media_rank": 29,
    "pun_count_before_cutoff": 0
   },
   {
@@ -271,9 +271,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 1.51,
-   "media_heat_per_park": 0.755,
-   "media_rank": 27,
+   "media_heat": 4.41,
+   "media_heat_per_park": 2.205,
+   "media_rank": 28,
    "pun_count_before_cutoff": 0
   },
   {
@@ -282,9 +282,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 2.84,
-   "media_heat_per_park": 0.9467,
-   "media_rank": 14,
+   "media_heat": 0.75,
+   "media_heat_per_park": 0.25,
+   "media_rank": 26,
    "pun_count_before_cutoff": 0
   },
   {
@@ -293,9 +293,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 1.9,
-   "media_heat_per_park": 0.6333,
-   "media_rank": 8,
+   "media_heat": 4.85,
+   "media_heat_per_park": 1.6167,
+   "media_rank": 15,
    "pun_count_before_cutoff": 0
   },
   {
@@ -304,9 +304,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 1.2,
-   "media_heat_per_park": 0.4,
-   "media_rank": 25,
+   "media_heat": 3.48,
+   "media_heat_per_park": 1.16,
+   "media_rank": 18,
    "pun_count_before_cutoff": 0
   },
   {
@@ -315,9 +315,9 @@
    "high_risk_count": 0,
    "medium_risk_count": 0,
    "high_risk_ratio": 0.0,
-   "media_heat": 0.05,
-   "media_heat_per_park": 0.0167,
-   "media_rank": 21,
+   "media_heat": 1.2,
+   "media_heat_per_park": 0.4,
+   "media_rank": 3,
    "pun_count_before_cutoff": 0
   }
  ]
