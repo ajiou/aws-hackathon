@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useApi } from "../api/queries";
+import { useApi, useMeta } from "../api/queries";
 import { worklistSchema } from "../api/types";
 import { useUrlState } from "../hooks/useUrlState";
 import {
@@ -12,6 +12,7 @@ import {
 import { isoWeek } from "../utils/format";
 import s from "../styles/App.module.css";
 export default function Worklist() {
+  const meta = useMeta();
   const { params, update } = useUrlState();
   const week = /^\d{4}-W(0[1-9]|[1-4]\d|5[0-3])$/.test(params.get("week") ?? "")
     ? params.get("week")!
@@ -109,7 +110,10 @@ export default function Worklist() {
                     <p>
                       週次：{data.week} · 產出：{data.generated_at.slice(0, 10)}
                     </p>
-                    <ModelNote model={data.model} />
+                    <ModelNote
+                      model={data.model}
+                      basis={meta.data?.model_basis}
+                    />
                   </header>
                   {pageItems.map((item) => (
                     <article

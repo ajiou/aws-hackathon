@@ -82,7 +82,12 @@ class PeerGroup(Contract):
 class Meta(Contract):
     version: str
     generated_at: str
+    # cutoff 是「這批分數吃到哪一天為止的事實」，上線時等於資料日。
+    # validation_cutoff 是「model 那組成效用哪個時間切分量出來的」，永遠
+    # 2025-01-01。兩者分開，畫面上的 26% 才不會被讀成用這批資料量到的。
     cutoff: str
+    validation_cutoff: str | None = None
+    model_basis: str | None = None
     population: Count
     weights: dict[Institution, Weights]
     peer_groups: dict[str, PeerGroup]

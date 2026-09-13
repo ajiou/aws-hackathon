@@ -154,11 +154,20 @@ export function CopyLink() {
     </>
   );
 }
-export function ModelNote({ model }: { model: Meta["model"] }) {
+export function ModelNote({
+  model,
+  basis,
+}: {
+  model: Meta["model"];
+  basis?: string;
+}) {
   return (
     <p className={s.muted}>
       模型 {model.name} · Precision@50 = {percent(model.precision_at_50)}
       （隨機基準 {percent(model.baseline)}）
+      {/* 成效是用時間切分回測量的，分數卻吃到資料日為止的全部事實。
+          不把這句寫在數字旁邊，26% 就會被讀成「用這批資料量到的」。 */}
+      {basis && <small className={s.basisNote}>{basis}</small>}
     </p>
   );
 }

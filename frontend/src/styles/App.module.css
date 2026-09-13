@@ -912,3 +912,12 @@
 .printIdent {
   display: none;
 }
+/* 成效數字旁邊那句「這是回測量的、分數吃到資料日」。字小但必須在，
+   否則 26% 會被讀成用這批資料量到的。 */
+.basisNote {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--c-text-3, var(--c-text-2));
+}

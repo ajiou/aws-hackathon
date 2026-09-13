@@ -55,13 +55,28 @@ curl http://localhost:8000/api/v1/meta
 
 ### 資料與模型（不需要 AWS）
 
+切點有兩個用途，要跑兩輪：**驗證**用 2025-01-01（時間切分回測靠它才成立），
+**上線**用資料日（分數要吃得到切點之後的事實）。權重與公式兩輪完全相同。
+
 ```bash
 export WATCHDOG_SALT="自訂字串，不進 git"     # 個資雜湊用，見 SPEC §10.1
-python etl/build_curated.py  --out ./out/curated
-python model/train.py        --in ./out/curated --out ./out/model
-python model/backtest.py     --in ./out/curated --model ./out/model
-python model/score.py        --in ./out/curated --model ./out/model --out ./out/serving
+
+# 一、驗證輪：切點 2025-01-01（預設值，不帶環境變數）
+python -m etl.build_curated --out ./out/curated-validation
+python -m model.backtest    --in ./out/curated-validation --out ./out/model
+
+# 二、上線輪：切點＝最後一筆裁罰的隔日。成效數字沿用上一輪的 out/model
+export WATCHDOG_CUTOFF=2026-08-22
+python -m etl.build_curated --out ./out/curated
+python -m model.score       --in ./out/curated --model ./out/model --out ./out/serving
 ```
+
+`out/curated*/finance.json` 由 `etl/ocr_extract.py` 產出，換輸出目錄時要一併
+複製過去，否則營運維度會整個缺席（同儕群會少掉「非營利-有財報」）。
+
+`model.backtest` 在 `WATCHDOG_CUTOFF` 不是 2025-01-01 時會直接拒跑：那種
+組態下特徵已經含了觀察期的裁罰，算出來的 Precision@50 是拿「已經被罰」
+預測「有沒有被罰」，數字漂亮但沒有意義。
 
 財報抽表（已驗證可跑，46/46 成功）：
 

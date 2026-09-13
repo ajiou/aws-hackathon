@@ -274,6 +274,10 @@ def write(name, obj):
 print("寫出 mock：")
 write("meta.json", {
     "version": "1.0.0-mock", "generated_at": "2026-09-12T06:00:00Z", "cutoff": CUTOFF,
+    # mock 刻意停在驗證切點：只有這樣才生得出「報導全在切點之後」那類園，
+    # 前端那條分支才測得到。上線資料的 cutoff 是資料日，兩者不同。
+    "validation_cutoff": CUTOFF,
+    "model_basis": "成效與分數皆以 2025-01-01 時間切分計算（回測組態）",
     "population": len(active), "weights": WEIGHTS,
     "peer_groups": {k: {"n": len(v)} for k, v in sorted(by_pg.items())},
     "score_basis": "同儕群內百分位（ECDF by peer_group）",

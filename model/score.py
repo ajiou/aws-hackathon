@@ -21,7 +21,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-from etl.constants import CUTOFF, TIERS, WEIGHTS
+from etl.constants import CUTOFF, IS_VALIDATION_RUN, TIERS, VALIDATION_CUTOFF, WEIGHTS
 from .reasons import build_reasons
 from .scoring import assign_tiers, score_all
 
@@ -35,10 +35,20 @@ MODEL_VERSION = "risk-v2"
 #          洩漏。對這 22 園寫「本園無明文點名的報導」是直接說謊——它們的
 #          頁面下方就列著十幾則。
 #   1,179 園 完全沒有報導          → 只有區級熱度，實測 P@50 8.0% < 隨機 10.9%
-SENTIMENT_L1_NOTE = (
-    "本園有切點前明文點名的報導，但全市僅 14 園有園級輿情訊號，樣本太小無法"
-    "驗證預測力，依 ADR-0001 暫不計入風險分數；報導明細仍列於本頁下方"
-)
+def sentiment_l1_note(total):
+    """園數要算出來，不能寫死。
+
+    上線切點把整個觀察期納進特徵之後，有園級訊號的園從 14 變成 37；
+    寫死 14 就會在 37 園的頁面上各印一次錯的數字。ADR-0001 的「樣本太小」
+    講的是**驗證當時**（切點 2025-01-01）只有 14 園，那句判斷不因為現在
+    看得到更多報導就自動失效——要重新量測才算數，所以兩個數字都寫出來。
+    """
+    return (
+        f"本園有明文點名的報導（目前全市 {total} 園有園級輿情訊號）。輿情維度依"
+        " ADR-0001 不計入風險分數：時間切分回測時該維度單獨 Precision@50 8.0%，"
+        "低於隨機抽查的 10.9%，且當時園級訊號只覆蓋 14 園，樣本太小無從驗證。"
+        "報導明細列於本頁下方"
+    )
 
 
 def sentiment_after_cutoff_note(count):
@@ -68,7 +78,7 @@ def load(indir, name, default=None):
 
 
 def dimension_block(dim, score, coverage, weight, peer_group, itype,
-                    has_media_signal=False, after_cutoff_articles=0):
+                    has_media_signal=False, after_cutoff_articles=0, l1_total=0):
     """§3.3 的 dimensions 規則。
 
     `applicable = false` 時 `score` **必須是 null，不得是 0**——0 分等於懲罰守法者。
@@ -91,7 +101,7 @@ def dimension_block(dim, score, coverage, weight, peer_group, itype,
         "weight": weight if applicable else None,
         "validated": dim != "operation",
         "note": (
-            SENTIMENT_L1_NOTE if (dim == "sentiment" and has_media_signal)
+            sentiment_l1_note(l1_total) if (dim == "sentiment" and has_media_signal)
             else sentiment_after_cutoff_note(after_cutoff_articles)
             if (dim == "sentiment" and after_cutoff_articles)
             else DIM_NOTE.get((dim, peer_group)) or DIM_NOTE.get((dim, itype))
@@ -124,6 +134,7 @@ def main():
     after_cutoff_articles = collections.Counter(
         r["park_id"] for r in media_coverage if r.get("is_after_cutoff")
     )
+    l1_total = sum(1 for f in features if f.get("media_has_signal"))
     metrics = load(args.modeldir, "metrics", {})
     meta_in = load(args.indir, "meta", {})
 
@@ -170,7 +181,7 @@ def main():
                 dim: dimension_block(dim, *s["dimensions"][dim], weights.get(dim),
                                      f["peer_group"], f["institution_type"],
                                      f.get("media_has_signal", False),
-                                     after_cutoff_articles.get(pid, 0))
+                                     after_cutoff_articles.get(pid, 0), l1_total)
                 for dim in s["dimensions"]
             },
             "reasons": build_reasons(f, s["pcts"], weights, finance),
@@ -343,6 +354,17 @@ def main():
     dump("meta", {
         "version": f"1.0.0-{datetime.now(timezone.utc):%Y%m%d}",
         "generated_at": now, "cutoff": CUTOFF.isoformat(),
+        # 兩個切點分開記，否則畫面上的成效數字會被讀成「用這批資料量到的」。
+        #   cutoff             這批分數吃到哪一天為止的事實（上線＝資料日）
+        #   validation_cutoff  model 那組成效是用哪個時間切分量出來的
+        # 兩者相同＝這是一輪回測；不同＝上線資料，成效沿用驗證那一輪。
+        "validation_cutoff": VALIDATION_CUTOFF.isoformat(),
+        "model_basis": (
+            "成效以 2025-01-01 時間切分回測（切點前排名、看切點後誰真的被罰）；"
+            f"本頁分數用同一組權重，吃到 {CUTOFF.isoformat()} 為止的全部事實"
+            if not IS_VALIDATION_RUN else
+            "成效與分數皆以 2025-01-01 時間切分計算（回測組態）"
+        ),
         "population": len(active), "weights": WEIGHTS,
         "peer_groups": {k: {"n": v} for k, v in meta_in.get("peer_groups", {}).items()},
         "score_basis": "四維度加權總分（R_raw）",

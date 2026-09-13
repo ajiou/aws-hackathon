@@ -240,7 +240,12 @@ const modelSchema = z.object({
 export const metaSchema = z.object({
   version: z.string(),
   generated_at: z.string(),
+  // cutoff：這批分數吃到哪一天為止的事實（上線＝資料日）。
+  // validation_cutoff：model 那組成效用哪個時間切分量出來的，永遠 2025-01-01。
+  // 兩者分開，26% 才不會被讀成「用這批資料量到的」。
   cutoff: z.string(),
+  validation_cutoff: z.string().optional(),
+  model_basis: z.string().optional(),
   population: z.number(),
   weights: z.record(z.record(z.number().nullable())),
   peer_groups: z.record(

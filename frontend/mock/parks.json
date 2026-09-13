@@ -1787,13 +1787,6 @@
      "weight": 0.24,
      "dimension": "violation",
      "validated": true
-    },
-    {
-     "code": "MEDIA_TOWN_HEAT",
-     "label": "所在行政區近 90 天輿情熱度全市第 1",
-     "weight": 0.12,
-     "dimension": "sentiment",
-     "validated": true
     }
    ]
   },
