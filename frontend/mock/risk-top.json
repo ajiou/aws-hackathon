@@ -76,8 +76,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -234,8 +234,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.348,
+    "town_heat_rank": 14,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -464,8 +464,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.348,
+    "town_heat_rank": 14,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -638,8 +638,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.276,
-    "town_heat_rank": 18,
+    "town_heat_per_park": 0.078,
+    "town_heat_rank": 29,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -772,8 +772,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -954,8 +954,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.186,
-    "town_heat_rank": 23,
+    "town_heat_per_park": 0.384,
+    "town_heat_rank": 12,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1080,8 +1080,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.276,
-    "town_heat_rank": 18,
+    "town_heat_per_park": 0.078,
+    "town_heat_rank": 29,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1214,8 +1214,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.348,
+    "town_heat_rank": 14,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1388,8 +1388,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.474,
+    "town_heat_rank": 7,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1514,8 +1514,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1640,8 +1640,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.42,
+    "town_heat_rank": 10,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1766,8 +1766,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.42,
+    "town_heat_rank": 10,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -1884,8 +1884,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2042,8 +2042,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2160,8 +2160,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2406,8 +2406,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.348,
+    "town_heat_rank": 14,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2524,8 +2524,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2634,8 +2634,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.474,
+    "town_heat_rank": 7,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2752,8 +2752,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.474,
+    "town_heat_rank": 7,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2862,8 +2862,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -2972,8 +2972,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.474,
+    "town_heat_rank": 7,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3082,8 +3082,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.474,
-    "town_heat_rank": 7,
+    "town_heat_per_park": 0.438,
+    "town_heat_rank": 9,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3200,8 +3200,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.24,
-    "town_heat_rank": 20,
+    "town_heat_per_park": 0.096,
+    "town_heat_rank": 28,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3310,8 +3310,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.456,
-    "town_heat_rank": 8,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3428,8 +3428,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3554,8 +3554,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.402,
-    "town_heat_rank": 11,
+    "town_heat_per_park": 0.456,
+    "town_heat_rank": 8,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3688,8 +3688,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3798,8 +3798,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -3956,8 +3956,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.456,
-    "town_heat_rank": 8,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4066,8 +4066,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.456,
-    "town_heat_rank": 8,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4192,8 +4192,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4310,8 +4310,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.24,
-    "town_heat_rank": 20,
+    "town_heat_per_park": 0.096,
+    "town_heat_rank": 28,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4412,8 +4412,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4522,8 +4522,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4624,8 +4624,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.276,
-    "town_heat_rank": 18,
+    "town_heat_per_park": 0.078,
+    "town_heat_rank": 29,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4734,8 +4734,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.24,
-    "town_heat_rank": 20,
+    "town_heat_per_park": 0.096,
+    "town_heat_rank": 28,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4852,8 +4852,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.582,
-    "town_heat_rank": 1,
+    "town_heat_per_park": 0.204,
+    "town_heat_rank": 22,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -4962,8 +4962,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.312,
-    "town_heat_rank": 16,
+    "town_heat_per_park": 0.474,
+    "town_heat_rank": 7,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5051,21 +5051,14 @@
      "weight": 0.24,
      "dimension": "violation",
      "validated": true
-    },
-    {
-     "code": "MEDIA_TOWN_HEAT",
-     "label": "所在行政區近 90 天輿情熱度全市第 1",
-     "weight": 0.12,
-     "dimension": "sentiment",
-     "validated": true
     }
    ],
    "finance_flags": [],
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.582,
-    "town_heat_rank": 1,
+    "town_heat_per_park": 0.204,
+    "town_heat_rank": 22,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5166,8 +5159,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.168,
-    "town_heat_rank": 24,
+    "town_heat_per_park": 0.33,
+    "town_heat_rank": 15,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5230,7 +5223,7 @@
      "coverage": 0.4,
      "weight": null,
      "validated": true,
-     "note": "本園無明文點名的報導，僅有所在行政區的輿情熱度；區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視"
+     "note": "本園有 2 則明文點名的報導，但全部落在資料切點（2025-01-01）之後。用切點後的事實去預測切點後的裁罰是資料洩漏，因此不計入風險分數——這不代表這些報導不重要，請直接看本頁下方的報導明細"
     },
     "operation": {
      "applicable": false,
@@ -5268,11 +5261,32 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
-   "media_coverage": [],
+   "media_coverage": [
+    {
+     "date": "2026-04-11",
+     "outlet": "示範來源",
+     "title": "〔示範資料〕家長投訴不當管教，非真實報導",
+     "url": null,
+     "event_type": "不當管教",
+     "severity": 5,
+     "stance": "家長指控",
+     "is_after_cutoff": true
+    },
+    {
+     "date": "2026-01-22",
+     "outlet": "示範來源",
+     "title": "〔示範資料〕教育局回應午餐衛生查核，非真實報導",
+     "url": null,
+     "event_type": "食安衛生",
+     "severity": 3,
+     "stance": "官方回應",
+     "is_after_cutoff": true
+    }
+   ],
    "timeline": [
     {
      "date": "2020-01-07",
@@ -5410,8 +5424,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5568,8 +5582,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.258,
-    "town_heat_rank": 19,
+    "town_heat_per_park": 0.168,
+    "town_heat_rank": 24,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5734,8 +5748,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -5956,8 +5970,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.492,
-    "town_heat_rank": 6,
+    "town_heat_per_park": 0.348,
+    "town_heat_rank": 14,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -6154,8 +6168,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.582,
-    "town_heat_rank": 1,
+    "town_heat_per_park": 0.312,
+    "town_heat_rank": 16,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -6256,8 +6270,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.132,
-    "town_heat_rank": 26,
+    "town_heat_per_park": 0.15,
+    "town_heat_rank": 25,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -6358,8 +6372,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.402,
-    "town_heat_rank": 11,
+    "town_heat_per_park": 0.456,
+    "town_heat_rank": 8,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -6460,8 +6474,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.51,
-    "town_heat_rank": 5,
+    "town_heat_per_park": 0.186,
+    "town_heat_rank": 23,
     "last_negative_at": null
    },
    "media_coverage": [],
@@ -6586,8 +6600,8 @@
    "media": {
     "sri": 0.0,
     "has_signal": false,
-    "town_heat_per_park": 0.24,
-    "town_heat_rank": 20,
+    "town_heat_per_park": 0.096,
+    "town_heat_rank": 28,
     "last_negative_at": null
    },
    "media_coverage": [],

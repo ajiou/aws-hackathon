@@ -1,7 +1,22 @@
 """全專案共用常數。SPEC §1 的定義在這裡只有一份。"""
+import os
 from datetime import date
 
-CUTOFF = date(2025, 1, 1)          # SPEC §1.2
+# 切點有兩個用途，本來混成一個，結果上線的分數也看不到切點後的事實：
+# 吉尼爾 14 筆裁罰只有 2 筆在切點前（8 筆不當管教全在 2026），分數因此
+# 算出低風險。全市 44 家在切點後被罰不當管教的園，36 家標成低風險。
+#
+#   VALIDATION_CUTOFF  驗證用，永遠是 2025-01-01。時間切分回測靠它才成立：
+#                      用切點前排名、看切點後誰真的被罰。動了它，Precision@50
+#                      就是拿已經被罰當特徵去預測有沒有被罰，數字會很漂亮而
+#                      完全沒有意義。model/backtest.py 會擋住非此值的執行。
+#   CUTOFF             實際跑的切點。上線時用資料日（WATCHDOG_CUTOFF 指定），
+#                      讓分數吃到截至今天的全部事實；預設維持驗證值，
+#                      所以不帶環境變數跑出來的東西跟以前一模一樣。
+VALIDATION_CUTOFF = date(2025, 1, 1)          # SPEC §1.2
+_override = os.environ.get("WATCHDOG_CUTOFF")
+CUTOFF = date.fromisoformat(_override) if _override else VALIDATION_CUTOFF
+IS_VALIDATION_RUN = CUTOFF == VALIDATION_CUTOFF
 CITY = "新北市"
 
 # SPEC §5.0 四維度權重（2026-09-12 依實測修正，見 docs/回測發現-v2權重與輿情.md）

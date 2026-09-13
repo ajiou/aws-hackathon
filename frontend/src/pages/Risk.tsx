@@ -38,7 +38,9 @@ export default function Risk() {
         </Link>
       </PageHeader>
       <QueryState query={meta}>
-        {(data) => <ModelNote model={data.model} />}
+        {(data) => (
+          <ModelNote model={data.model} basis={meta.data?.model_basis} />
+        )}
       </QueryState>
       <QueryState query={query}>
         {(data) =>

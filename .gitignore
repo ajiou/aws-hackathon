@@ -36,3 +36,6 @@ frontend/*.tsbuildinfo
 
 # Excel 開啟 .xlsx 時產生的暫存鎖檔
 ~$*
+
+# 驗證輪的 curated 產出（上線輪用 out/curated，兩者都不進版控）
+out/curated-validation/

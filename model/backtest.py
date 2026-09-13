@@ -21,7 +21,7 @@ import collections
 import json
 from pathlib import Path
 
-from etl.constants import TIERS, WEIGHTS
+from etl.constants import CUTOFF, IS_VALIDATION_RUN, TIERS, VALIDATION_CUTOFF, WEIGHTS
 from .scoring import assign_tiers, score_all
 
 KS = [10, 20, 30, 50, 100, 150, 200, 250, 300]
@@ -118,6 +118,14 @@ def main():
     ap.add_argument("--out", dest="outdir", default="./out/model")
     ap.add_argument("--model", dest="_model", default=None, help="相容用，未使用")
     args = ap.parse_args()
+    # 回測只有在時間切分成立時才是回測。用上線切點跑，特徵裡已經含了觀察期
+    # 的裁罰，等於拿「已經被罰」去預測「有沒有被罰」——數字會很漂亮而完全
+    # 沒有意義。與其產出一個會被當真的假成績，不如直接拒跑。
+    if not IS_VALIDATION_RUN:
+        raise SystemExit(
+            f"回測必須用驗證切點 {VALIDATION_CUTOFF}，目前 WATCHDOG_CUTOFF={CUTOFF}。"
+            " 上線資料請跑 model.score；成效數字沿用驗證那一輪的 out/model。"
+        )
     out = Path(args.outdir)
     out.mkdir(parents=True, exist_ok=True)
 

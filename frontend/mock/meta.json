@@ -2,6 +2,8 @@
  "version": "1.0.0-mock",
  "generated_at": "2026-09-12T06:00:00Z",
  "cutoff": "2025-01-01",
+ "validation_cutoff": "2025-01-01",
+ "model_basis": "成效與分數皆以 2025-01-01 時間切分計算（回測組態）",
  "population": 1178,
  "weights": {
   "公立": {

@@ -28,7 +28,7 @@ from pathlib import Path
 
 from . import features as features_mod
 from .categories import assert_all_classified, classify
-from .constants import CUTOFF, MEDIA_COVERAGE_PER_PARK, TIERS
+from .constants import CUTOFF, IS_VALIDATION_RUN, MEDIA_COVERAGE_PER_PARK, TIERS
 from .pii import hash_person
 from .quality import assert_no_banned, assert_no_leakage, assert_no_pii, assert_population
 from .sources import (DATA, load_evaluations, load_fees, load_media, load_parks,
@@ -169,7 +169,13 @@ def main():
     dropped = len(evaluations) - len(kept)
     pre_eval = [{"park_id": pid, **r} for r in kept for pid in ids_by_name[r["園名"]]]
     assert_no_leakage(pre_eval, ["評鑑完成日"])
-    assert dropped == 280, f"應丟棄 280 列（258 切點後 + 22 無日期），實際 {dropped}"
+    # 這幾個數字是驗證切點（2025-01-01）下的實測值，拿來擋「資料悄悄變了」。
+    # 上線切點會保留更多列，數字本來就不一樣，只檢查沒有日期的那 22 列仍被丟掉。
+    if IS_VALIDATION_RUN:
+        assert dropped == 280, f"應丟棄 280 列（258 切點後 + 22 無日期），實際 {dropped}"
+    else:
+        no_date = sum(1 for r in evaluations if not r.get("評鑑完成日"))
+        assert no_date == 22, f"無日期評鑑列應為 22，實際 {no_date}"
     assert all(r["park_id"] for r in pre_eval), "評鑑列有 park_id 落空"
     dump("evaluations.json", pre_eval)
     ok(f"join {len(hit)}/{len({r['園名'] for r in evaluations})}，丟棄 {dropped} 列")
@@ -199,17 +205,15 @@ def main():
     assert_no_pii(rows)
     assert_no_banned(rows)
     positives = sum(1 for r in rows if r["label"])
-    assert positives == 128, f"正樣本 {positives} != 128"
+    # label 是「切點之後有沒有被罰」，只有回測需要它。上線切點把整個觀察期
+    # 都納進特徵，後面沒有未來可看，正樣本必然是 0——這不是錯，是定義。
+    if IS_VALIDATION_RUN:
+        assert positives == 128, f"正樣本 {positives} != 128"
+    else:
+        assert positives == 0, f"上線切點不該有正樣本（那代表資料超出切點），實際 {positives}"
     assert_no_leakage(rows, ["media_last_negative_at"])
     assert len(district) == NTPC_TOWNS, f"行政區 {len(district)} != {NTPC_TOWNS}"
     dump("features.json", rows)
-    dump("media.json", {
-        "as_of": CUTOFF.isoformat(),
-        "note": "全部以 published_at < CUTOFF 過濾，不可與 data/media/park_risk.json 混用",
-        "park_level": [dict(park_id=k, **v) for k, v in sorted(park_level.items())],
-        "district_level": district,
-    })
-
     # ---- 8b 輿情明細（展示用，**不進特徵**）
     # media.json 的 park_level 只剩 14 園，因為特徵必須過切點防洩漏。但稽查員
     # 要看的恰恰是切點之後的新聞：欣勵德 2026-04 那 44 篇虐童報導、園長遭聲押，
@@ -245,6 +249,16 @@ def main():
                                         reverse=True)[:MEDIA_COVERAGE_PER_PARK]]
     assert_no_pii(media_coverage)
     dump("media_coverage.json", media_coverage)
+    # media.json 要等 media_coverage 算完才 dump：as_of 是「輿情資料實際到
+    # 哪一天」，不是切點。寫切點的話資料新鮮度會顯示成 2026-08-22，但最後
+    # 一則報導其實是 2026-07-23——稽查人員看這個欄位就是要知道資料有多舊。
+    dump("media.json", {
+        "as_of": max((r["date"] for r in media_coverage), default=CUTOFF.isoformat()),
+        "note": "park_level 以 published_at < CUTOFF 過濾（防洩漏），"
+                "不可與 data/media/park_risk.json 混用",
+        "park_level": [dict(park_id=k, **v) for k, v in sorted(park_level.items())],
+        "district_level": district,
+    })
     ok(f"1,215 筆，正樣本 {positives}，輿情 L1 {len(park_level)} 園 / "
        f"L2 {sum(1 for d in district if d['has_signal'])} 區有訊號；"
        f"另有展示用輿情明細 {len(media_coverage)} 則 / {len(coverage)} 園"
