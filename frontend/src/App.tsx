@@ -1,11 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { NavLink, Link, Route, Routes, useLocation } from "react-router-dom";
-import {
-  ShieldCheck,
-  LayoutDashboard,
-  ChartNoAxesCombined,
-  ClipboardList,
-} from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Map, ClipboardList } from "lucide-react";
 import { useMeta } from "./api/queries";
 import { isMock } from "./api/client";
 import { Skeleton } from "./components/common";
@@ -18,19 +13,20 @@ const Risk = lazy(() => import("./pages/Risk"));
 const ParkDetail = lazy(() => import("./pages/ParkDetail"));
 const Districts = lazy(() => import("./pages/Districts"));
 const MapPage = lazy(() => import("./pages/MapPage"));
-const Validation = lazy(() => import("./pages/Validation"));
 const Worklist = lazy(() => import("./pages/Worklist"));
-// 地圖就是首頁，所以導覽列不再放它；點左上角標誌即可回到地圖。
+// 地圖是首頁，但它仍然要在導覽列出現：只靠左上角標誌回首頁的話，畫面上就沒有
+// 任何地方顯示「你現在在地圖」。兩個分頁並列、目前所在的那個畫底線。
 const navigation = [
+  // alias：/map 跟 / 是同一頁，兩個網址都要讓地圖分頁亮著，否則從舊連結進來
+  // 會看到兩個分頁都沒有底線。
+  { path: "/", alias: "/map", label: "園所風險地圖", icon: Map },
   { path: "/overview", label: "總覽搜尋", icon: LayoutDashboard },
-  { path: "/validation", label: "成效驗證", icon: ChartNoAxesCombined },
 ];
 export default function App() {
   const meta = useMeta();
   const location = useLocation();
   useEffect(() => {
     const named: Record<string, string> = {
-      "/": "園所風險地圖",
       "/map": "園所風險地圖",
       "/districts": "行政區熱力",
       "/worklist": "稽查派工單",
@@ -72,22 +68,26 @@ export default function App() {
             aria-label="主要導覽"
             className="flex min-w-0 gap-1 overflow-x-auto py-1"
           >
-            {navigation.map(({ path, label, icon: Icon }) => (
-              <NavLink
-                key={path}
-                to={path}
-                end={path === "/"}
-                className={({ isActive }) =>
-                  cn(
-                    "flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground",
-                    isActive && "bg-accent text-primary",
-                  )
-                }
-              >
-                <Icon className="size-4" aria-hidden="true" />
-                <span>{label}</span>
-              </NavLink>
-            ))}
+            {navigation.map(({ path, alias, label, icon: Icon }) => {
+              const isActive =
+                location.pathname === path || location.pathname === alias;
+              return (
+                <Link
+                  key={path}
+                  to={path}
+                  aria-current={isActive ? "page" : undefined}
+                  // 目前分頁用底線標示。底色色塊在深色主題下跟 hover 狀態幾乎
+                  // 分不出來，實測會讓人不確定自己在哪一頁。
+                  className={cn(
+                    "flex shrink-0 items-center gap-2 border-b-2 border-transparent px-3 py-2 text-sm font-medium text-muted-foreground no-underline transition-colors hover:text-foreground",
+                    isActive && "border-primary text-primary",
+                  )}
+                >
+                  <Icon className="size-4" aria-hidden="true" />
+                  <span>{label}</span>
+                </Link>
+              );
+            })}
           </nav>
           {meta.data && (
             <span className="hidden shrink-0 text-xs text-muted-foreground xl:block">
@@ -121,14 +121,13 @@ export default function App() {
               <Route path="/map" element={<MapPage />} />
               <Route path="/park/:id" element={<ParkDetail />} />
               <Route path="/districts" element={<Districts />} />
-              <Route path="/validation" element={<Validation />} />
               <Route path="/worklist" element={<Worklist />} />
               <Route
                 path="*"
                 element={
                   <>
                     <h1>找不到此頁面</h1>
-                    <Link to="/">返回總覽搜尋</Link>
+                    <Link to="/">返回園所風險地圖</Link>
                   </>
                 }
               />

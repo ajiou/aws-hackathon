@@ -127,7 +127,9 @@ export function EmptyState() {
       <p>
         目前條件：
         {[...params.entries()]
-          .filter(([k]) => ["q", "town", "type", "tier"].includes(k))
+          .filter(([k]) =>
+            ["q", "town", "type", "tier", "punished"].includes(k),
+          )
           .map(([, v]) => v)
           .join(" + ") || "目前頁碼或資料範圍"}
         。請減少篩選條件或返回第一頁。

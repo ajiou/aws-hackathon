@@ -48,6 +48,12 @@ export async function mockRequest(
   if (search) items = items.filter((p) => p.name.includes(search));
   if (q.get("has_finance_flag") === "true")
     items = items.filter((p) => p.finance_flags.length);
+  // 有無裁罰紀錄。省略＝不篩，true / false 兩邊都要篩得出來。
+  const punished = q.get("punished");
+  if (punished === "true" || punished === "false")
+    items = items.filter(
+      (p) => p.timeline.length > 0 === (punished === "true"),
+    );
   const sort = q.get("sort") ?? "risk";
   const dir =
     q.get("dir") ?? (sort === "risk" || sort === "pun_count" ? "desc" : "asc");

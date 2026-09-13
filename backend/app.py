@@ -174,6 +174,9 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
         type_: Annotated[list[str] | None, Query(alias="type")] = None,
         tier: Annotated[list[str] | None, Query()] = None,
         has_finance_flag: bool = False,
+        # 有無裁罰紀錄。省略＝不篩。true 與 false 都要能選：稽查人員問的是
+        # 「這一區有紀錄的有哪些」，也問「零紀錄的為什麼分數還這麼高」。
+        punished: bool | None = None,
         sort: Literal["risk", "name", "pun_count"] = "risk",
         direction: Annotated[Literal["asc", "desc"] | None, Query(alias="dir")] = None,
         page: Annotated[int, Query(ge=1)] = 1,
@@ -191,6 +194,7 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
             and (not types or p.institution_type in types)
             and (not tiers or p.risk.tier in tiers)
             and (not has_finance_flag or p.finance_flags)
+            and (punished is None or bool(p.timeline) is punished)
         ]
         key = {
             "risk": lambda p: p.risk.rank,
@@ -264,6 +268,7 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
     def map_points(
         town: Annotated[list[str] | None, Query()] = None,
         tier: Annotated[list[str] | None, Query()] = None,
+        punished: bool | None = None,
     ):
         towns, tiers = choices(town), choices(tier, {"高", "中", "低"})
         parks = store.parks()
@@ -277,6 +282,8 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
             if towns and park.town not in towns:
                 continue
             if tiers and feature.properties.tier not in tiers:
+                continue
+            if punished is not None and bool(park.timeline) is not punished:
                 continue
             features.append(
                 feature.model_copy(
