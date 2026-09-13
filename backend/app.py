@@ -16,9 +16,12 @@ from fastapi.responses import JSONResponse
 from mangum import Mangum
 from starlette.exceptions import HTTPException
 
+from backend.chat import BedrockClients, ChatService
 from backend.config import Settings
 from backend.schemas import (
     Brief,
+    ChatRequest,
+    ChatResponse,
     Curve,
     Districts,
     ErrorResponse,
@@ -43,7 +46,11 @@ class UTF8JSONResponse(JSONResponse):
     media_type = "application/json; charset=utf-8"
 
 
-def create_app(settings: Settings | None = None, store: ServingStore | None = None) -> FastAPI:
+def create_app(
+    settings: Settings | None = None,
+    store: ServingStore | None = None,
+    chat_clients=None,
+) -> FastAPI:
     settings = settings or Settings.from_env()
     store = store or ServingStore(settings)
     application = FastAPI(
@@ -57,7 +64,7 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
     application.add_middleware(
         CORSMiddleware,
         allow_origins=list(settings.cors_origins),
-        allow_methods=["GET"],
+        allow_methods=["GET", "POST"],
         allow_headers=["Content-Type"],
         expose_headers=["x-request-id", "x-data-version"],
     )
@@ -97,7 +104,7 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
         signed_detail = getattr(request.state, "signed_detail", False)
         response.headers["Cache-Control"] = (
             "public, max-age=60"
-            if 200 <= response.status_code < 300 and not signed_detail
+            if 200 <= response.status_code < 300 and not signed_detail and request.method == "GET"
             else "no-store"
         )
         # Also expose headers on errors generated outside CORSMiddleware.
@@ -118,6 +125,8 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
                     "route": getattr(route, "path", "unmatched"),
                     "status": response.status_code,
                     "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                    # 助手只記回答來源，不記問題原文（可能含個資）。
+                    "chat_source": getattr(request.state, "chat_source", None),
                 }
             )
         )
@@ -347,6 +356,25 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
     @router.get("/curve", response_model=Curve, response_model_exclude_unset=True)
     def curve():
         return store.validated("curve", Curve)
+
+    chat_service: ChatService | None = None
+
+    @router.post("/chat", response_model=ChatResponse)
+    def chat(body: ChatRequest, request: Request):
+        nonlocal chat_service
+        if chat_service is None:
+            if chat_clients is None and not (settings.chat_enabled or settings.kb_id):
+                return error(request, 503, "ASSISTANT_DISABLED", "稽查助手尚未啟用")
+            chat_service = ChatService(
+                store,
+                chat_clients
+                or BedrockClients(settings.kb_id, settings.chat_model, settings.aws_region),
+            )
+        if body.park_id:
+            park_or_404(body.park_id)
+        reply = chat_service.reply(body)
+        request.state.chat_source = reply.source
+        return reply
 
     @router.get("/worklist", response_model=Worklist, response_model_exclude_unset=True)
     def worklist(

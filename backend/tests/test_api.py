@@ -365,7 +365,9 @@ def test_cors_and_openapi(client):
     assert bad_preflight.status_code == 400
     assert bad_preflight.json()["error"]["code"] == "INVALID_PARAM"
     schema = client.get("/openapi.json").json()
-    assert len(schema["paths"]) == 10
+    # 凍結契約的 9 支 GET、/media，加上 ADR-0005 新增的 POST /chat。
+    assert len(schema["paths"]) == 11
+    assert set(schema["paths"][BASE + "/chat"]) == {"post"}
     assert "400" in schema["paths"][BASE + "/parks"]["get"]["responses"]
     assert "422" not in schema["paths"][BASE + "/parks"]["get"]["responses"]
 

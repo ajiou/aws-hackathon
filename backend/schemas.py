@@ -448,3 +448,42 @@ class Error(Contract):
 
 class ErrorResponse(Contract):
     error: Error
+
+
+class ChatRequest(BaseModel):
+    # 使用者輸入，不是 serving 契約：多餘欄位直接拒絕。
+    model_config = ConfigDict(extra="forbid")
+    message: str = Field(min_length=1, max_length=500)
+    park_id: str | None = Field(default=None, max_length=64)
+
+
+class ChatPark(Contract):
+    park_id: str
+    name: str
+    town: str
+    institution_type: Institution
+    is_active: Literal[0, 1]
+    tier: Tier | None
+    rank: Annotated[int, Field(ge=1)] | None
+
+
+class Citation(Contract):
+    law: str
+    article: str
+    snippet: str
+    url: str | None = None
+
+
+class ChatResponse(Contract):
+    # llm：正常回答｜fallback：Bedrock 限流或失敗，改回模板｜candidates：園名多筆相符｜
+    # blocked：訊息疑似含人名，未送出
+    source: Literal["llm", "fallback", "candidates", "blocked"]
+    answer: str = Field(min_length=1)
+    park: ChatPark | None = None
+    candidates: list[ChatPark] = []
+    # 沒有指定園所時，回答中提到、且來自後端風險名單的園所
+    parks: list[ChatPark] = []
+    citations: list[Citation] = []
+    unverified_refs: list[str] = []
+    # False：法規知識庫尚未啟用，回答只根據園況，前端顯示提示
+    laws_enabled: bool = True
