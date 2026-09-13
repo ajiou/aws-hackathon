@@ -121,6 +121,11 @@ test("the single-park dispatch sheet appears only for parks on this week's sheet
   page,
 }) => {
   await page.goto(`/park/${parkId}`);
+  // 標頭只留三樣：左上角返回連結、列印分析、本園派工單。複製連結拿掉了
+  // （網址列本來就在），出現就是有人又加回去。
+  await expect(page.getByRole("button", { name: "複製連結" })).toHaveCount(0);
+  const back = page.getByRole("link", { name: "← 返回總覽" });
+  await expect(back).toBeVisible();
   const button = page.getByRole("link", { name: "本園派工單", exact: true });
   await expect(button).toBeVisible();
   await button.click();

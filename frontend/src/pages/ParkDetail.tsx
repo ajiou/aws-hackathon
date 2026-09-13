@@ -13,7 +13,6 @@ import {
   QueryState,
   PageHeader,
   RiskScore,
-  CopyLink,
   SafeLink,
 } from "../components/common";
 import { number, isoWeek } from "../utils/format";
@@ -152,9 +151,12 @@ export function MediaPanel({
               <b className={s.afterCutoffTag}>〔未計入分數〕</b>
             </>
           )}
-          。
-          {/* 這面板只放量化結果；逐則報導在「新聞輿情」分頁的證據鏈。 */}
-          <button type="button" className={s.linkButton} onClick={onOpenEvidence}>
+          。{/* 這面板只放量化結果；逐則報導在「新聞輿情」分頁的證據鏈。 */}
+          <button
+            type="button"
+            className={s.linkButton}
+            onClick={onOpenEvidence}
+          >
             查看完整證據鏈 →
           </button>
         </p>
@@ -218,7 +220,13 @@ function MediaEvidence({
                 </td>
                 <td>{c.stance ?? "未判讀"}</td>
                 <td>{c.outlet ?? "未提供"}</td>
-                <td>{c.url ? <SafeLink href={c.url}>{c.title}</SafeLink> : c.title}</td>
+                <td>
+                  {c.url ? (
+                    <SafeLink href={c.url}>{c.title}</SafeLink>
+                  ) : (
+                    c.title
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -240,7 +248,10 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
   const sheet = useApi(`/worklist?week=${week}&k=50`, worklistSchema);
   const onSheet = sheet.data?.items.some((i) => i.park_id === park.park_id);
   const { params, update } = useUrlState();
-  const active = Math.min(LAST_TAB, Math.max(0, Number(params.get("tab")) || 0));
+  const active = Math.min(
+    LAST_TAB,
+    Math.max(0, Number(params.get("tab")) || 0),
+  );
   const has = [
     park.timeline.length,
     park.evaluations?.length,
@@ -259,12 +270,17 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
   }, [active, has]);
   return (
     <div className={s.limited}>
+      {/* 返回連結自己一行放在標題左上方，不跟動作鈕擠在同一排——它是導覽不是
+          動作，混在三顆按鈕裡讀起來像第四個功能。指向 /overview 而不是 /：
+          首頁已經改成地圖，寫「返回總覽」卻跳到地圖是兩件事。 */}
+      <Link to="/overview" className={`${s.backLink} no-print`}>
+        ← 返回總覽
+      </Link>
       <PageHeader
         title={park.name}
         description={`${park.town} · ${park.institution_type} · 核定 ${park.count_approved ?? "未提供"} 人 · ${park.tel || "未提供電話"}${!park.is_active ? " · 已停辦" : ""}`}
       >
-        <Link to="/">返回總覽</Link>
-        <CopyLink />
+        {/* 複製連結拿掉：網址列本來就在，這顆按鈕只是把同一件事再做一次。 */}
         <button onClick={() => window.print()}>列印分析</button>
         {onSheet && (
           <Link
@@ -313,7 +329,12 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
           onOpenEvidence={() => update("tab", String(MEDIA_TAB), false, true)}
         />
       </div>
-      <div className={s.tabs} role="tablist" aria-label="園所資料" ref={tabsRef}>
+      <div
+        className={s.tabs}
+        role="tablist"
+        aria-label="園所資料"
+        ref={tabsRef}
+      >
         {tabs.map((tab, i) => (
           <button
             key={tab}
