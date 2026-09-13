@@ -114,6 +114,68 @@ export async function mockRequest(
           },
         })),
     };
+  // 示範資料的 media_coverage 就掛在 scores 上，聚合規則與後端 /media 相同，
+  // 兩邊算出來的名次才會一致。
+  if (url.pathname === "/media") {
+    const months = Math.min(120, Math.max(1, Number(q.get("months")) || 12));
+    const rows = scores.flatMap((p) =>
+      (p.media_coverage ?? []).map((c) => ({ park: p, c })),
+    );
+    if (!rows.length) return { months, as_of: "", since: "", items: [] };
+    const as_of = rows.reduce((a, r) => (r.c.date > a ? r.c.date : a), "");
+    const since = new Date(
+      new Date(as_of).getTime() - months * 30 * 86_400_000,
+    )
+      .toISOString()
+      .slice(0, 10);
+    const grouped = new Map<string, typeof rows>();
+    for (const row of rows.filter((r) => r.c.date >= since)) {
+      const bucket = grouped.get(row.park.park_id) ?? [];
+      bucket.push(row);
+      grouped.set(row.park.park_id, bucket);
+    }
+    return {
+      months,
+      as_of,
+      since,
+      items: [...grouped.values()]
+        .map((group) => {
+          const park = group[0].park;
+          const kinds = new Map<string, number>();
+          for (const { c } of group)
+            if (c.event_type)
+              kinds.set(c.event_type, (kinds.get(c.event_type) ?? 0) + 1);
+          const severities = group
+            .map(({ c }) => c.severity)
+            .filter((v): v is number => typeof v === "number");
+          return {
+            park_id: park.park_id,
+            name: park.name,
+            town: park.town,
+            tier: park.risk.tier,
+            sri: park.media.sri,
+            article_count: group.length,
+            latest_date: group.reduce(
+              (a, r) => (r.c.date > a ? r.c.date : a),
+              "",
+            ),
+            max_severity: severities.length ? Math.max(...severities) : null,
+            top_event_type:
+              [...kinds.entries()].sort(
+                (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+              )[0]?.[0] ?? null,
+            after_cutoff_count: group.filter(({ c }) => c.is_after_cutoff)
+              .length,
+          };
+        })
+        .sort(
+          (a, b) =>
+            b.article_count - a.article_count ||
+            a.latest_date.localeCompare(b.latest_date) ||
+            a.park_id.localeCompare(b.park_id),
+        ),
+    };
+  }
   if (url.pathname === "/worklist") {
     const work = worklistSchema.parse(await file("worklist", signal));
     // The fixture contains 50 authored work items. Never fabricate inspection advice.

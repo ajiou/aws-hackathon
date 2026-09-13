@@ -238,6 +238,7 @@ class MediaCoverage(Contract):
     url: str | None = None
     event_type: str | None = None
     severity: Annotated[int, Field(ge=1, le=5)] | None = None
+    stance: str | None = None
     is_after_cutoff: bool
 
 
@@ -282,6 +283,35 @@ class ParkPage(Contract):
 class RiskTop(Contract):
     k: int
     items: list[Park]
+
+
+class MediaPark(Contract):
+    """輿情分頁的一列：一家園所在觀察窗內的報導聚合。
+
+    排序依 `article_count` 由多到少——同一起事件被十幾家媒體轉載，
+    報導數本身就是外界關注度的直接量測。分數不參與排序：
+    SRI 守著切點，這裡刻意含切點之後的報導（見 MediaCoverage）。
+    """
+
+    park_id: str
+    name: str
+    town: str
+    # 停辦園所 score / rank / tier 三個都是 null（SPEC §2）。停辦不代表
+    # 沒被報導過，所以這裡照收，只是沒有分級可標。
+    tier: Tier | None = None
+    sri: float
+    article_count: Count
+    latest_date: str
+    max_severity: Annotated[int, Field(ge=1, le=5)] | None = None
+    top_event_type: str | None = None
+    after_cutoff_count: Count
+
+
+class MediaPage(Contract):
+    months: int
+    as_of: str
+    since: str
+    items: list[MediaPark]
 
 
 class District(Contract):

@@ -237,7 +237,7 @@ def main():
             "park_id": link["park_id"], "date": published,
             "outlet": doc.get("outlet"), "title": doc.get("title"),
             "url": doc.get("source_url"), "event_type": note.get("event_type"),
-            "severity": note.get("severity"),
+            "severity": note.get("severity"), "stance": note.get("stance"),
             "is_after_cutoff": published >= CUTOFF.isoformat(),
         })
     media_coverage = [row for pid in sorted(coverage)

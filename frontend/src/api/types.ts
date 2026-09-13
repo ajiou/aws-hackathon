@@ -205,6 +205,8 @@ export const parkSchema = z
           url: z.string().nullish(),
           event_type: z.string().nullish(),
           severity: z.number().nullish(),
+          // 立場是敘事角色（家長指控／官方回應／司法結果…），不是正負評價。
+          stance: z.string().nullish(),
           is_after_cutoff: z.boolean(),
         }),
       )
@@ -328,6 +330,25 @@ export const curveSchema = z.object({
     stratified: z.record(stratifiedSchema),
   }),
 });
+export const mediaParkSchema = z.object({
+  park_id: z.string(),
+  name: z.string(),
+  town: z.string(),
+  // 停辦園所 tier 是 null（SPEC §2）。
+  tier: tierSchema.nullable(),
+  sri: z.number(),
+  article_count: z.number(),
+  latest_date: z.string(),
+  max_severity: z.number().nullish(),
+  top_event_type: z.string().nullish(),
+  after_cutoff_count: z.number(),
+});
+export const mediaPageSchema = z.object({
+  months: z.number(),
+  as_of: z.string(),
+  since: z.string(),
+  items: z.array(mediaParkSchema),
+});
 const actionSchema = z.object({ focus: z.string(), why: z.string() });
 export const briefSchema = z.object({
   park_id: z.string(),
@@ -374,3 +395,5 @@ export type District = z.infer<typeof districtsSchema>["items"][number];
 export type Curve = z.infer<typeof curveSchema>;
 export type MapData = z.infer<typeof mapSchema>;
 export type WorkItem = z.infer<typeof workItemSchema>;
+export type MediaPark = z.infer<typeof mediaParkSchema>;
+export type MediaCoverage = NonNullable<Park["media_coverage"]>[number];

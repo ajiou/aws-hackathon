@@ -153,6 +153,34 @@ def artifacts():
                 for r in rows[:3]
             ],
         },
+        # 輿情明細。刻意含切點之後的報導（SPEC：唯一允許的契約物件），
+        # 並刻意放一列指向不存在的園所與一列落在觀察窗之外，讓 /media
+        # 的兩個過濾條件都被測到。
+        "media_coverage": {
+            "items": [
+                {"park_id": "park-1", "date": "2024-11-02", "outlet": "A 報",
+                 "title": "甲園遭檢舉超收", "event_type": "超收",
+                 "severity": 3, "is_after_cutoff": False},
+                {"park_id": "park-1", "date": "2025-03-04", "outlet": "B 報",
+                 "title": "甲園複查", "event_type": "師生比",
+                 "severity": 2, "is_after_cutoff": True},
+                # event_type 為 None：不進類型統計，於是「超收」與「師生比」
+                # 各 1 次而平手。most_common 會看插入順序拿到先出現的「超收」，
+                # 排序穩定的實作要回字典序較小的「師生比」。
+                {"park_id": "park-1", "date": "2025-03-05", "outlet": "C 報",
+                 "title": "甲園說明", "event_type": None,
+                 "severity": None, "is_after_cutoff": True},
+                {"park_id": "park-2", "date": "2025-02-01", "outlet": "D 報",
+                 "title": "乙園改善完成", "event_type": "設施",
+                 "severity": 5, "is_after_cutoff": True},
+                {"park_id": "park-404", "date": "2025-03-06", "outlet": "E 報",
+                 "title": "查無此園", "event_type": "其他",
+                 "severity": 1, "is_after_cutoff": True},
+                {"park_id": "park-3", "date": "2019-01-01", "outlet": "F 報",
+                 "title": "很久以前", "event_type": "收費",
+                 "severity": 1, "is_after_cutoff": False},
+            ]
+        },
         "curve": {
             "population": 3,
             "positives": 1,

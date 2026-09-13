@@ -859,6 +859,16 @@
   border-left: 2px solid var(--c-border);
   padding-left: 10px;
 }
+.linkButton {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-left: 8px;
+  color: var(--c-primary);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
 .afterCutoffTag {
   color: var(--c-tier-高);
   margin-left: 6px;

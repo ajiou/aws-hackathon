@@ -289,10 +289,17 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   await page.getByRole("button", { name: "清除全部篩選" }).click();
   await expect(page).not.toHaveURL(/town=/);
   // 回到全市 1,178 園：長表格要在右側欄自己的框裡捲，不把整頁拉長。
+  // 用 poll：每一列的「上榜原因」是各自去抓的，第一列出現時表格還在長高，
+  // 單次量測會量到還沒撐滿框的中間狀態。
   await expect(overview.locator("tbody tr").first()).toBeVisible();
-  expect(
-    await wrap.evaluate((el) => el.scrollHeight - el.clientHeight),
-  ).toBeGreaterThan(0);
+  await expect
+    .poll(
+      async () => wrap.evaluate((el) => el.scrollHeight - el.clientHeight),
+      {
+        timeout: 15_000,
+      },
+    )
+    .toBeGreaterThan(0);
   await page.waitForTimeout(900);
   await clickAnyDistrict(page, canvas);
   await expect(page).toHaveURL(/mode=points/);

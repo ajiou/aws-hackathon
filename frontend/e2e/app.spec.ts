@@ -13,6 +13,7 @@ test("seven pages support direct navigation and have no serious accessibility vi
     [`/park/${parkId}`, "新北市私立景光幼兒園"],
     ["/districts", "行政區風險熱力圖"],
     ["/worklist", "稽查派工單"],
+    ["/media", "新聞輿情 — 近 12 個月"],
     ["/map", "園所風險地圖"],
   ]) {
     await page.goto(path);
@@ -73,8 +74,13 @@ test("detail missing data and print expansion; worklist has 25 non-splitting A4 
   await expect(page.getByRole("tabpanel")).toContainText(
     "私立幼兒園依法不需公告財務報告",
   );
+  // 列印時每個分頁都要展開。數量跟著分頁列走，不寫死——加一個分頁就讓這條
+  // 斷言失敗，但失敗的理由跟「列印有沒有展開」無關，只是數字過期。
+  // 分頁鈕本身是 button，print.css 會把它們藏起來，所以要在切成列印前先數。
+  const tabCount = await page.getByRole("tab").count();
+  expect(tabCount).toBeGreaterThanOrEqual(4);
   await page.emulateMedia({ media: "print" });
-  await expect(page.locator("[role=tabpanel]:visible")).toHaveCount(4);
+  await expect(page.locator("[role=tabpanel]:visible")).toHaveCount(tabCount);
   await page.emulateMedia({ media: "screen" });
   await page.goto("/worklist");
   await expect(page.locator("[data-work-item]")).toHaveCount(50);
@@ -150,6 +156,7 @@ test("responsive widths never overflow the document", async ({ page }) => {
       `/park/${parkId}`,
       "/districts",
       "/worklist",
+      "/media",
       "/map",
     ]) {
       await page.setViewportSize({ width, height: 900 });
@@ -212,4 +219,37 @@ test("the navigation marks the current tab and treats /map as the map tab", asyn
   await expect(page).toHaveURL(/\/overview/);
   await expect(overview).toHaveAttribute("aria-current", "page");
   await expect(map).not.toHaveAttribute("aria-current", "page");
+});
+
+// 輿情頁的三件事：排序是報導數由多到少、切點後的報導有標出來沒被算進分數、
+// 點園名要直接落在詳情頁的新聞輿情分頁（不是丟使用者進去自己找 tab）。
+test("the media page ranks by article count and never hides post-cutoff coverage", async ({
+  page,
+}) => {
+  await page.goto("/media");
+  const rows = page.locator("article");
+  await expect(rows.first()).toBeVisible();
+  const counts = await page
+    .locator("article p b")
+    .filter({ hasText: /^\d+$/ })
+    .allInnerTexts();
+  const numbers = counts.map(Number);
+  expect(numbers.length).toBeGreaterThan(1);
+  expect([...numbers].sort((a, b) => b - a)).toEqual(numbers);
+
+  // 觀察窗錨在資料上，頁面要把區間寫出來讓人對得起來。
+  await expect(
+    page.getByText(/觀察窗 \d{4}-\d{2}-\d{2} ～ \d{4}-\d{2}-\d{2}/),
+  ).toBeVisible();
+  // 切點後的報導必須標明未計入分數，不能安靜地混進關注度排序裡。
+  await expect(page.getByText("未計入風險分數").first()).toBeVisible();
+
+  await rows.first().getByRole("link").first().click();
+  await expect(page).toHaveURL(/\/park\/[^?]+\?tab=\d+/);
+  const tab = new URL(page.url()).searchParams.get("tab")!;
+  await expect(page.getByRole("tab", { name: /新聞輿情/ })).toHaveAttribute(
+    "aria-selected",
+    "true",
+  );
+  expect(Number(tab)).toBeGreaterThan(0);
 });
