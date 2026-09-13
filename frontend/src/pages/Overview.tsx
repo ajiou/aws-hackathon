@@ -75,12 +75,19 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
       ];
   return (
     <>
-      <PageHeader
-        headingLevel={embedded ? 2 : 1}
-        title="教保機構風險總覽"
-        description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
-      />
-      <FilterBar />
+      {/* 嵌在地圖右側時不放標題與篩選：地圖自己的篩選列已經有行政區、設立別、
+          分級三個同名條件，兩份操作同一組網址參數，擺兩次只是讓人來回確認哪一
+          份才算數。標題也省下來——外層 section 的 aria-label 仍留給讀螢幕軟體，
+          畫面上那一欄就全部讓給列表。 */}
+      {!embedded && (
+        <>
+          <PageHeader
+            title="教保機構風險總覽"
+            description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
+          />
+          <FilterBar />
+        </>
+      )}
       <QueryState query={query}>
         {(data) =>
           !data.items.length ? (

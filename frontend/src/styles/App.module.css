@@ -154,7 +154,9 @@
 .filterRow {
   display: flex;
   align-items: center;
-  flex-wrap: nowrap;
+  /* 手機寬度（375px）放不下三個下拉加「清除全部」，nowrap 會把按鈕推出畫面
+     右緣 7px，整頁因此可以左右捲。寬螢幕本來就排得下，wrap 不改變外觀。 */
+  flex-wrap: wrap;
   gap: 12px;
   white-space: nowrap;
 }

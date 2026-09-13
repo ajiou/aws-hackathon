@@ -61,6 +61,25 @@ def test_list_pagination_filters_and_aliases(client):
     assert client.get(BASE + "/parks?q=不存在").json()["total"] == 0
 
 
+def test_punished_filter_separates_parks_with_and_without_records(client):
+    """有無裁罰紀錄要兩邊都篩得出來。
+
+    省略參數＝不篩。false 這一邊不是湊數的：零裁罰卻排進高風險的園，
+    分數全部來自評鑑，是稽查人員會特別想挑出來看的一群。
+    """
+    everyone = client.get(BASE + "/parks").json()
+    with_records = client.get(BASE + "/parks?punished=true").json()
+    without = client.get(BASE + "/parks?punished=false").json()
+    assert [p["park_id"] for p in with_records["items"]] == ["park-1", "park-2"]
+    assert [p["park_id"] for p in without["items"]] == ["park-3"]
+    assert with_records["total"] + without["total"] == everyone["total"]
+    assert all(p["pun_count"] > 0 for p in with_records["items"])
+    assert all(p["pun_count"] == 0 for p in without["items"])
+    ids = lambda body: {f["properties"]["park_id"] for f in body["features"]}
+    assert ids(client.get(BASE + "/map?punished=false").json()) == {"park-3"}
+    assert "park-3" not in ids(client.get(BASE + "/map?punished=true").json())
+
+
 @pytest.mark.parametrize(
     "query,expected",
     [
@@ -247,6 +266,8 @@ def test_media_coverage_is_the_one_place_after_cutoff_dates_are_allowed(serving_
         "/parks?type=bad",
         "/parks?tier=bad",
         "/parks?has_finance_flag=bad",
+        "/parks?punished=bad",
+        "/map?punished=bad",
         "/risk/top?k=abc",
         "/risk/top?k=0",
         "/risk/top?k=201",

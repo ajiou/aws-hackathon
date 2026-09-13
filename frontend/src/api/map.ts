@@ -52,11 +52,15 @@ export function filterMapParks(
   params: URLSearchParams,
 ): MapData {
   const search = params.get("q")?.trim().toLocaleLowerCase() ?? "";
+  // 有無裁罰紀錄。地圖是本機篩選，用點位帶的 pun_count；右側列表走
+  // /parks?punished=，兩邊查的是同一件事，判斷式要一致（>0 才算有）。
+  const punished = params.get("punished");
   return {
     ...data,
     features: data.features.filter(
       ({ properties: p }) =>
         (!search || p.name.toLocaleLowerCase().includes(search)) &&
+        (punished === null || (punished === "true") === p.pun_count > 0) &&
         [
           ["town", p.town],
           ["tier", p.tier],

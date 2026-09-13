@@ -46,14 +46,7 @@ function Distribution({ data }: { data: MapData }) {
       return next;
     });
   }
-  const towns = [
-    ...new Set(
-      data.features
-        .map((f) => f.properties.town)
-        .filter((t): t is string => !!t),
-    ),
-  ].sort((a, b) => a.localeCompare(b, "zh-Hant"));
-  const hasFilters = ["q", "town", "tier", "type"].some((key) =>
+  const hasFilters = ["q", "town", "tier", "type", "punished"].some((key) =>
     params.has(key),
   );
   const townStats = districts.data?.items.find((d) => d.town === town);
@@ -129,17 +122,20 @@ function Distribution({ data }: { data: MapData }) {
             </Button>
           ))}
         </div>
+        {/* 行政區不放下拉：地圖本身就是選行政區的介面（熱力圖點一下該區即是
+            篩選，再點一下取消），下拉只是同一件事的第二個入口。 */}
         <label className="flex items-center gap-2 text-sm">
-          <span className="sr-only">行政區篩選</span>
+          <span className="sr-only">裁罰紀錄篩選</span>
           <select
-            value={town}
-            onChange={(e) => filter("town", e.target.value)}
-            className="h-9 max-w-36 rounded-md border-input py-1"
+            value={params.get("punished") ?? ""}
+            onChange={(e) => filter("punished", e.target.value)}
+            className="h-9 rounded-md border-input py-1"
           >
-            <option value="">全部行政區</option>
-            {towns.map((t) => (
-              <option key={t}>{t}</option>
-            ))}
+            <option value="">不分裁罰紀錄</option>
+            <option value="true">有裁罰紀錄</option>
+            {/* 零裁罰卻排進高風險的園，分數全部來自評鑑——這一群是稽查
+                人員會特別想挑出來看的，所以「無」也要篩得出來。 */}
+            <option value="false">無裁罰紀錄</option>
           </select>
         </label>
         <label className="flex items-center gap-2 text-sm">
@@ -252,7 +248,9 @@ function Distribution({ data }: { data: MapData }) {
               ) : (
                 <>
                   顯示{" "}
-                  <strong>{visible.features.length.toLocaleString()}</strong>{" "}
+                  <strong data-map-count>
+                    {visible.features.length.toLocaleString()}
+                  </strong>{" "}
                   間幼兒園
                   {params.get("q") && (
                     <span className="text-muted-foreground">

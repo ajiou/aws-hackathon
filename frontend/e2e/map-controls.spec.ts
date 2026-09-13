@@ -138,7 +138,7 @@ test("top search, map filters and accessible basic information panel work togeth
 test("search from another page navigates to the overview results", async ({
   page,
 }) => {
-  await page.goto("/validation");
+  await page.goto("/worklist");
   // 同上：輸入太早會打在還沒接上事件的 input，重試到網址真的帶上 q 為止。
   await expect(async () => {
     await page
@@ -239,11 +239,19 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   await clickAnyDistrict(page, canvas);
   await expect(page).toHaveURL(/mode=districts/);
   await expect(page).toHaveURL(/town=/);
-  const town = new URL(page.url()).searchParams.get("town")!;
-  await expect(
-    overview.getByRole("button", { name: `移除${town}` }),
-  ).toBeVisible();
+  // 行政區沒有下拉：地圖本身就是選行政區的介面（點該區即篩選，再點取消）。
+  await expect(page.getByRole("combobox", { name: "行政區篩選" })).toHaveCount(
+    0,
+  );
   await expect(overview.locator("tbody tr").first()).toBeVisible();
+  // 右側欄只有列表：標題與篩選都拿掉了，空間全部讓給表格。
+  await expect(
+    overview.getByRole("heading", { name: "教保機構風險總覽" }),
+  ).toHaveCount(0);
+  await expect(overview.getByRole("group", { name: "篩選" })).toHaveCount(0);
+  await expect(overview.getByRole("button", { name: "清除全部" })).toHaveCount(
+    0,
+  );
   // 右側欄以網站瀏覽為主，不放複製連結與列印。
   await expect(overview.getByRole("button", { name: "複製連結" })).toHaveCount(
     0,
@@ -271,9 +279,6 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   expect(Math.abs(sideBox.height - mapSectionBox.height)).toBeLessThanOrEqual(
     4,
   );
-  expect(
-    await wrap.evaluate((el) => el.scrollHeight - el.clientHeight),
-  ).toBeGreaterThan(0);
   // 切回園所分布時保留行政區篩選，地圖同時放大到該區的園所分布。
   await layers.getByRole("button", { name: "園所分布" }).click();
   await expect(page).toHaveURL(/mode=points/);
@@ -281,8 +286,13 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
   await page.waitForTimeout(1200);
   await page.screenshot({ path: "test-results/map-points-zoom.png" });
   // 園所分布模式下行政區仍可點：清掉篩選回到全市視野後再點一次。
-  await overview.getByRole("button", { name: "清除全部", exact: true }).click();
+  await page.getByRole("button", { name: "清除全部篩選" }).click();
   await expect(page).not.toHaveURL(/town=/);
+  // 回到全市 1,178 園：長表格要在右側欄自己的框裡捲，不把整頁拉長。
+  await expect(overview.locator("tbody tr").first()).toBeVisible();
+  expect(
+    await wrap.evaluate((el) => el.scrollHeight - el.clientHeight),
+  ).toBeGreaterThan(0);
   await page.waitForTimeout(900);
   await clickAnyDistrict(page, canvas);
   await expect(page).toHaveURL(/mode=points/);
@@ -297,7 +307,7 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
     .getByRole("button")
     .click();
   await expect(page).toHaveURL(/dir=asc/);
-  await overview.getByRole("button", { name: "清除全部", exact: true }).click();
+  await page.getByRole("button", { name: "清除全部篩選" }).click();
   await expect(page).toHaveURL(/mode=districts/);
   await expect(page).not.toHaveURL(/town=/);
   await overview.getByRole("button", { name: "下一頁" }).click();
@@ -335,4 +345,48 @@ test("district heat layer shares the map canvas and filters the adjacent overvie
       ),
     ).toBe(true);
   }
+});
+
+// 有無裁罰紀錄的篩選：地圖點位與右側列表走的是兩條不同的路（地圖本機篩
+// pun_count、列表打 /parks?punished=），所以要確認兩邊筆數一致，否則會出現
+// 地圖上看得到、列表裡卻找不到的園。
+test("the punishment filter keeps the map points and the adjacent list in step", async ({
+  page,
+}) => {
+  await page.goto("/map");
+  await page.waitForFunction(
+    () => performance.getEntriesByName("watchdog-points").length > 0,
+  );
+  const overview = page.getByRole("region", {
+    name: "教保機構風險總覽",
+    exact: true,
+  });
+  const filter = page.getByRole("combobox", { name: "裁罰紀錄篩選" });
+  const total = async () =>
+    Number(
+      (await overview.getByText(/共 [\d,]+ 筆/).innerText())
+        .replace(/\D/g, "")
+        .slice(-4),
+    );
+  const count = () => page.locator("[data-map-count]").innerText();
+
+  await expect(filter).toHaveValue("");
+  const everyone = await total();
+
+  await filter.selectOption("true");
+  await expect(page).toHaveURL(/punished=true/);
+  await expect(overview.locator("tbody tr").first()).toBeVisible();
+  const punished = await total();
+  expect(await count()).toContain(punished.toLocaleString());
+
+  await filter.selectOption("false");
+  await expect(page).toHaveURL(/punished=false/);
+  await expect(overview.locator("tbody tr").first()).toBeVisible();
+  const clean = await total();
+  expect(await count()).toContain(clean.toLocaleString());
+
+  // 兩邊互斥且加起來就是全部——沒有園被兩邊都收或都漏掉。
+  expect(punished + clean).toBe(everyone);
+  expect(punished).toBeGreaterThan(0);
+  expect(clean).toBeGreaterThan(0);
 });

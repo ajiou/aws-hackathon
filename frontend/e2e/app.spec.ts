@@ -12,7 +12,6 @@ test("seven pages support direct navigation and have no serious accessibility vi
     ["/risk", "風險列表 — 前 50 名"],
     [`/park/${parkId}`, "新北市私立景光幼兒園"],
     ["/districts", "行政區風險熱力圖"],
-    ["/validation", "成效驗證"],
     ["/worklist", "稽查派工單"],
     ["/map", "園所風險地圖"],
   ]) {
@@ -101,7 +100,10 @@ test("detail missing data and print expansion; worklist has 25 non-splitting A4 
       .map((item) => ("str" in item ? item.str : ""))
       .join("")
       .normalize("NFKC")
-      .replace(/\s/g, "");
+      // pdfjs 會在字元之間插 U+0001（marked-content 分隔），\s 抓不到它，
+      // 於是「第1/25頁」實際上是「第1/25頁」。
+      // 終端機印出來看不見這些控制字元，所以錯誤訊息長得像斷言該過卻沒過。
+      .replace(/[\s\p{Cc}\p{Cf}]/gu, "");
     expect(text).toContain(`第${i}/25頁`);
     expect(text.match(/簽章/g)).toHaveLength(2);
   }
@@ -147,7 +149,6 @@ test("responsive widths never overflow the document", async ({ page }) => {
       "/risk",
       `/park/${parkId}`,
       "/districts",
-      "/validation",
       "/worklist",
       "/map",
     ]) {
@@ -176,9 +177,7 @@ test("responsive widths never overflow the document", async ({ page }) => {
   await expect(page).toHaveURL(/worklist/);
   await page.screenshot({ path: "test-results/mobile.png", fullPage: false });
 });
-test("map selection exposes reasons and validation reports public-model limitation", async ({
-  page,
-}) => {
+test("map selection exposes reasons", async ({ page }) => {
   // 地圖上的鍵盤下拉已移除，改用網址直接指定園所。
   await page.goto(`/map?selected=${parkId}`);
   await page.waitForFunction(
@@ -191,11 +190,26 @@ test("map selection exposes reasons and validation reports public-model limitati
   await expect(
     drawer.getByText("曾受幼照法第 51 條行政處分 9 次"),
   ).toBeVisible();
-  await page.goto("/validation");
-  // 不再釘死數字：模型重算後 lift 會變，這裡只確認成效頁真的算得出 lift。
-  await expect(page.getByText(/^\d+\.\d\dx$/).first()).toBeVisible();
-  await page.screenshot({
-    path: "test-results/validation.png",
-    fullPage: true,
-  });
+});
+
+// 導覽列改成分頁式：目前所在的那一個要看得出來，而且 /map 這個舊網址也算在
+// 地圖分頁上。這條之前沒有任何測試守著，換過兩次樣式都是靠眼睛看。
+test("the navigation marks the current tab and treats /map as the map tab", async ({
+  page,
+}) => {
+  const navigation = page.getByRole("navigation", { name: "主要導覽" });
+  const map = navigation.getByRole("link", { name: "園所風險地圖" });
+  const overview = navigation.getByRole("link", { name: "總覽搜尋" });
+  await expect(navigation.getByRole("link", { name: "成效驗證" })).toHaveCount(
+    0,
+  );
+  for (const path of ["/", "/map"]) {
+    await page.goto(path);
+    await expect(map).toHaveAttribute("aria-current", "page");
+    await expect(overview).not.toHaveAttribute("aria-current", "page");
+  }
+  await overview.click();
+  await expect(page).toHaveURL(/\/overview/);
+  await expect(overview).toHaveAttribute("aria-current", "page");
+  await expect(map).not.toHaveAttribute("aria-current", "page");
 });
