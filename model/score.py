@@ -2,8 +2,14 @@
 
     python -m model.score --in ./out/curated --model ./out/model --out ./out/serving
 
-產出後端會讀的六份：scores / districts / map / curve / worklist / meta。
-`parks`、`risk/top`、`park-detail` 由 backend 從 scores 現算，不另存檔。
+產出後端會讀的十份：scores / districts / map / curve / worklist / meta，
+加上園所明細四份 evaluations / fees / finance / media_coverage。
+`parks`、`risk/top`、`park-detail` 由 backend 從 scores 現算，不另存檔；
+明細四份由 store.related() 依 park_id 查，沒有檔案就是空陣列。
+
+明細四份原本只寫到 curated 就停住，serving 沒有，於是前端三個分頁對
+**全部 1,178 園**都顯示「（無明細）」——包括「基礎評鑑 2 次未全數指標通過」
+這種已經寫在風險原因裡、卻在頁面上查無佐證的宣稱。
 
 **欄位名以 `frontend/mock/*.json` 為準**——前端已照它開發，契約凍結（§8）。
 """
@@ -78,9 +84,11 @@ def main():
     parks = {p["park_id"]: p for p in load(args.indir, "parks")}
     punishments = load(args.indir, "punishments")
     media = load(args.indir, "media")
-    fees = {r["park_id"] for r in load(args.indir, "fees", [])}
+    fee_rows = load(args.indir, "fees", [])
+    fees = {r["park_id"] for r in fee_rows}
     finance = {r["park_id"]: r for r in load(args.indir, "finance", [])}
     evaluations = load(args.indir, "evaluations", [])
+    media_coverage = load(args.indir, "media_coverage", [])
     metrics = load(args.modeldir, "metrics", {})
     meta_in = load(args.indir, "meta", {})
 
@@ -140,8 +148,12 @@ def main():
             "timeline": timeline.get(pid, []),
             "has_fee": pid in fees,
             "risk": {
-                "score": s["risk_score"], "score_basis": "同儕群內百分位",
-                "rank": s["rank"], "rank_basis": "全市合併", "tier": s["tier"],
+                # score 就是四維度加權總分（= raw 取一位小數），不再是百分位。
+                # raw 仍照送，供需要完整精度的下游使用。
+                "score": s["risk_score"], "score_basis": "四維度加權總分",
+                "rank": s["rank"], "rank_basis": "全市合併",
+                "tier": s["tier"], "tier_basis": "設立別內分佈",
+                "peer_rank": s["peer_rank"], "peer_n": s["peer_n"],
                 "raw": round(s["raw"], 4), "coverage": s["coverage"],
                 "model_version": MODEL_VERSION,
             },
@@ -166,8 +178,52 @@ def main():
             "輿情不計分時不得產生輿情原因碼"
     dump("scores", {"generated_at": now, "items": items})
 
+    # ---- 園所明細三份：評鑑 / 收費 / 財報
+    # 這三份原本只寫到 curated 就停住，serving 沒有，backend 的
+    # store.related() 因此對每一園都回 []，前端三個分頁全部空白——
+    # 包括「基礎評鑑 2 次未全數指標通過」這種**已經寫在風險原因裡**、
+    # 卻在頁面上查無佐證的宣稱。欄位名以 frontend/src/api/types.ts 的
+    # parkSchema 為準（year / kind / result；school_year + items）。
+    dump("evaluations", {"items": [
+        {"park_id": r["park_id"], "year": r["評鑑學年度"], "kind": r["類型"],
+         "result": r["評鑑結果"], "date": r["評鑑完成日"]}
+        # 同一園內由新到舊，讓處分升級鏈由近而遠讀下來
+        for r in sorted(sorted(evaluations, key=lambda r: r["評鑑完成日"], reverse=True),
+                        key=lambda r: r["park_id"])
+    ]})
+
+    # 收費的外層（school_year + items）已符合契約，只有 items 內的欄位名是中文。
+    # 「小計」才是該學期實付總額，「單價」是月費，兩者差一個月數倍率。
+    fee_terms = {"term1_full": "上學期全日班小計", "term2_full": "下學期全日班小計",
+                 "term1_half": "上學期半日班小計", "term2_half": "下學期半日班小計"}
+    dump("fees", {"items": [
+        {"park_id": r["park_id"], "school_year": r["school_year"],
+         "items": [{"age": i["適用年齡（歲）"], "item": i["收費項目"],
+                    "period": i["收費期間"],
+                    **{k: i.get(v) for k, v in fee_terms.items()}}
+                   for i in r["items"]]}
+        for r in fee_rows
+    ]})
+
+    # 財報：school_year 可能是 null（公立-附設併入學校決算，沒有自己的年度），
+    # 照實送 null，不省略欄位——省略會讓前端分不出「沒有年度」與「忘了給」，
+    # 而且曾因此讓 269 園的詳情頁整頁變成「資料載入失敗」。
+    # validated 必須永遠 false（§5.6.8），backend store.finance() 會再擋一次。
+    dump("finance", {"items": list(finance.values())})
+
+    # 輿情明細。**刻意含切點之後的報導**，而且只有這一份是這樣——
+    # 特徵那條路仍由 assert_no_leakage 守著切點，兩者不共用資料。
+    dump("media_coverage", {"items": media_coverage})
+
     # ---- districts
     active = [it for it in items if it["is_active"] == 1]
+    # 分級改成各設立別各自切之後，全市「高風險」總數不再剛好等於 50，
+    # 把實際切出來的數量寫進 meta，免得有人拿舊的 50 去對帳。
+    tier_counts = {
+        itype: dict(collections.Counter(
+            it["risk"]["tier"] for it in active if it["institution_type"] == itype))
+        for itype in sorted({it["institution_type"] for it in active})
+    }
     heat = {d["town"]: d for d in media["district_level"]}
     pun_pre = collections.Counter(r["park_id"] for r in punishments if not r["is_after_cutoff"])
     districts = []
@@ -252,10 +308,14 @@ def main():
         "generated_at": now, "cutoff": CUTOFF.isoformat(),
         "population": len(active), "weights": WEIGHTS,
         "peer_groups": {k: {"n": v} for k, v in meta_in.get("peer_groups", {}).items()},
-        "score_basis": "同儕群內百分位（ECDF by peer_group）",
+        "score_basis": "四維度加權總分（R_raw）",
         "rank_basis": "全市合併排序（R_raw）",
+        "tier_basis": "設立別內 R_raw 分佈，切點比例沿用全市 50 / 200 名",
         "unvalidated_dimensions": ["operation"],
+        # 名次仍是全市合併，所以這裡照舊記全市切點；實際標籤是各設立別
+        # 按同樣比例各自切（見 model.scoring.assign_tiers）。
         "tiers": {"high": [1, 50], "medium": [51, 200], "low": [201, len(active)]},
+        "tiers_by_type": tier_counts,
         "data_freshness": {
             "punishments": max(r["date"] for r in punishments),
             "media": media.get("as_of"), "fees": "115學年度",

@@ -10,10 +10,13 @@ export function ParkDrawer({
   id,
   name,
   onClose,
+  inline = false,
 }: {
   id: string;
   name?: string;
   onClose: () => void;
+  // inline：不浮在地圖上，直接當右側側欄的內容
+  inline?: boolean;
 }) {
   const park = usePark(id, !!id);
   const titleId = useId();
@@ -29,27 +32,23 @@ export function ParkDrawer({
       if (event.key === "Escape" && !event.defaultPrevented) {
         event.preventDefault();
         close.current();
-        document
-          .querySelector<HTMLSelectElement>("#map-park-select")
-          ?.focus({ preventScroll: true });
       }
     };
     document.addEventListener("keydown", escape);
     return () => document.removeEventListener("keydown", escape);
   }, []);
   return (
-    <aside className={s.parkDrawer} aria-labelledby={titleId} data-park-drawer>
+    <aside
+      className={inline ? s.parkPanel : s.parkDrawer}
+      aria-labelledby={titleId}
+      data-park-drawer
+    >
       <Button
         variant="ghost"
         size="icon"
         className="absolute right-3 top-3"
         aria-label="關閉園所資訊"
-        onClick={() => {
-          onClose();
-          document
-            .querySelector<HTMLSelectElement>("#map-park-select")
-            ?.focus({ preventScroll: true });
-        }}
+        onClick={onClose}
       >
         <X aria-hidden="true" />
       </Button>

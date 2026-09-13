@@ -26,6 +26,12 @@ const project = ([lon, lat]: Position) => [
   (lon - 121.27) * 770 + 15,
   (25.31 - lat) * 890 + 15,
 ];
+// 標籤微調：這幾區彼此太近（標籤框比行政區本身還大），純幾何中心必然重疊
+const LABEL_NUDGE: Record<string, [number, number]> = {
+  五股區: [-6, 0],
+  蘆洲區: [4, 0],
+  中和區: [0, 6],
+};
 function polygons(g: Geometry): Position[][][] {
   return g.type === "MultiPolygon"
     ? g.coordinates
@@ -48,104 +54,120 @@ export function Choropleth({
   const navigate = useNavigate();
   return (
     <QueryState query={boundaries}>
-      {(data) => (
-        <>
-          <svg
-            className={s.districtSvg}
-            viewBox="0 0 600 600"
-            aria-label="新北市各行政區高風險園所比例"
-          >
-            <title>新北市 29 區高風險園所比例</title>
-            {data.features.map((f) => {
-              const town = String(f.properties?.town);
-              const d = districts.find((x) => x.town === town);
-              const rings = polygons(f.geometry);
-              const coords = rings.flat(2).map(project);
-              const center = coords.reduce(
-                (a, p) => [
-                  a[0] + p[0] / coords.length,
-                  a[1] + p[1] / coords.length,
-                ],
-                [0, 0],
-              );
-              return (
-                <g key={town}>
-                  <path
-                    className={`${s.districtShape} ${selected === town ? s.highlight : ""}`}
-                    d={rings
-                      .map((p) =>
-                        p
-                          .map(
-                            (r) =>
-                              r
-                                .map(
-                                  (pos, i) =>
-                                    `${i ? "L" : "M"}${project(pos).join(",")}`,
-                                )
-                                .join(" ") + "Z",
-                          )
-                          .join(" "),
-                      )
-                      .join(" ")}
-                    fill={`var(--c-heat-${heatLevel(d?.high_risk_ratio ?? 0)})`}
-                    fillRule="evenodd"
-                    tabIndex={0}
-                    role={onActivate ? "button" : "link"}
-                    aria-label={`${town}，高風險比例 ${percent(d?.high_risk_ratio ?? 0)}，查看園所`}
-                    onMouseEnter={() => onSelect(town)}
-                    onFocus={() => onSelect(town)}
-                    onClick={() =>
-                      onActivate
-                        ? onActivate(town)
-                        : navigate(`/?town=${encodeURIComponent(town)}`)
-                    }
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || (onActivate && e.key === " ")) {
-                        e.preventDefault();
-                        if (onActivate) onActivate(town);
-                        else navigate(`/?town=${encodeURIComponent(town)}`);
-                      }
-                    }}
-                  >
-                    <title>
-                      {town} · 園數 {d?.park_count ?? "未提供"} · 高風險{" "}
-                      {d?.high_risk_count ?? "未提供"} · 比例{" "}
-                      {percent(d?.high_risk_ratio ?? 0)} · 輿情{" "}
-                      {d?.media_heat ?? "未提供"}
-                    </title>
-                  </path>
-                  <text x={center[0]} y={center[1]} textAnchor="middle">
-                    {town}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-          <div className={s.legend}>
-            {["0–2%", "2–4%", "4–6%", "6–8%", "8% 以上"].map((label, i) => (
-              <span key={label}>
-                <i
-                  className={s.swatch}
-                  style={{ background: `var(--c-heat-${i + 1})` }}
-                />
-                {label}
-              </span>
-            ))}
-          </div>
-          <p>顏色代表該區高風險園所占比例，非絕對數量。</p>
-          <small>
-            邊界：
-            <a
-              href="https://github.com/ronnywang/twgeojson"
-              target="_blank"
-              rel="noreferrer"
+      {(data) => {
+        const shapes = data.features.map((f) => {
+          const town = String(f.properties?.town);
+          const rings = polygons(f.geometry);
+          const coords = rings.flat(2).map(project);
+          const center = coords.reduce(
+            (a, p) => [
+              a[0] + p[0] / coords.length,
+              a[1] + p[1] / coords.length,
+            ],
+            [0, 0],
+          );
+          const [dx, dy] = LABEL_NUDGE[town] ?? [0, 0];
+          return {
+            town,
+            d: districts.find((x) => x.town === town),
+            path: rings
+              .map((p) =>
+                p
+                  .map(
+                    (r) =>
+                      r
+                        .map(
+                          (pos, i) =>
+                            `${i ? "L" : "M"}${project(pos).join(",")}`,
+                        )
+                        .join(" ") + "Z",
+                  )
+                  .join(" "),
+              )
+              .join(" "),
+            center: [center[0] + dx, center[1] + dy],
+          };
+        });
+        return (
+          <>
+            <svg
+              className={s.districtSvg}
+              viewBox="0 0 600 600"
+              aria-label="新北市各行政區高風險園所比例"
             >
-              twgeojson（2011）
-            </a>
-            ，僅供分布示意，非地籍界線。
-          </small>
-        </>
-      )}
+              <title>新北市 29 區高風險園所比例</title>
+              {shapes.map(({ town, d, path }) => (
+                <path
+                  key={town}
+                  className={`${s.districtShape} ${selected === town ? s.highlight : ""}`}
+                  d={path}
+                  fill={`var(--c-heat-${heatLevel(d?.high_risk_ratio ?? 0)})`}
+                  fillRule="evenodd"
+                  tabIndex={0}
+                  role={onActivate ? "button" : "link"}
+                  aria-label={`${town}，高風險比例 ${percent(d?.high_risk_ratio ?? 0)}，查看園所`}
+                  onMouseEnter={() => onSelect(town)}
+                  onFocus={() => onSelect(town)}
+                  onClick={() =>
+                    onActivate
+                      ? onActivate(town)
+                      : navigate(`/?town=${encodeURIComponent(town)}`)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || (onActivate && e.key === " ")) {
+                      e.preventDefault();
+                      if (onActivate) onActivate(town);
+                      else navigate(`/?town=${encodeURIComponent(town)}`);
+                    }
+                  }}
+                >
+                  <title>
+                    {town} · 園數 {d?.park_count ?? "未提供"} · 高風險{" "}
+                    {d?.high_risk_count ?? "未提供"} · 比例{" "}
+                    {percent(d?.high_risk_ratio ?? 0)} · 輿情{" "}
+                    {d?.media_heat ?? "未提供"}
+                  </title>
+                </path>
+              ))}
+              {/* 標籤一律在所有區塊之後畫，否則後畫的填色會蓋掉前面區的文字 */}
+              {shapes.map(({ town, center }) => (
+                <text
+                  key={town}
+                  x={center[0]}
+                  y={center[1]}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                >
+                  {town}
+                </text>
+              ))}
+            </svg>
+            <div className={s.legend}>
+              {["0–2%", "2–4%", "4–6%", "6–8%", "8% 以上"].map((label, i) => (
+                <span key={label}>
+                  <i
+                    className={s.swatch}
+                    style={{ background: `var(--c-heat-${i + 1})` }}
+                  />
+                  {label}
+                </span>
+              ))}
+            </div>
+            <p>顏色代表該區高風險園所占比例，非絕對數量。</p>
+            <small>
+              邊界：
+              <a
+                href="https://github.com/ronnywang/twgeojson"
+                target="_blank"
+                rel="noreferrer"
+              >
+                twgeojson（2011）
+              </a>
+              ，僅供分布示意，非地籍界線。
+            </small>
+          </>
+        );
+      }}
     </QueryState>
   );
 }

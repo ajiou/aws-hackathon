@@ -28,6 +28,14 @@ export const riskSchema = z.object({
   rank: z.number().int().nonnegative().nullable(),
   tier: tierSchema.nullable(),
   coverage: ratio.optional(),
+  // score 現在就是四維度加權總分（後端 2026-09-12 改），raw 是同一個數字的
+  // 完整精度版本。rank 是全市合併名次，peer_rank 是設立別內名次。
+  raw: z.number().optional(),
+  peer_rank: z.number().int().positive().nullish(),
+  peer_n: z.number().int().positive().nullish(),
+  score_basis: z.string().optional(),
+  rank_basis: z.string().optional(),
+  tier_basis: z.string().optional(),
 });
 const institution = z.enum(["公立", "私立", "非營利"]);
 const typeFields = {
@@ -112,23 +120,32 @@ const feesSchema = z
   });
 const financeDocument = z
   .object({
-    year: z.union([z.string(), z.number()]).optional(),
-    school_year: z.number().optional(),
-    title: z.string().optional(),
-    url: z.string().url().optional(),
-    pdf_url: z.string().url().optional(),
-    presigned_url: z.string().url().optional(),
+    year: z.union([z.string(), z.number()]).nullish(),
+    // 公立-附設園沒有自己的學年度——決算併進所屬學校，教育局本身就沒有
+    // 「板橋國小附幼」這個預算單位（見 etl/build_curated.assign_peer_groups）。
+    // 269 筆這樣的列在來源就是 null，不是資料缺漏。
+    school_year: z.number().nullish(),
+    title: z.string().nullish(),
+    // backend 在沒有 S3 bucket 時（本機、或該園沒有公開 PDF）會明確送
+    // pdf_url: null，不是省略欄位。.optional() 不吃 null，會讓這 12 園的
+    // 詳情頁整頁變成「資料載入失敗」。
+    url: z.string().url().nullish(),
+    pdf_url: z.string().url().nullish(),
+    presigned_url: z.string().url().nullish(),
     metrics: z.record(z.number().nullable()).optional(),
     audit_floor_applied: z.number().nullable().optional(),
     validated: z.boolean().optional(),
+    // 302 筆財報列裡只有 46 筆有 PDF。其餘能顯示的就是這個分數與 metrics，
+    // 不是只有一個點不動的連結。
+    operation_score: z.number().nullable().optional(),
   })
-  .refine(
-    (d) => d.year !== undefined || d.school_year !== undefined,
-    "財報需要年度",
-  )
+  // 這裡原本 refine「財報需要年度」，但 269 筆公立-附設列的年度本來就是
+  // null，硬要求年度會讓整個 /parks/{id} 回應驗證失敗，詳情頁整頁變成
+  // 「資料載入失敗」——為了一個顯示欄位，把裁罰、評鑑、風險分數全部一起
+  // 弄不見。沒有年度就是沒有年度，由畫面決定怎麼呈現。
   .transform((d) => ({
     ...d,
-    year: d.year ?? d.school_year!,
+    year: d.year ?? d.school_year ?? null,
     pdf_url: d.pdf_url ?? d.presigned_url,
   }));
 export const timelineSchema = z.object({
@@ -178,6 +195,20 @@ export const parkSchema = z
       article_count: z.number().optional(),
       event_count: z.number().optional(),
     }),
+    // 展示用輿情明細，**刻意含切點之後的報導**（見 backend MediaCoverage）。
+    media_coverage: z
+      .array(
+        z.object({
+          date: z.string(),
+          outlet: z.string().nullish(),
+          title: z.string(),
+          url: z.string().nullish(),
+          event_type: z.string().nullish(),
+          severity: z.number().nullish(),
+          is_after_cutoff: z.boolean(),
+        }),
+      )
+      .optional(),
     timeline: z.array(timelineSchema),
     has_fee: z.boolean().optional(),
     evaluations: z
@@ -186,6 +217,9 @@ export const parkSchema = z
           year: z.union([z.string(), z.number()]),
           result: z.string(),
           kind: z.string().optional(),
+          // 完成日。同一學年度可以有基礎評鑑→追蹤評鑑→連續數次行政處分，
+          // 沒有日期就看不出這是一條升級鏈。
+          date: z.string().nullish(),
         }),
       )
       .optional(),

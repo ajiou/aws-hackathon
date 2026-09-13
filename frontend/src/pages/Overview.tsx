@@ -5,42 +5,29 @@ import { useUrlState } from "../hooks/useUrlState";
 import { FilterBar, EmptyState } from "../components/FilterBar";
 import {
   PageHeader,
-  CopyLink,
   QueryState,
   ReasonList,
   TierBadge,
-  Hint,
 } from "../components/common";
 import { number } from "../utils/format";
 import s from "../styles/App.module.css";
-function Row({ row }: { row: ParkRow }) {
+// compact：地圖右側欄的窄版，只留辨識風險必要的欄位（行政區已由地圖與篩選
+// 表達、加權總分與裁罰次數都已折進分級與上榜原因）。
+function Row({ row, compact }: { row: ParkRow; compact?: boolean }) {
   const details = usePark(row.park_id, !row.reasons);
   const reasons = row.reasons ?? details.data?.reasons;
   return (
     <tr className={!row.is_active ? s.inactive : undefined}>
-      <td className={s.num}>{row.risk.rank}</td>
+      <td>
+        <TierBadge tier={row.risk.tier} />
+      </td>
       <th scope="row" className={s.nameCell}>
         <Link to={`/park/${row.park_id}`}>{row.name}</Link>
         {!row.is_active && <p>已停辦</p>}
       </th>
-      <td>{row.town}</td>
+      {!compact && <td>{row.town}</td>}
       <td>{row.institution_type}</td>
-      <td className={s.num}>
-        {reasons?.length && row.risk.score !== null
-          ? row.risk.score.toFixed(1)
-          : "——"}
-      </td>
-      <td>
-        <TierBadge tier={row.risk.tier} />
-      </td>
-      <td className={s.num}>{row.pun_count}</td>
-      <td>
-        {row.has_finance_flag ? (
-          <Hint text="有財務旗標，不計入風險分數，僅供人工複查；詳見單園分析。" />
-        ) : (
-          "—"
-        )}
-      </td>
+      {!compact && <td className={s.num}>{row.pun_count}</td>}
       <td>
         {reasons ? (
           <ReasonList reasons={reasons} />
@@ -70,27 +57,29 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
       return next;
     });
   }
-  const headers = [
-    ["名次", "risk"],
-    ["園名", "name"],
-    ["行政區", ""],
-    ["設立別", ""],
-    ["風險分", "risk"],
-    ["分級", ""],
-    ["裁罰次數", "pun_count"],
-    ["旗標", ""],
-    ["上榜原因", ""],
-  ];
+  const headers = embedded
+    ? [
+        // 分級擺第一欄，稽核人員一眼就分得出優先序；名次改由排序承擔。
+        ["分級", "risk"],
+        ["園名", ""],
+        ["設立別", ""],
+        ["上榜原因", ""],
+      ]
+    : [
+        ["分級", "risk"],
+        ["園名", "name"],
+        ["行政區", ""],
+        ["設立別", ""],
+        ["裁罰次數", "pun_count"],
+        ["上榜原因", ""],
+      ];
   return (
     <>
       <PageHeader
         headingLevel={embedded ? 2 : 1}
         title="教保機構風險總覽"
         description="搜尋園所、檢視原因，安排本週稽查。低風險僅代表本週不列入優先稽查。"
-      >
-        <CopyLink />
-        <button onClick={() => window.print()}>列印</button>
-      </PageHeader>
+      />
       <FilterBar />
       <QueryState query={query}>
         {(data) =>
@@ -99,7 +88,9 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
           ) : (
             <>
               <div className={s.tableWrap} data-table-wrap>
-                <table className={s.dataTable}>
+                <table
+                  className={`${s.dataTable} ${embedded ? s.compactTable : ""}`}
+                >
                   <caption className={s.srOnly}>教保機構風險搜尋結果</caption>
                   <thead>
                     <tr>
@@ -133,7 +124,7 @@ export default function Overview({ embedded = false }: { embedded?: boolean }) {
                   </thead>
                   <tbody>
                     {data.items.map((row) => (
-                      <Row key={row.park_id} row={row} />
+                      <Row key={row.park_id} row={row} compact={embedded} />
                     ))}
                   </tbody>
                 </table>

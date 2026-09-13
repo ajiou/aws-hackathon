@@ -77,6 +77,14 @@
   font: var(--t-caption);
   white-space: nowrap;
   margin-left: auto;
+  /* 原本是右對齊的彩色純文字，看起來完全像連結，寫的還是下方分頁的名字
+     （「評鑑」「違規」），點下去卻沒反應。加外框做成標籤，把「可點」這個
+     暗示拿掉，維度的顏色編碼保留。
+     只淡化外框、不動文字顏色——整塊加 opacity 會把對比從 4.5:1 壓到 4.47:1，
+     axe 直接判 serious（實測過）。 */
+  border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+  border-radius: 3px;
+  padding: 0 6px;
 }
 .hint {
   border: 0;
@@ -92,6 +100,36 @@
 }
 .dataTable {
   min-width: 1000px;
+}
+/* 地圖右側欄的窄版：欄位少，就該一次看完，不要左右捲。 */
+.compactTable {
+  min-width: 0;
+  width: 100%;
+}
+.compactTable .nameCell {
+  min-width: 0;
+  max-width: none;
+}
+.compactTable th:first-child,
+.compactTable td:first-child {
+  width: 4.5rem;
+}
+.compactTable .reasons {
+  min-width: 0;
+}
+/* 可排序的欄位標題是文字＋箭頭，不是按鈕外框。 */
+.dataTable thead th button {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+}
+.dataTable thead th button:hover {
+  background: none;
+  text-decoration: underline;
 }
 .nameCell {
   min-width: 200px;
@@ -291,6 +329,19 @@
   overflow-x: auto;
   border-bottom: 1px solid var(--c-border);
   margin: 20px 0;
+  /* 窄螢幕會橫向溢出（實測 scrollWidth 481 / clientWidth 358，第 4 個分頁
+     整個在畫面外）。貼在容器上的漸層陰影提示還有內容，只有真的可捲動時
+     才會出現。 */
+  background:
+    linear-gradient(90deg, var(--c-bg) 30%, transparent) left / 32px 100%
+      no-repeat local,
+    linear-gradient(90deg, transparent, var(--c-bg) 70%) right / 32px 100%
+      no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 16%), transparent)
+      left / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 16%), transparent)
+      right / 12px 100% no-repeat scroll;
+  scrollbar-width: thin;
 }
 .tabs button {
   border: 0;
@@ -379,13 +430,14 @@
   border: 1px solid var(--c-border-strong);
 }
 .map {
-  height: max(520px, calc(100dvh - 330px));
-  min-height: 520px;
+  height: 100%;
+  min-height: 0;
   overflow: hidden;
 }
 .mapViewport {
   position: relative;
-  min-height: 520px;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow: hidden;
 }
 .parkDrawer {
@@ -420,6 +472,42 @@
     animation: none;
   }
 }
+.mapLayout {
+  display: grid;
+  /* 地圖佔畫面左半、資訊欄右半 */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  /* 兩欄同高：右側欄不再被表格撐長，改成在框內自己捲。 */
+  grid-auto-rows: max(520px, calc(100dvh - 330px));
+  gap: 24px;
+}
+.mapLayout > * {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+.mapSection {
+  display: flex;
+  flex-direction: column;
+}
+.parkPanel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+}
+.parkPanel > * {
+  flex-shrink: 0;
+}
+@media (max-width: 1023px) {
+  .mapLayout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 .districtLayout {
   display: grid;
   grid-template-columns: minmax(320px, 2fr) minmax(0, 3fr);
@@ -433,10 +521,30 @@
 .districtOverview .header {
   flex-wrap: wrap;
 }
-.districtOverview thead th,
-.districtOverview td:nth-child(3),
-.districtOverview td:nth-child(4) {
+.districtOverview thead th {
   white-space: nowrap;
+}
+/* 右側欄自己是一個框：表頭、篩選、分頁固定，只有表格內部捲動。 */
+.districtOverview {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.districtOverview > section {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.districtOverview [data-table-wrap] {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.districtOverview .parkPanel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 @media (max-width: 767px) {
   .districtLayout {
@@ -481,11 +589,11 @@
   min-height: 320px;
 }
 .districtSvg text {
-  font: 10px var(--font-sans);
+  font: 8px var(--font-sans);
   fill: var(--c-text);
   paint-order: stroke;
   stroke: var(--c-bg);
-  stroke-width: 3px;
+  stroke-width: 2px;
   pointer-events: none;
 }
 .paper {
@@ -569,9 +677,78 @@
 .tooltipWrap:focus-within .tooltip {
   display: block;
 }
+/* ---- 單園分析的三段方形結構 ----
+   風險總分橫幅 → 建議查核重點／輿情訊號等寬並排 → 分頁。
+   三段同寬、上下對齊，窄螢幕時中段與橫幅各自疊成一欄。 */
+.riskBand {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 24px;
+  /* stretch 而不是 start：兩欄等高，整塊才是使用者要的方形結構 */
+  align-items: stretch;
+}
+.riskBandMain h2 {
+  margin-top: 0;
+}
+.riskBandSide .dimensions caption {
+  text-align: left;
+  font-weight: 600;
+  padding-bottom: 6px;
+}
+/* 名次成對呈現：全市名次與同類別名次是兩把不同的尺，並排才不會被誤讀成同一件事 */
+.rankPair {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 28px;
+  margin: 8px 0;
+}
+.rankPair div {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.rankPair dt {
+  color: var(--c-text-2);
+  font: var(--t-small);
+}
+.rankPair dd {
+  margin: 0;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* 等寬並排的一對面板。不沿用 .twoCol——那組是 1 : 1.5 的不對稱欄寬。 */
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+/* 兩個面板等高、等寬，內容再長也不互相推擠 */
+.pair > * {
+  min-width: 0;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.pair > * > :last-child {
+  margin-bottom: 0;
+}
+/* 半寬欄裡放的是新聞標題與維度備註這種長字串，沒有這行會把整頁撐出橫向捲動 */
+.riskBand,
+.pair,
+.coverageList,
+.dimensions td {
+  overflow-wrap: anywhere;
+}
+
 @media (min-width: 768px) and (max-width: 1279px) {
   .content {
     padding: 20px;
+  }
+  /* 1280px 以下維度表擠不下權重欄，橫幅改成上下兩段 */
+  .riskBand {
+    grid-template-columns: 1fr;
+    gap: 16px;
   }
   .stats {
     gap: 10px;
@@ -587,8 +764,14 @@
   .header {
     flex-direction: column;
   }
-  .twoCol {
+  .twoCol,
+  .riskBand,
+  .pair {
     grid-template-columns: 1fr;
+  }
+  .riskBand,
+  .pair {
+    gap: 14px;
   }
   .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -623,4 +806,85 @@
   .legend {
     font: var(--t-small);
   }
+}
+
+/* ---- 風險分數的刻度說明 ---- */
+.scoreBasis {
+  font: var(--t-small);
+  color: var(--c-text-2);
+  margin: -6px 0 8px;
+}
+
+/* 維度標籤本來是有顏色的純文字、右對齊，看起來完全像連結，而且寫的
+   還是下方分頁的名字（「評鑑」「違規」），點下去卻沒有反應。做成有框
+   的標籤，把「可點」這個暗示拿掉，顏色編碼保留。 */
+
+/* ---- 裁罰時間軸的顏色圖例 ---- */
+.severityLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 16px;
+  font: var(--t-caption);
+  color: var(--c-text-2);
+}
+.severityLegend li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.severityLegend span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--c-text-3);
+  flex: none;
+}
+
+/* ---- 輿情明細 ---- */
+.coverageList {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+  display: grid;
+  gap: 10px;
+}
+.coverageList li {
+  display: grid;
+  gap: 2px;
+  border-left: 2px solid var(--c-border);
+  padding-left: 10px;
+}
+.afterCutoffTag {
+  color: var(--c-tier-高);
+  margin-left: 6px;
+}
+
+/* ---- 財報指標 ---- */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 4px 16px;
+  margin: 6px 0 14px;
+  font: var(--t-small);
+}
+.metrics div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  border-bottom: 1px dotted var(--c-border);
+}
+.metrics dt {
+  color: var(--c-text-2);
+}
+.metrics dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 列印用的園所識別，螢幕上不存在 */
+.printIdent {
+  display: none;
 }

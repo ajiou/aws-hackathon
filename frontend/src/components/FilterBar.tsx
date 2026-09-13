@@ -59,14 +59,7 @@ export function FilterBar({ map = false }: { map?: boolean }) {
   const { params, update, clear } = useUrlState();
   const districts = useApi("/districts", districtsSchema);
   const chips = [...params.entries()].filter(([key]) =>
-    [
-      "town",
-      "type",
-      "tier",
-      "has_finance_flag",
-      "include_inactive",
-      "q",
-    ].includes(key),
+    ["town", "type", "tier", "include_inactive", "q"].includes(key),
   );
   return (
     <section className={s.filters} data-filters aria-label="園所篩選">
@@ -100,20 +93,6 @@ export function FilterBar({ map = false }: { map?: boolean }) {
           selected={params.getAll("tier")}
           onChange={(v) => update("tier", v)}
         />
-        {!map && (
-          <>
-            <label>
-              <input
-                type="checkbox"
-                checked={params.get("has_finance_flag") === "true"}
-                onChange={(e) =>
-                  update("has_finance_flag", e.target.checked ? "true" : "")
-                }
-              />{" "}
-              僅財務旗標
-            </label>
-          </>
-        )}
         <button className={s.clearFilters} onClick={clear}>
           清除全部
         </button>
@@ -132,12 +111,7 @@ export function FilterBar({ map = false }: { map?: boolean }) {
                 );
               }}
             >
-              {key === "has_finance_flag"
-                ? "財務旗標"
-                : key === "include_inactive"
-                  ? "已停辦"
-                  : value}{" "}
-              ×
+              {key === "include_inactive" ? "已停辦" : value} ×
             </button>
           ))}
         </div>

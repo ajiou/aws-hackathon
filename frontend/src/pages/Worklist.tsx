@@ -19,14 +19,27 @@ export default function Worklist() {
   const k = [50, 100, 200].includes(Number(params.get("k")))
     ? Number(params.get("k"))
     : 50;
+  // ?park=<id> 把整份派工單縮成單園一張。查詢字串跟完整派工單相同（同一個
+  // week 與 k），所以 react-query 直接命中已經抓過的那份，不會多打一次 API，
+  // 列印出來的版面也保證跟整份派工單逐字一致——稽查人員手上兩種紙不會有出入。
+  const parkId = params.get("park") ?? "";
   const query = useApi(`/worklist?week=${week}&k=${k}`, worklistSchema);
+  const all = query.data?.items ?? [];
+  const items = parkId ? all.filter((i) => i.park_id === parkId) : all;
   return (
     <>
       <div className="no-print">
         <PageHeader
-          title="稽查派工單"
-          description="A4 列印預覽 · 每頁兩家園所，保留稽查結果與簽章欄。"
+          title={parkId ? "稽查派工單（單園）" : "稽查派工單"}
+          description={
+            parkId
+              ? "只列印本園的派工內容，格式與整份派工單相同。"
+              : "A4 列印預覽 · 每頁兩家園所，保留稽查結果與簽章欄。"
+          }
         >
+          {parkId && (
+            <Link to={`/worklist?week=${week}&k=${k}`}>顯示完整派工單</Link>
+          )}
           <label>
             週次{" "}
             <input
@@ -48,18 +61,18 @@ export default function Worklist() {
           <CopyLink />
           <button
             className={s.primary}
-            disabled={!query.data?.items.length || query.data.week !== week}
+            disabled={!items.length || query.data?.week !== week}
             onClick={() => window.print()}
           >
-            列印派工單
+            {parkId ? "列印本園派工單" : "列印派工單"}
           </button>
         </PageHeader>
       </div>
       <QueryState query={query}>
         {(data) => {
           const pages = Array.from(
-            { length: Math.ceil(data.items.length / 2) },
-            (_, i) => data.items.slice(i * 2, i * 2 + 2),
+            { length: Math.ceil(items.length / 2) },
+            (_, i) => items.slice(i * 2, i * 2 + 2),
           );
           return (
             <>
@@ -69,18 +82,27 @@ export default function Worklist() {
                   的派工單，暫停列印。
                 </p>
               )}
-              {data.items.length < k && (
+              {!parkId && data.items.length < k && (
                 <p role="status" className={`${s.note} no-print`}>
                   已取得 {data.items.length} / {k}{" "}
                   筆派工資料。資料來源尚未提供其餘項目；僅列印已提供的查核建議。
                 </p>
               )}
-              {!data.items.length && (
+              {!parkId && !data.items.length && (
                 <p className={s.note}>
                   此週次尚未產生派工單，請更換週次或稍後重試。
                 </p>
               )}
-              {pages.map((items, page) => (
+              {/* 直接帶 ?park= 進來（書籤、別人轉寄的連結）而該園不在本週名單上
+                  時，畫面不能只是空白。這是正常狀態不是錯誤：派工單只收前 k 名。 */}
+              {parkId && !items.length && (
+                <p className={s.note}>
+                  此園不在 {data.week} 的前 {k}{" "}
+                  名派工名單內，因此沒有本週派工單。
+                  <Link to={`/park/${parkId}`}>回到園所頁</Link>
+                </p>
+              )}
+              {pages.map((pageItems, page) => (
                 <section className={s.paper} data-paper key={page}>
                   <header className={s.paperHeader}>
                     <h2>新北市教保機構稽查派工單</h2>
@@ -89,7 +111,7 @@ export default function Worklist() {
                     </p>
                     <ModelNote model={data.model} />
                   </header>
-                  {items.map((item) => (
+                  {pageItems.map((item) => (
                     <article
                       className={s.workItem}
                       data-work-item

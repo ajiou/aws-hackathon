@@ -190,6 +190,51 @@ def test_detail_merges_related_data(serving_dir):
         )
 
 
+def test_detail_without_media_coverage_file_returns_empty_list(serving_dir):
+    """沒有這份 serving 檔就是沒有輿情明細，不得回退到別的來源。"""
+    with TestClient(create_app(Settings(serving_dir=serving_dir))) as c:
+        assert c.get(BASE + "/parks/park-1").json()["media_coverage"] == []
+
+
+def test_media_coverage_is_the_one_place_after_cutoff_dates_are_allowed(serving_dir):
+    """輿情明細**刻意**帶切點之後的報導，這是它與所有計分資料的分界。
+
+    分數那條路由 etl.quality.assert_no_leakage 守著切點；這一份走另一條路，
+    只要標明 is_after_cutoff 就可以顯示，否則像欣勵德 2026-04 的虐童案
+    （全部在切點之後）在稽查人員面前會完全不存在。
+    """
+    write(
+        serving_dir,
+        "media_coverage",
+        {
+            "items": [
+                {
+                    "park_id": "park-1",
+                    "date": "2026-04-11",
+                    "outlet": "測試報",
+                    "title": "測試甲幼兒園遭指不當管教",
+                    "url": "https://example.invalid/a",
+                    "event_type": "不當管教",
+                    "severity": 5,
+                    "is_after_cutoff": True,
+                },
+                {
+                    "park_id": "park-2",
+                    "date": "2024-05-01",
+                    "title": "別園的報導",
+                    "is_after_cutoff": False,
+                },
+            ]
+        },
+    )
+    with TestClient(create_app(Settings(serving_dir=serving_dir))) as c:
+        coverage = c.get(BASE + "/parks/park-1").json()["media_coverage"]
+        assert len(coverage) == 1, "別園的報導不得掛到這一園"
+        assert coverage[0]["is_after_cutoff"] is True
+        assert coverage[0]["date"] > "2025-01-01"
+        assert coverage[0]["severity"] == 5
+
+
 @pytest.mark.parametrize(
     "path",
     [

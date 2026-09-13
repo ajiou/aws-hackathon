@@ -28,7 +28,7 @@ from pathlib import Path
 
 from . import features as features_mod
 from .categories import assert_all_classified, classify
-from .constants import CUTOFF, TIERS
+from .constants import CUTOFF, MEDIA_COVERAGE_PER_PARK, TIERS
 from .pii import hash_person
 from .quality import assert_no_banned, assert_no_leakage, assert_no_pii, assert_population
 from .sources import (DATA, load_evaluations, load_fees, load_media, load_parks,
@@ -157,11 +157,20 @@ def main():
     names = {p["name"] for p in parks}
     hit = {r["園名"] for r in evaluations} & names
     assert len(hit) == len({r["園名"] for r in evaluations}), "評鑑園名 join 未達 100%"
-    pre_eval = [r for r in evaluations
-                if r.get("評鑑完成日") and r["評鑑完成日"] < CUTOFF.isoformat()]
-    dropped = len(evaluations) - len(pre_eval)
+    # 園名是這份資料唯一的識別欄，serving 端只認 park_id，所以在這裡把 id 併上去。
+    # 有 3 組園名在 parks 內重複（同名同區，例如兩間「新北市私立鶯歌芝麻村幼兒園」），
+    # 這裡刻意跟 features.evaluation_features 一樣**展開給每個同名 park_id**——
+    # 分數就是這樣算的，明細若挑掉其中一個，頁面會跟它自己的分數對不起來。
+    ids_by_name = collections.defaultdict(list)
+    for p in parks:
+        ids_by_name[p["name"]].append(p["park_id"])
+    kept = [r for r in evaluations
+            if r.get("評鑑完成日") and r["評鑑完成日"] < CUTOFF.isoformat()]
+    dropped = len(evaluations) - len(kept)
+    pre_eval = [{"park_id": pid, **r} for r in kept for pid in ids_by_name[r["園名"]]]
     assert_no_leakage(pre_eval, ["評鑑完成日"])
     assert dropped == 280, f"應丟棄 280 列（258 切點後 + 22 無日期），實際 {dropped}"
+    assert all(r["park_id"] for r in pre_eval), "評鑑列有 park_id 落空"
     dump("evaluations.json", pre_eval)
     ok(f"join {len(hit)}/{len({r['園名'] for r in evaluations})}，丟棄 {dropped} 列")
 
@@ -200,8 +209,46 @@ def main():
         "park_level": [dict(park_id=k, **v) for k, v in sorted(park_level.items())],
         "district_level": district,
     })
+
+    # ---- 8b 輿情明細（展示用，**不進特徵**）
+    # media.json 的 park_level 只剩 14 園，因為特徵必須過切點防洩漏。但稽查員
+    # 要看的恰恰是切點之後的新聞：欣勵德 2026-04 那 44 篇虐童報導、園長遭聲押，
+    # 在切點制下一篇都不會出現，頁面只會寫「未偵測到明文點名之報導」。
+    # 這份走另一條路——不經 build_features、不進 features.json、不影響任何分數，
+    # 只是把已經在 repo 裡的報導掛回園所。meta.json 早就寫明 park_risk.json
+    # 是「切點後快照，僅供展示」，這裡是把那句話實作出來。
+    docs_by_id, _resolution, links, analysis = media_tables
+    coverage = collections.defaultdict(list)
+    for link in links:
+        doc, note = docs_by_id.get(link["doc_id"]), analysis.get(link["doc_id"])
+        # 別名匹配錯一次，就是把別人的虐童案掛到這間園的頁面上，
+        # 所以只收高信心連結；其餘過濾條件與 features.media_features 的
+        # usable() 相同，差別只在這裡不砍切點之後的報導。
+        if not doc or not note or link.get("confidence", 0) < 0.95:
+            continue
+        if note.get("is_ad") or not note.get("targets_institution"):
+            continue
+        if note.get("event_type") in features_mod.NON_RISK_EVENTS:
+            continue
+        published = (doc.get("published_at") or "")[:10]
+        if not published:
+            continue
+        coverage[link["park_id"]].append({
+            "park_id": link["park_id"], "date": published,
+            "outlet": doc.get("outlet"), "title": doc.get("title"),
+            "url": doc.get("source_url"), "event_type": note.get("event_type"),
+            "severity": note.get("severity"),
+            "is_after_cutoff": published >= CUTOFF.isoformat(),
+        })
+    media_coverage = [row for pid in sorted(coverage)
+                      for row in sorted(coverage[pid], key=lambda r: r["date"],
+                                        reverse=True)[:MEDIA_COVERAGE_PER_PARK]]
+    assert_no_pii(media_coverage)
+    dump("media_coverage.json", media_coverage)
     ok(f"1,215 筆，正樣本 {positives}，輿情 L1 {len(park_level)} 園 / "
-       f"L2 {sum(1 for d in district if d['has_signal'])} 區有訊號")
+       f"L2 {sum(1 for d in district if d['has_signal'])} 區有訊號；"
+       f"另有展示用輿情明細 {len(media_coverage)} 則 / {len(coverage)} 園"
+       f"（含切點後 {sum(1 for r in media_coverage if r['is_after_cutoff'])} 則，不進特徵）")
 
     # ---- 8 財務與收費
     step(8, "財務與收費")

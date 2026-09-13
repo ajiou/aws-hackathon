@@ -162,25 +162,6 @@ export function ModelNote({ model }: { model: Meta["model"] }) {
     </p>
   );
 }
-export function FinanceFlags({ flags }: { flags: Park["finance_flags"] }) {
-  return (
-    <section>
-      <h3>財務旗標 {flags.length} 項</h3>
-      {flags.length ? (
-        <ul>
-          {flags.map((f, i) => (
-            <li key={i}>
-              {f.label}〔{f.year} 學年度〕
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className={s.muted}>本次資料未列出財務旗標。</p>
-      )}
-      <p className={s.note}>財務旗標不計入風險分數，僅供人工複查參考。</p>
-    </section>
-  );
-}
 export function CoverageBar({ coverage }: { coverage: number }) {
   return (
     <div className={s.coverage}>
@@ -202,70 +183,108 @@ export function CoverageBar({ coverage }: { coverage: number }) {
   );
 }
 export function RiskScore({ park, meta }: { park: Park; meta: Meta }) {
+  const scored = park.risk.score !== null && park.reasons.length > 0;
   return (
-    <section className={s.panel} data-panel>
-      <h2>風險總分</h2>
-      {park.risk.score === null && (
-        <p className={s.empty}>
-          已停辦，不列入排名與分級。以下仍保留該園的歷史紀錄供查詢。
-        </p>
-      )}
-      {park.risk.score !== null && park.reasons.length > 0 && (
-        <>
-          <div className={s.score}>
-            {park.risk.score.toFixed(1)} <TierBadge tier={park.risk.tier} />
-          </div>
-          <p>
-            全市第 {park.risk.rank === null ? "未排名" : number(park.risk.rank)}{" "}
-            名 / {number(meta.population)}
+    <section className={`${s.panel} ${s.riskBand}`} data-panel>
+      {/* 橫向兩欄：左邊是分數與名次，右邊是四維度明細。
+          分數不再是百分位，就是下方加權相加的結果，所以兩者並排才讀得通。 */}
+      <div className={s.riskBandMain}>
+        <h2>風險總分</h2>
+        {park.risk.score === null && (
+          <p className={s.empty}>
+            已停辦，不列入排名與分級。以下仍保留該園的歷史紀錄供查詢。
           </p>
-          <p>
-            {park.peer_group}同類中前 {(100 - (park.risk.score ?? 0)).toFixed(1)}%
-          </p>
-          <div className={s.progress}>
-            <span
-              style={{
-                width: `${park.risk.score ?? 0}%`,
-                background: `var(--c-tier-${park.risk.tier ?? "低"})`,
-              }}
-            />
-          </div>
-        </>
-      )}
-      <ReasonList reasons={park.reasons} />
-      {park.risk.coverage !== undefined && (
-        <CoverageBar coverage={park.risk.coverage} />
-      )}
-      <table className={s.dimensions}>
-        <caption className={s.srOnly}>四維度分數與權重</caption>
-        <tbody>
-          {Object.entries(park.dimensions).map(([key, dim]) => (
-            <tr key={key}>
-              <th scope="row">
-                {dimensionNames[key as keyof typeof dimensionNames]}{" "}
-                {!dim.validated && <Hint text={unvalidated} />}
-              </th>
-              <td>
-                {dim.applicable ? (
-                  <>
-                    <b>{dim.score === null ? "——" : dim.score.toFixed(1)}</b> ×{" "}
-                    {meta.weights[park.institution_type]?.[key] == null
-                      ? "——"
-                      : percent(meta.weights[park.institution_type][key]!)}
-                    {dim.coverage < 0.8 && <p>涵蓋 {percent(dim.coverage)}</p>}
-                    {dim.note && <p>{dim.note}</p>}
-                  </>
-                ) : (
-                  <>
-                    ——<p>{dim.note ?? "此維度不適用"}</p>
-                  </>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+        )}
+        {scored && (
+          <>
+            <div className={s.score}>
+              {park.risk.score!.toFixed(1)} <TierBadge tier={park.risk.tier} />
+            </div>
+            <p className={s.scoreBasis}>
+              {park.risk.score_basis ?? meta.score_basis}
+              <Hint text="風險等級是在同一設立別（公立／私立／非營利）內比較切出來的，因為各類別的分數分佈本來就不同。名次則是全市合併排序。" />
+            </p>
+            <dl className={s.rankPair}>
+              <div>
+                <dt>全市名次</dt>
+                <dd>
+                  {park.risk.rank === null
+                    ? "未排名"
+                    : `${number(park.risk.rank)} / ${number(meta.population)}`}
+                </dd>
+              </div>
+              <div>
+                <dt>{park.institution_type}同類</dt>
+                <dd>
+                  {park.risk.peer_rank == null
+                    ? "未提供"
+                    : `${number(park.risk.peer_rank)} / ${number(park.risk.peer_n ?? 0)}`}
+                </dd>
+              </div>
+            </dl>
+            <div className={s.progress}>
+              <span
+                style={{
+                  width: `${Math.min(100, park.risk.score ?? 0)}%`,
+                  background: `var(--c-tier-${park.risk.tier ?? "低"})`,
+                }}
+              />
+            </div>
+          </>
+        )}
+        <ReasonList reasons={park.reasons} />
+        {park.risk.coverage !== undefined && (
+          <CoverageBar coverage={park.risk.coverage} />
+        )}
+      </div>
+      <div className={s.riskBandSide}>
+        <table className={s.dimensions}>
+          <caption>四維度分數與權重</caption>
+          <tbody>
+            {Object.entries(park.dimensions).map(([key, dim]) => (
+              <tr key={key}>
+                <th scope="row">
+                  {dimensionNames[key as keyof typeof dimensionNames]}{" "}
+                  {!dim.validated && <Hint text={unvalidated} />}
+                </th>
+                <td>
+                  {dim.applicable ? (
+                    <>
+                      <b>{dim.score === null ? "——" : dim.score.toFixed(1)}</b>{" "}
+                      ×{" "}
+                      {meta.weights[park.institution_type]?.[key] == null
+                        ? "——"
+                        : percent(meta.weights[park.institution_type][key]!)}
+                      {dim.coverage < 0.8 && (
+                        <p>涵蓋 {percent(dim.coverage)}</p>
+                      )}
+                      {dim.note && <DimensionNote note={dim.note} />}
+                    </>
+                  ) : (
+                    <>
+                      ——
+                      <DimensionNote note={dim.note ?? "此維度不適用"} />
+                    </>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
+  );
+}
+/** 維度備註。整段超過一行的（例如輿情引 ADR-0001 講 Precision@50）收進
+ *  tooltip——稽查人員需要知道「這維度不計分」，不需要在主畫面讀回測數字。 */
+function DimensionNote({ note }: { note: string }) {
+  const [lead, ...rest] = note.split(/[（(]/);
+  if (note.length <= 24 || !rest.length) return <p>{note}</p>;
+  return (
+    <p>
+      {lead.trim()}
+      <Hint text={note} />
+    </p>
   );
 }
 export function ParkCard({ park }: { park: Park }) {
@@ -285,19 +304,8 @@ export function ParkCard({ park }: { park: Park }) {
         </p>
         <ReasonList reasons={park.reasons} />
         <div className={s.rowTitle}>
-          {park.finance_flags.length > 0 && (
-            <span>
-              財務旗標 {park.finance_flags.length} 項{" "}
-              <Hint
-                text={
-                  park.finance_flags.map((f) => f.label).join("；") +
-                  "。不計入風險分數，僅供人工複查。"
-                }
-              />
-            </span>
-          )}
           {park.risk.score !== null && park.reasons.length > 0 && (
-            <span>風險分 {park.risk.score.toFixed(1)}</span>
+            <span>加權總分 {park.risk.score.toFixed(1)}</span>
           )}
         </div>
       </div>
@@ -323,7 +331,8 @@ export function SafeLink({
   href,
   children,
 }: {
-  href?: string;
+  // null 與 undefined 都要收：財報的 pdf_url 在沒有 S3 bucket 時是明確的 null。
+  href?: string | null;
   children: ReactNode;
 }) {
   if (!href || !/^https?:\/\//i.test(href))
