@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "小小守護員｜整體系統架構",
+    "locale": "zh-CN",
+    "output": "system-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/ajiou/aws-hackathon.git",
+      "provider": "github",
+      "link_mode": "local-only",
+      "revision": "97ab8f23af8b2da73d445df801f3623cdf3ec7e7"
+    },
+    "views": [
+      {
+        "id": "online-serving",
+        "label": "線上查詢與對答",
+        "focus": ["inspector", "frontend", "cdn", "api", "serving", "bedrock", "knowledge"],
+        "note": "從稽查人員操作介面，追到 API、風險資料與法規對答。"
+      },
+      {
+        "id": "offline-pipeline",
+        "label": "離線資料管線",
+        "focus": ["public-data", "pipeline", "serving", "law-source", "knowledge"],
+        "note": "查看公開資料、特徵與模型如何形成可服務快照。"
+      },
+      {
+        "id": "privacy-boundary",
+        "label": "個資與雲端邊界",
+        "focus": ["pipeline", "api", "serving", "law-source", "knowledge", "logs"],
+        "note": "集中查看去識別化、私有 S3 與請求紀錄邊界。"
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "inspector",
+      "type": "external",
+      "label": "稽查人員",
+      "sublabel": "Browser",
+      "pos": [40, 300],
+      "size": [150, 64],
+      "sources": [{ "path": "README.md", "label": "產品入口" }]
+    },
+    {
+      "id": "frontend",
+      "type": "frontend",
+      "label": "React 前端",
+      "sublabel": "Vite · MapLibre · ChatWidget",
+      "pos": [260, 300],
+      "size": [180, 70],
+      "sources": [
+        { "path": "frontend/src/App.tsx", "label": "七頁路由" },
+        { "path": "frontend/src/components/ChatWidget.tsx", "label": "對答介面" }
+      ]
+    },
+    {
+      "id": "cdn",
+      "type": "cloud",
+      "label": "CloudFront",
+      "sublabel": "HTTPS · private S3 + OAC",
+      "tag": "Edge",
+      "pos": [510, 300],
+      "size": [180, 70],
+      "sources": [{ "path": "infra/template.yaml", "label": "IaC" }]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "Lambda API",
+      "sublabel": "FastAPI + Mangum · /api/v1",
+      "pos": [760, 300],
+      "size": [190, 70],
+      "sources": [
+        { "path": "backend/app.py", "label": "路由與 handler" },
+        { "path": "backend/chat.py", "label": "對答服務" }
+      ]
+    },
+    {
+      "id": "serving",
+      "type": "cloud",
+      "label": "S3 Serving Snapshot",
+      "sublabel": "JSON · GeoJSON · PDF key",
+      "tag": "Private",
+      "pos": [1030, 300],
+      "size": [200, 70],
+      "sources": [
+        { "path": "backend/store.py", "label": "快照讀取" },
+        { "path": "infra/template.yaml", "label": "S3 bucket" }
+      ]
+    },
+    {
+      "id": "bedrock",
+      "type": "cloud",
+      "label": "Amazon Bedrock",
+      "sublabel": "Claude · Converse API",
+      "tag": "Optional chat",
+      "pos": [1030, 150],
+      "size": [200, 70],
+      "sources": [{ "path": "backend/chat.py", "label": "模型呼叫" }]
+    },
+    {
+      "id": "knowledge",
+      "type": "cloud",
+      "label": "Bedrock Knowledge Base",
+      "sublabel": "Law retrieval · citations",
+      "tag": "RAG",
+      "pos": [1030, 500],
+      "size": [200, 70],
+      "sources": [
+        { "path": "backend/chat.py", "label": "法規檢索" },
+        { "path": "infra/rag/setup_kb.py", "label": "知識庫設定" }
+      ]
+    },
+    {
+      "id": "logs",
+      "type": "cloud",
+      "label": "CloudWatch Logs",
+      "sublabel": "request id · status · latency",
+      "pos": [760, 500],
+      "size": [190, 70],
+      "sources": [{ "path": "backend/app.py", "label": "請求紀錄" }]
+    },
+    {
+      "id": "pipeline",
+      "type": "backend",
+      "label": "ETL + Risk Model",
+      "sublabel": "curated → backtest → serving",
+      "tag": "Offline",
+      "pos": [510, 700],
+      "size": [200, 70],
+      "sources": [
+        { "path": "run_pipeline.sh", "label": "完整管線" },
+        { "path": "etl/build_curated.py", "label": "特徵資料" },
+        { "path": "model/score.py", "label": "風險分數" }
+      ]
+    },
+    {
+      "id": "public-data",
+      "type": "external",
+      "label": "公開資料源",
+      "sublabel": "裁罰 · 評鑑 · 收費 · 財報 · 輿情",
+      "pos": [260, 700],
+      "size": [200, 70],
+      "sources": [{ "path": "docs/SPEC.md", "label": "資料規格" }]
+    },
+    {
+      "id": "law-source",
+      "type": "external",
+      "label": "法規 PDF",
+      "sublabel": "全國性 + 新北地方性",
+      "pos": [760, 700],
+      "size": [190, 70],
+      "sources": [
+        { "path": "法規/收錄清單.csv", "label": "收錄清單" },
+        { "path": "etl/laws.py", "label": "條文切分" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "AWS 部署邊界",
+      "wraps": ["cdn", "api", "serving", "bedrock", "knowledge", "logs"],
+      "pad": 28
+    },
+    {
+      "kind": "security-group",
+      "label": "去識別化 + S3 private",
+      "wraps": ["pipeline", "api", "serving", "knowledge"],
+      "pad": 22
+    }
+  ],
+  "connections": [
+    { "id": "inspector-to-frontend", "from": "inspector", "to": "frontend", "label": "操作查詢 / 對答", "variant": "emphasis", "labelDy": -26 },
+    { "id": "frontend-to-cdn", "from": "frontend", "to": "cdn", "label": "靜態資產", "variant": "dashed" },
+    { "id": "cdn-to-api", "from": "cdn", "to": "api", "label": "HTTPS API", "variant": "emphasis" },
+    { "id": "api-to-serving", "from": "api", "to": "serving", "label": "讀取風險快照 / 產生預簽 URL", "labelDy": -29 },
+    { "id": "api-to-bedrock", "from": "api", "to": "bedrock", "label": "Claude 對答", "variant": "emphasis", "fromSide": "top", "toSide": "bottom" },
+    { "id": "api-to-knowledge", "from": "api", "to": "knowledge", "label": "檢索法規條文", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "api-to-logs", "from": "api", "to": "logs", "label": "request id / latency", "variant": "dashed", "fromSide": "bottom", "toSide": "top", "labelDx": -100, "labelDy": 24 },
+    { "id": "public-data-to-pipeline", "from": "public-data", "to": "pipeline", "label": "ETL + 去識別化", "labelDy": -29 },
+    { "id": "pipeline-to-serving", "from": "pipeline", "to": "serving", "label": "發布 coherent snapshot", "variant": "emphasis", "fromSide": "bottom", "toSide": "bottom", "via": [[610, 820], [1260, 820], [1260, 390], [1130, 390]], "labelSegment": 1 },
+    { "id": "law-source-to-pipeline", "from": "law-source", "to": "pipeline", "label": "pdftotext / 條文切分", "variant": "dashed", "fromSide": "left", "toSide": "right", "labelDy": -29 },
+    { "id": "pipeline-to-knowledge", "from": "pipeline", "to": "knowledge", "label": "laws.jsonl → KB ingestion", "variant": "dashed", "fromSide": "top", "toSide": "bottom" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "線上服務",
+      "items": [
+        "CloudFront 提供前端；Lambda 以 FastAPI/Mangum 暴露 /api/v1",
+        "API 從 S3 serving snapshot 讀取已準備好的風險資料",
+        "聊天助手可串 Bedrock Claude 與法規 Knowledge Base"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "離線產製",
+      "items": [
+        "公開資料經 ETL、時間切分與 HMAC 去識別化",
+        "模型回測後產出 scores、districts、map、worklist 等快照",
+        "法規 PDF 先切成條文文件，再送進知識庫"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "安全承諾",
+      "items": [
+        "不把自然人姓名送到 AWS；上游先完成去識別化",
+        "S3 bucket private，前端透過 CloudFront + OAC",
+        "回答只記錄來源，不記錄使用者問題原文"
+      ]
+    }
+  ]
+}

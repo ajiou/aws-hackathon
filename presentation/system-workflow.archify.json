@@ -1,0 +1,122 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "小小守護員｜查詢、風險與法規對答流程",
+    "locale": "zh-CN",
+    "output": "system-workflow.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "risk-query",
+        "label": "風險查詢主流程",
+        "focus": ["user", "web", "api", "resolve", "snapshot", "reply"],
+        "note": "追蹤使用者從前端查詢到 API 回傳可解釋風險資料。"
+      },
+      {
+        "id": "chat-rag",
+        "label": "法規對答流程",
+        "focus": ["user", "web", "api", "resolve", "snapshot", "laws", "prompt", "model", "guard", "reply"],
+        "note": "查看園所脈絡、法規檢索、模型回答與引用檢查。"
+      },
+      {
+        "id": "offline-refresh",
+        "label": "資料更新流程",
+        "focus": ["sources", "etl", "publish"],
+        "note": "查看資料如何離線整理後發布成線上可讀快照。"
+      }
+    ]
+  },
+  "lanes": [
+    { "id": "user_lane", "label": "稽查人員" },
+    { "id": "web_lane", "label": "React 前端" },
+    { "id": "api_lane", "label": "FastAPI / Lambda" },
+    { "id": "data_lane", "label": "Serving 與 RAG" },
+    { "id": "offline_lane", "label": "離線資料管線" },
+    { "id": "policy_lane", "label": "安全與回答檢查" },
+    { "id": "fallback_lane", "label": "安全降級", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "intake", "label": "提出問題", "fromCol": 0, "toCol": 1 },
+    { "id": "resolve", "label": "解析脈絡", "fromCol": 2, "toCol": 2, "variant": "emphasis" },
+    { "id": "ground", "label": "資料與法規 grounding", "fromCol": 3, "toCol": 3, "variant": "security" },
+    { "id": "answer", "label": "產生與回傳", "fromCol": 4, "toCol": 5, "variant": "emphasis" }
+  ],
+  "groups": [
+    { "id": "online_request", "label": "線上請求", "lane": "api_lane", "fromCol": 1, "toCol": 5, "variant": "emphasis" },
+    { "id": "evidence", "label": "證據與引用", "lane": "data_lane", "fromCol": 3, "toCol": 5, "variant": "security" },
+    { "id": "offline_publish", "label": "離線發布", "lane": "offline_lane", "fromCol": 0, "toCol": 3, "variant": "dashed" }
+  ],
+  "mainPath": ["user", "web", "api", "resolve", "snapshot", "laws", "prompt", "model", "guard", "reply"],
+  "semanticChecks": {
+    "allowedRoots": ["user", "sources"],
+    "allowedTerminals": ["reply", "fallback", "publish"],
+    "requiredEdges": [
+      { "from": "web", "to": "api" },
+      { "from": "api", "to": "resolve" },
+      { "from": "snapshot", "to": "laws" },
+      { "from": "laws", "to": "prompt" },
+      { "from": "model", "to": "guard" },
+      { "from": "guard", "to": "reply" }
+    ]
+  },
+  "nodes": [
+    { "id": "user", "lane": "user_lane", "col": 0, "type": "external", "label": "稽查人員", "sublabel": "輸入園所或問題", "width": 148 },
+    { "id": "web", "lane": "web_lane", "col": 1, "type": "frontend", "label": "React UI", "sublabel": "地圖 / 列表 / ChatWidget", "width": 148 },
+    { "id": "api", "lane": "api_lane", "col": 1, "type": "backend", "label": "POST /chat 或 GET", "sublabel": "FastAPI + request id", "width": 148 },
+    { "id": "resolve", "lane": "api_lane", "col": 2, "type": "backend", "label": "解析園所脈絡", "sublabel": "park_id / 名稱 / 候選", "width": 148 },
+    { "id": "snapshot", "lane": "data_lane", "col": 2, "type": "database", "label": "Serving Snapshot", "sublabel": "風險、原因、明細", "width": 148 },
+    { "id": "laws", "lane": "data_lane", "col": 3, "type": "cloud", "label": "法規檢索", "sublabel": "Knowledge Base + citations", "tag": "RAG", "width": 148 },
+    { "id": "prompt", "lane": "api_lane", "col": 3, "type": "backend", "label": "Grounded Prompt", "sublabel": "園況 + 條文 + 問題", "width": 128 },
+    { "id": "model", "lane": "api_lane", "col": 5, "type": "cloud", "label": "Bedrock Claude", "sublabel": "限速後呼叫", "width": 112 },
+    { "id": "guard", "lane": "policy_lane", "col": 5, "type": "security", "label": "回答檢查", "sublabel": "引用 / 未驗證參照", "tag": "fail safe", "width": 148 },
+    { "id": "reply", "lane": "web_lane", "col": 5, "type": "frontend", "label": "回答與引用", "sublabel": "答案 / 園所 / 條文", "width": 148 },
+    { "id": "fallback", "lane": "fallback_lane", "col": 5, "type": "backend", "label": "模板 / 錯誤回應", "sublabel": "AWS 不可用或未啟用", "width": 148 },
+    { "id": "sources", "lane": "offline_lane", "col": 0, "type": "external", "label": "公開資料源", "sublabel": "六類資料", "width": 148 },
+    { "id": "etl", "lane": "offline_lane", "col": 1, "type": "backend", "label": "ETL + Model", "sublabel": "去識別化 / 回測 / 評分", "width": 148 },
+    { "id": "publish", "lane": "offline_lane", "col": 3, "type": "cloud", "label": "發布快照", "sublabel": "S3 / laws.jsonl", "width": 148 }
+  ],
+  "edges": [
+    { "id": "user-web", "from": "user", "to": "web", "label": "查詢 / 提問", "role": "main" },
+    { "id": "web-api", "from": "web", "to": "api", "label": "HTTPS JSON", "role": "main", "variant": "emphasis" },
+    { "id": "api-resolve", "from": "api", "to": "resolve", "label": "解析 request", "role": "main" },
+    { "id": "resolve-snapshot", "from": "resolve", "to": "snapshot", "label": "讀取園況與風險", "role": "main" },
+    { "id": "snapshot-laws", "from": "snapshot", "to": "laws", "label": "需要法規 grounding", "role": "main", "variant": "security" },
+    { "id": "laws-prompt", "from": "laws", "to": "prompt", "label": "園況條文 + citations", "role": "main", "variant": "security" },
+    { "id": "prompt-model", "from": "prompt", "to": "model", "role": "main", "variant": "emphasis" },
+    { "id": "model-guard", "from": "model", "to": "guard", "role": "main" },
+    { "id": "guard-reply", "from": "guard", "to": "reply", "label": "答案 + 引用 + 警示", "role": "main", "variant": "emphasis", "labelDy": -28 },
+    { "id": "model-fallback", "from": "model", "to": "fallback", "label": "未啟用 / 呼叫失敗", "role": "error", "variant": "security" },
+    { "id": "sources-etl", "from": "sources", "to": "etl", "label": "原始公開資料", "role": "main" },
+    { "id": "etl-publish", "from": "etl", "to": "publish", "label": "serving snapshot", "role": "main", "variant": "emphasis" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "線上查詢",
+      "items": [
+        "GET 路由直接回傳風險、地圖、明細與派工資料",
+        "POST /chat 先解析園所，再組合園況證據",
+        "無法唯一匹配時回傳候選，不猜測園所"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "RAG 對答",
+      "items": [
+        "Knowledge Base 提供條文與 citations",
+        "Bedrock Claude 只在啟用且可呼叫時使用",
+        "回答檢查未驗證引用，失敗時保留可解釋 fallback"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "資料更新",
+      "items": [
+        "ETL 先去識別化，再建立 curated 與模型快照",
+        "法規 PDF 轉成一條一份的 laws.jsonl",
+        "線上服務只讀一致的 serving snapshot"
+      ]
+    }
+  ]
+}
