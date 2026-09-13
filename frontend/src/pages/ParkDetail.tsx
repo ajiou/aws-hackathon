@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useApi, useMeta, usePark } from "../api/queries";
-import { briefSchema, type Park, type Meta } from "../api/types";
+import {
+  briefSchema,
+  worklistSchema,
+  type Park,
+  type Meta,
+} from "../api/types";
 import { useUrlState } from "../hooks/useUrlState";
 import {
   QueryState,
@@ -10,7 +15,7 @@ import {
   CopyLink,
   SafeLink,
 } from "../components/common";
-import { number } from "../utils/format";
+import { number, isoWeek } from "../utils/format";
 import s from "../styles/App.module.css";
 const tabs = ["裁罰紀錄", "評鑑歷程", "收費明細", "財報"];
 /** finance.metrics 的原始 key 是英文縮寫，稽查人員看不懂 fee_deviation 是什麼。
@@ -174,6 +179,13 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
     `/parks/${encodeURIComponent(park.park_id)}/brief`,
     briefSchema,
   );
+  // 本週派工單只收前 50 名，所以大多數園沒有派工單，按鈕就不該出現——出現了
+  // 等於暗示每一園都要派人去。k 固定 50（實際會發下去的那份），不跟著使用者
+  // 在派工單頁選的 100／200 走，否則同一園在不同頁面會給出不同答案。
+  // 查詢字串與派工單頁完全相同，react-query 共用同一份快取。
+  const week = isoWeek();
+  const sheet = useApi(`/worklist?week=${week}&k=50`, worklistSchema);
+  const onSheet = sheet.data?.items.some((i) => i.park_id === park.park_id);
   const { params, update } = useUrlState();
   const active = Math.min(3, Math.max(0, Number(params.get("tab")) || 0));
   const has = [
@@ -191,6 +203,14 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
         <Link to="/">返回總覽</Link>
         <CopyLink />
         <button onClick={() => window.print()}>列印分析</button>
+        {onSheet && (
+          <Link
+            className={s.primary}
+            to={`/worklist?week=${week}&k=50&park=${encodeURIComponent(park.park_id)}`}
+          >
+            本園派工單
+          </Link>
+        )}
       </PageHeader>
       <p>
         {park.address} ·{" "}

@@ -107,6 +107,38 @@ test("detail missing data and print expansion; worklist has 25 non-splitting A4 
   }
   await task.destroy();
 });
+// 派工單按鈕只對「本週真的要去查的園」出現。每一園都有按鈕等於暗示每一園都
+// 要派人去，那份名單就沒有篩選的意義了。
+test("the single-park dispatch sheet appears only for parks on this week's sheet", async ({
+  page,
+}) => {
+  await page.goto(`/park/${parkId}`);
+  const button = page.getByRole("link", { name: "本園派工單", exact: true });
+  await expect(button).toBeVisible();
+  await button.click();
+  await expect(page).toHaveURL(new RegExp(`park=${parkId}`));
+  await expect(
+    page.getByRole("heading", { level: 1, name: "稽查派工單（單園）" }),
+  ).toBeVisible();
+  await expect(page.locator("[data-work-item]")).toHaveCount(1);
+  await expect(page.locator("[data-work-item]")).toContainText(
+    "新北市私立景光幼兒園",
+  );
+  await expect(page.getByText("簽章")).toBeVisible();
+  await page.getByRole("link", { name: "顯示完整派工單" }).click();
+  await expect(page.locator("[data-work-item]")).toHaveCount(50);
+
+  // 排名 201 的園不在前 50 名內，詳細頁不該出現按鈕。
+  await page.goto("/park/348398a1-1f14-42da-bc82-c7f6fb874e96");
+  await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "本園派工單", exact: true }),
+  ).toHaveCount(0);
+  // 但直接帶網址進來時要說明原因，不能給一張空白紙。
+  await page.goto("/worklist?park=348398a1-1f14-42da-bc82-c7f6fb874e96");
+  await expect(page.getByText(/不在.*名派工名單內/)).toBeVisible();
+  await expect(page.locator("[data-work-item]")).toHaveCount(0);
+});
 test("responsive widths never overflow the document", async ({ page }) => {
   for (const width of [1280, 1024, 768, 375])
     for (const path of [
