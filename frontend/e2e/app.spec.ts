@@ -226,9 +226,9 @@ test("the navigation marks the current tab and treats /map as the map tab", asyn
   await expect(map).not.toHaveAttribute("aria-current", "page");
 });
 
-// 輿情頁的三件事：排序是報導數由多到少、切點後的報導有標出來沒被算進分數、
-// 點園名要直接落在詳情頁的新聞輿情分頁（不是丟使用者進去自己找 tab）。
-test("the media page ranks by article count and never hides post-cutoff coverage", async ({
+// 輿情頁的三件事：排序是報導數由多到少、版面只留關注度所需的資訊、點園名要
+// 直接落在詳情頁的新聞輿情分頁（不是丟使用者進去自己找 tab）。
+test("the media page ranks by article count and keeps the row to the essentials", async ({
   page,
 }) => {
   await page.goto("/media");
@@ -246,8 +246,11 @@ test("the media page ranks by article count and never hides post-cutoff coverage
   await expect(
     page.getByText(/觀察窗 \d{4}-\d{2}-\d{2} ～ \d{4}-\d{2}-\d{2}/),
   ).toBeVisible();
-  // 切點後的報導必須標明未計入分數，不能安靜地混進關注度排序裡。
-  await expect(page.getByText("未計入風險分數").first()).toBeVisible();
+  // 這一頁不放序號、不放嚴重度、也不逐列重複「未計入分數」——「輿情為什麼
+  // 不進分數」由單園頁四維度表的 sentiment note 講一次就好。
+  await expect(page.getByText("未計入風險分數")).toHaveCount(0);
+  await expect(page.getByText(/嚴重度/)).toHaveCount(0);
+  await expect(page.getByText("僅供人工查證")).toHaveCount(0);
 
   await rows.first().getByRole("link").first().click();
   await expect(page).toHaveURL(/\/park\/[^?]+\?tab=\d+/);
