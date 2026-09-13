@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useApi, useMeta, usePark } from "../api/queries";
 import {
@@ -6,18 +6,22 @@ import {
   worklistSchema,
   type Park,
   type Meta,
+  type MediaCoverage,
 } from "../api/types";
 import { useUrlState } from "../hooks/useUrlState";
 import {
   QueryState,
   PageHeader,
   RiskScore,
-  CopyLink,
   SafeLink,
 } from "../components/common";
 import { number, isoWeek } from "../utils/format";
 import s from "../styles/App.module.css";
-const tabs = ["裁罰紀錄", "評鑑歷程", "收費明細", "財報"];
+const tabs = ["裁罰紀錄", "評鑑歷程", "收費明細", "財報", "新聞輿情"];
+/** 新聞輿情分頁的索引。輿情列表頁用 `?tab=${MEDIA_TAB}` 直接帶進來，
+ *  寫死 4 的話之後插分頁就會靜悄悄地連到錯的地方。 */
+export const MEDIA_TAB = tabs.indexOf("新聞輿情");
+const LAST_TAB = tabs.length - 1;
 /** finance.metrics 的原始 key 是英文縮寫，稽查人員看不懂 fee_deviation 是什麼。
  *  三個同儕群各有各的指標集（收費 6 項／公立-獨立決算 10 項／非營利 8 項），
  *  這裡一次涵蓋。年度欄不當成指標顯示，它已經在標題列上。 */
@@ -113,12 +117,17 @@ export function Timeline({ park, cutoff }: { park: Park; cutoff: string }) {
  *  （44 篇報導、園長遭聲押）全部落在切點之後，舊版頁面只寫「未偵測到明文
  *  點名之報導」，等於把稽查人員最需要知道的事藏起來。切點後的報導標明
  *  〔未計入分數〕，讓兩件事各自成立：分數沒有洩漏，人看得到最新狀況。 */
-export function MediaPanel({ park, cutoff }: { park: Park; cutoff: string }) {
-  const [expanded, setExpanded] = useState(false);
+export function MediaPanel({
+  park,
+  cutoff,
+  onOpenEvidence,
+}: {
+  park: Park;
+  cutoff: string;
+  onOpenEvidence: () => void;
+}) {
   const coverage = park.media_coverage ?? [];
   const recent = coverage.filter((c) => c.is_after_cutoff).length;
-  // 同一起事件常被十幾家媒體同日轉載，全部攤開會把其他事件擠到看不見。
-  const shown = expanded ? coverage : coverage.slice(0, 5);
   return (
     <section className={s.panel}>
       <h2>輿情訊號</h2>
@@ -130,37 +139,26 @@ export function MediaPanel({ park, cutoff }: { park: Park; cutoff: string }) {
       ) : (
         <p>
           切點（{cutoff}）前未偵測到明文點名之報導
-          {recent > 0 ? "，但切點之後有：" : "。未被報導不代表無風險。"}
+          {recent > 0 ? "，但切點之後有報導。" : "。未被報導不代表無風險。"}
         </p>
       )}
       {coverage.length > 0 && (
-        <ul className={s.coverageList}>
-          {shown.map((c, i) => (
-            <li key={i}>
-              <span className={s.rowMeta}>
-                {c.date} · {c.outlet ?? "來源未提供"}
-                {c.event_type ? ` · ${c.event_type}` : ""}
-                {c.is_after_cutoff && (
-                  <b className={s.afterCutoffTag}>〔未計入分數〕</b>
-                )}
-              </span>
-              {c.url ? <SafeLink href={c.url}>{c.title}</SafeLink> : c.title}
-            </li>
-          ))}
-        </ul>
-      )}
-      {coverage.length > 5 && (
-        <button
-          aria-expanded={expanded}
-          data-print-expand
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? "收合" : `展開其餘 ${coverage.length - 5} 則`}
-        </button>
-      )}
-      {coverage.length > 0 && (
-        <p className={s.note}>
-          報導由關鍵字比對掛回園所，僅供人工查證，不參與打分。
+        <p className={s.rowMeta}>
+          共 {coverage.length} 則明文點名報導
+          {recent > 0 && (
+            <>
+              ，其中 {recent} 則在切點之後
+              <b className={s.afterCutoffTag}>〔未計入分數〕</b>
+            </>
+          )}
+          。{/* 這面板只放量化結果；逐則報導在「新聞輿情」分頁的證據鏈。 */}
+          <button
+            type="button"
+            className={s.linkButton}
+            onClick={onOpenEvidence}
+          >
+            查看完整證據鏈 →
+          </button>
         </p>
       )}
       {/* 熱度 0 的區給名次是誤導：29 區裡有 18 區熱度都是 0，
@@ -172,6 +170,69 @@ export function MediaPanel({ park, cutoff }: { park: Park; cutoff: string }) {
           : "（本區無報導，不排名次）"}
       </p>
     </section>
+  );
+}
+/** 證據鏈：日期／事件／立場／來源／標題。面板給的是量化結果，這裡給的是
+ *  可以逐則點開查證的原始報導，所以一則都不摺疊。 */
+function MediaEvidence({
+  rows,
+  cutoff,
+}: {
+  rows: MediaCoverage[];
+  cutoff: string;
+}) {
+  if (!rows.length)
+    return (
+      <p>
+        查無明文點名本園之報導。未被報導不代表無風險——
+        只代表關鍵字比對沒有掛上任何一則。
+      </p>
+    );
+  return (
+    <>
+      <p className={s.note}>
+        由新到舊。報導由關鍵字比對掛回園所，僅供人工查證，不參與打分；
+        標示〔未計入分數〕者發生在切點（{cutoff}）之後，刻意保留給稽查人員看。
+      </p>
+      <div className={s.tableWrap}>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">日期</th>
+              <th scope="col">事件</th>
+              <th scope="col">立場</th>
+              <th scope="col">來源</th>
+              <th scope="col">標題</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((c, i) => (
+              <tr key={i}>
+                <td className={s.num}>
+                  {c.date}
+                  {c.is_after_cutoff && (
+                    <b className={s.afterCutoffTag}>〔未計入分數〕</b>
+                  )}
+                </td>
+                <td>
+                  {c.event_type ?? "未分類"}
+                  {c.severity ? ` · 嚴重度 ${c.severity}` : ""}
+                </td>
+                <td>{c.stance ?? "未判讀"}</td>
+                <td>{c.outlet ?? "未提供"}</td>
+                <td>
+                  {c.url ? (
+                    <SafeLink href={c.url}>{c.title}</SafeLink>
+                  ) : (
+                    c.title
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 function Content({ park, meta }: { park: Park; meta: Meta }) {
@@ -187,21 +248,39 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
   const sheet = useApi(`/worklist?week=${week}&k=50`, worklistSchema);
   const onSheet = sheet.data?.items.some((i) => i.park_id === park.park_id);
   const { params, update } = useUrlState();
-  const active = Math.min(3, Math.max(0, Number(params.get("tab")) || 0));
+  const active = Math.min(
+    LAST_TAB,
+    Math.max(0, Number(params.get("tab")) || 0),
+  );
   const has = [
     park.timeline.length,
     park.evaluations?.length,
     park.fees?.length,
     park.finance?.length,
+    park.media_coverage?.length,
   ];
+  // 從輿情列表頁帶 ?tab=4 進來時，證據鏈通常在摺線以下。只捲一次：
+  // 之後使用者自己點分頁不該把畫面搶走。
+  const tabsRef = useRef<HTMLDivElement>(null);
+  const scrolled = useRef(false);
+  useEffect(() => {
+    if (scrolled.current || active !== MEDIA_TAB || !has[MEDIA_TAB]) return;
+    scrolled.current = true;
+    tabsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [active, has]);
   return (
     <div className={s.limited}>
+      {/* 返回連結自己一行放在標題左上方，不跟動作鈕擠在同一排——它是導覽不是
+          動作，混在三顆按鈕裡讀起來像第四個功能。指向 /overview 而不是 /：
+          首頁已經改成地圖，寫「返回總覽」卻跳到地圖是兩件事。 */}
+      <Link to="/overview" className={`${s.backLink} no-print`}>
+        ← 返回總覽
+      </Link>
       <PageHeader
         title={park.name}
         description={`${park.town} · ${park.institution_type} · 核定 ${park.count_approved ?? "未提供"} 人 · ${park.tel || "未提供電話"}${!park.is_active ? " · 已停辦" : ""}`}
       >
-        <Link to="/">返回總覽</Link>
-        <CopyLink />
+        {/* 複製連結拿掉：網址列本來就在，這顆按鈕只是把同一件事再做一次。 */}
         <button onClick={() => window.print()}>列印分析</button>
         {onSheet && (
           <Link
@@ -244,9 +323,18 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
             )}
           </QueryState>
         </section>
-        <MediaPanel park={park} cutoff={meta.cutoff} />
+        <MediaPanel
+          park={park}
+          cutoff={meta.cutoff}
+          onOpenEvidence={() => update("tab", String(MEDIA_TAB), false, true)}
+        />
       </div>
-      <div className={s.tabs} role="tablist" aria-label="園所資料">
+      <div
+        className={s.tabs}
+        role="tablist"
+        aria-label="園所資料"
+        ref={tabsRef}
+      >
         {tabs.map((tab, i) => (
           <button
             key={tab}
@@ -260,13 +348,13 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
             onKeyDown={(e) => {
               const index =
                 e.key === "ArrowRight"
-                  ? (i + 1) % 4
+                  ? (i + 1) % tabs.length
                   : e.key === "ArrowLeft"
-                    ? (i + 3) % 4
+                    ? (i + tabs.length - 1) % tabs.length
                     : e.key === "Home"
                       ? 0
                       : e.key === "End"
-                        ? 3
+                        ? LAST_TAB
                         : -1;
               if (index >= 0) {
                 e.preventDefault();
@@ -423,6 +511,12 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
                       "本次資料未提供財務報告，請向資料來源確認。")}
               </p>
             ))}
+          {i === MEDIA_TAB && (
+            <MediaEvidence
+              rows={park.media_coverage ?? []}
+              cutoff={meta.cutoff}
+            />
+          )}
         </section>
       ))}
     </div>

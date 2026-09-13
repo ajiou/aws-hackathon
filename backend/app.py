@@ -1,11 +1,12 @@
-"""Nine FastAPI endpoints implementing the frozen Smart Watchdog contract."""
+"""Ten FastAPI endpoints implementing the frozen Smart Watchdog contract."""
 
 import json
 import logging
 import re
 import time
 import uuid
-from datetime import date
+from collections import Counter
+from datetime import date, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, FastAPI, Query, Request
@@ -22,6 +23,7 @@ from backend.schemas import (
     Districts,
     ErrorResponse,
     FeatureCollection,
+    MediaPage,
     Meta,
     ParkDetail,
     ParkPage,
@@ -29,7 +31,7 @@ from backend.schemas import (
     Worklist,
 )
 from backend.services import brief_for, current_week, worklist_for
-from backend.store import DataNotReady, ServingStore
+from backend.store import DataNotReady, ServingStore, records
 
 logger = logging.getLogger("watchdog.api")
 logger.setLevel(logging.INFO)
@@ -259,6 +261,54 @@ def create_app(settings: Settings | None = None, store: ServingStore | None = No
     @router.get("/risk/top", response_model=RiskTop, response_model_exclude_unset=True)
     def top(k: Annotated[int, Query(ge=1, le=200)] = 50):
         return {"k": k, "items": store.ranked()[:k]}
+
+    @router.get("/media", response_model=MediaPage, response_model_exclude_unset=True)
+    def media(months: Annotated[int, Query(ge=1, le=120)] = 12):
+        """觀察窗內有明文點名報導的園所，依報導數由多到少。
+
+        觀察窗錨在資料集最後一則報導的日期，不是今天：錨在今天的話，
+        資料一週沒更新，「近 12 個月」就會悄悄少掉一週的報導，同一份
+        demo 在不同日子跑出不同名單。錨在資料上，結果可重現，`as_of`
+        也照實把資料截止日寫給使用者看。
+        """
+        rows = records(store.load("media_coverage", optional=True) or {})
+        if not rows:
+            return {"months": months, "as_of": "", "since": "", "items": []}
+        as_of = max(r["date"] for r in rows)
+        since = (date.fromisoformat(as_of) - timedelta(days=months * 30)).isoformat()
+        parks = store.parks()
+        grouped: dict[str, list[dict]] = {}
+        for row in rows:
+            if row["date"] >= since and row["park_id"] in parks:
+                grouped.setdefault(row["park_id"], []).append(row)
+        items = []
+        for park_id, group in grouped.items():
+            park = parks[park_id]
+            severities = [r["severity"] for r in group if r.get("severity")]
+            kinds = Counter(r["event_type"] for r in group if r.get("event_type"))
+            items.append(
+                {
+                    "park_id": park_id,
+                    "name": park.name,
+                    "town": park.town,
+                    "tier": park.risk.tier,
+                    "sri": park.media.sri,
+                    "article_count": len(group),
+                    "latest_date": max(r["date"] for r in group),
+                    "max_severity": max(severities) if severities else None,
+                    # most_common 在平手時看插入順序，也就是看 media_coverage
+                    # 的列序——重跑 ETL 換個排序，同一園的「主要事件類型」就會
+                    # 變。平手時用類型名決勝，讓它是資料的函數而不是檔案的。
+                    # mock 端（api/mock.ts）用同一條規則。
+                    "top_event_type": (
+                        min(kinds.items(), key=lambda kv: (-kv[1], kv[0]))[0] if kinds else None
+                    ),
+                    "after_cutoff_count": sum(1 for r in group if r["is_after_cutoff"]),
+                }
+            )
+        # 報導數相同時用最新日期再用 park_id 決勝，排序才是全序、每次都一樣。
+        items.sort(key=lambda i: (-i["article_count"], i["latest_date"], i["park_id"]))
+        return {"months": months, "as_of": as_of, "since": since, "items": items}
 
     @router.get("/districts", response_model=Districts, response_model_exclude_unset=True)
     def districts():

@@ -61,6 +61,45 @@ def test_list_pagination_filters_and_aliases(client):
     assert client.get(BASE + "/parks?q=不存在").json()["total"] == 0
 
 
+def test_media_page_aggregates_by_park_and_anchors_the_window_to_the_data(client):
+    """/media 的四個容易走偏的地方一次釘住。
+
+    觀察窗錨在資料最後一則報導，不是今天——錨在今天的話，資料一週沒更新，
+    「近 12 個月」就會悄悄少掉一週，同一份 demo 在不同日子跑出不同名單。
+    """
+    body = client.get(BASE + "/media").json()
+    assert body["as_of"] == "2025-03-06"  # 含查無園所那列的日期，錨點看的是資料
+    assert body["since"] < body["as_of"]
+    items = {i["park_id"]: i for i in body["items"]}
+
+    # 1. 指向不存在園所的報導直接丟掉，不會生出一列沒有名字的園。
+    assert "park-404" not in items
+    # 2. 觀察窗外的報導不計入（park-3 只有 2019 那一則）。
+    assert "park-3" not in items
+    # 3. 聚合數字。切點後的報導照收並單獨計數，讓前端標示得出來。
+    assert items["park-1"]["article_count"] == 3
+    assert items["park-1"]["after_cutoff_count"] == 2
+    assert items["park-1"]["latest_date"] == "2025-03-05"
+    assert items["park-1"]["max_severity"] == 3  # severity 為 None 的那列略過
+    # 4. 平手時用類型名決勝。超收與師生比各 1 次，靠 Counter 的插入順序會拿到
+    #    「超收」（列序在前），重跑 ETL 換個排序就會變；穩定實作回「師生比」。
+    assert items["park-1"]["top_event_type"] == "師生比"
+
+    # 排序：報導數多的在前。
+    assert [i["park_id"] for i in body["items"]] == ["park-1", "park-2"]
+
+
+def test_media_window_narrows_with_months_and_never_shows_names(client):
+    narrow = client.get(BASE + "/media?months=1").json()
+    assert narrow["months"] == 1
+    assert narrow["since"] > client.get(BASE + "/media").json()["since"]
+    # 一個月的窗只留 2025-02-05 之後的，park-2 那則 2025-02-01 掉出去。
+    assert [i["park_id"] for i in narrow["items"]] == ["park-1"]
+    assert narrow["items"][0]["article_count"] == 2
+    # 契約裡沒有任何自然人欄位，回應也不得夾帶。
+    assert "owner" not in json.dumps(narrow, ensure_ascii=False)
+
+
 def test_punished_filter_separates_parks_with_and_without_records(client):
     """有無裁罰紀錄要兩邊都篩得出來。
 
@@ -211,8 +250,11 @@ def test_detail_merges_related_data(serving_dir):
 
 def test_detail_without_media_coverage_file_returns_empty_list(serving_dir):
     """沒有這份 serving 檔就是沒有輿情明細，不得回退到別的來源。"""
+    (serving_dir / "media_coverage.json").unlink()
     with TestClient(create_app(Settings(serving_dir=serving_dir))) as c:
         assert c.get(BASE + "/parks/park-1").json()["media_coverage"] == []
+        # 輿情分頁同樣不得無中生有，且空窗要回得乾淨而不是 500。
+        assert c.get(BASE + "/media").json()["items"] == []
 
 
 def test_media_coverage_is_the_one_place_after_cutoff_dates_are_allowed(serving_dir):
@@ -323,7 +365,7 @@ def test_cors_and_openapi(client):
     assert bad_preflight.status_code == 400
     assert bad_preflight.json()["error"]["code"] == "INVALID_PARAM"
     schema = client.get("/openapi.json").json()
-    assert len(schema["paths"]) == 9
+    assert len(schema["paths"]) == 10
     assert "400" in schema["paths"][BASE + "/parks"]["get"]["responses"]
     assert "422" not in schema["paths"][BASE + "/parks"]["get"]["responses"]
 

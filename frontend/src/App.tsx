@@ -1,6 +1,12 @@
 import { lazy, Suspense, useEffect } from "react";
 import { NavLink, Link, Route, Routes, useLocation } from "react-router-dom";
-import { ShieldCheck, LayoutDashboard, Map, ClipboardList } from "lucide-react";
+import {
+  ShieldCheck,
+  LayoutDashboard,
+  Map,
+  ClipboardList,
+  Newspaper,
+} from "lucide-react";
 import { useMeta } from "./api/queries";
 import { isMock } from "./api/client";
 import { Skeleton } from "./components/common";
@@ -14,6 +20,7 @@ const ParkDetail = lazy(() => import("./pages/ParkDetail"));
 const Districts = lazy(() => import("./pages/Districts"));
 const MapPage = lazy(() => import("./pages/MapPage"));
 const Worklist = lazy(() => import("./pages/Worklist"));
+const Media = lazy(() => import("./pages/Media"));
 // 地圖是首頁，但它仍然要在導覽列出現：只靠左上角標誌回首頁的話，畫面上就沒有
 // 任何地方顯示「你現在在地圖」。兩個分頁並列、目前所在的那個畫底線。
 const navigation = [
@@ -21,6 +28,7 @@ const navigation = [
   // 會看到兩個分頁都沒有底線。
   { path: "/", alias: "/map", label: "園所風險地圖", icon: Map },
   { path: "/overview", label: "總覽搜尋", icon: LayoutDashboard },
+  { path: "/media", label: "新聞輿情", icon: Newspaper },
 ];
 export default function App() {
   const meta = useMeta();
@@ -30,6 +38,7 @@ export default function App() {
       "/map": "園所風險地圖",
       "/districts": "行政區熱力",
       "/worklist": "稽查派工單",
+      "/media": "新聞輿情",
     };
     document.title = `${navigation.find(({ path }) => path === location.pathname)?.label ?? named[location.pathname] ?? "單園分析"} · 小小守護員`;
   }, [location.pathname]);
@@ -66,7 +75,10 @@ export default function App() {
           {/* 導覽列接在搜尋框右邊，不再自成一排。 */}
           <nav
             aria-label="主要導覽"
-            className="flex min-w-0 gap-1 overflow-x-auto py-1"
+            // lg 以上導覽列定寬、由搜尋框讓位，分頁一個都不裁。lg 以下
+            // md:flex-nowrap 把整列鎖成一行，導覽列再定寬就會把 header
+            // 撐出橫向捲軸，所以窄螢幕還是讓導覽列自己橫向捲。
+            className="flex min-w-0 gap-1 overflow-x-auto py-1 lg:min-w-fit lg:shrink-0"
           >
             {navigation.map(({ path, alias, label, icon: Icon }) => {
               const isActive =
@@ -122,6 +134,7 @@ export default function App() {
               <Route path="/park/:id" element={<ParkDetail />} />
               <Route path="/districts" element={<Districts />} />
               <Route path="/worklist" element={<Worklist />} />
+              <Route path="/media" element={<Media />} />
               <Route
                 path="*"
                 element={

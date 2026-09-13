@@ -37,7 +37,10 @@ export function GlobalSearch() {
     <form
       role="search"
       aria-label="園所搜尋"
-      className="relative ml-auto w-full max-w-sm min-w-48"
+      // basis-96 是想要的寬度，不是保證寬度：導覽列多一個分頁之後，
+      // 1280px 下六個元素排不進一行，總得有人讓位。讓搜尋框讓——它縮到
+      // 12rem 還打得了字，導覽列少一個像素就有分頁被裁掉看不見。
+      className="relative ml-auto w-full min-w-48 shrink basis-96"
       onSubmit={(event) => {
         event.preventDefault();
         submit(search);
