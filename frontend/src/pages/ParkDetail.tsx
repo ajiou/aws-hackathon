@@ -115,8 +115,11 @@ export function Timeline({ park, cutoff }: { park: Park; cutoff: string }) {
 }
 /** 輿情。分數那條路必須守切點，這一面板刻意不守——欣勵德 2026-04 的虐童案
  *  （44 篇報導、園長遭聲押）全部落在切點之後，舊版頁面只寫「未偵測到明文
- *  點名之報導」，等於把稽查人員最需要知道的事藏起來。切點後的報導標明
- *  〔未計入分數〕，讓兩件事各自成立：分數沒有洩漏，人看得到最新狀況。 */
+ *  點名之報導」，等於把稽查人員最需要知道的事藏起來。
+ *
+ *  這裡不再逐處標「未計入分數」。同一句話在一頁上出現四次，看的人只會學會
+ *  略過它；而「輿情為什麼不進分數」現在由四維度表的 sentiment note 完整說明
+ *  （見 model/score.py 的三種寫法），講一次、講在該講的地方就夠。 */
 export function MediaPanel({
   park,
   cutoff,
@@ -145,13 +148,8 @@ export function MediaPanel({
       {coverage.length > 0 && (
         <p className={s.rowMeta}>
           共 {coverage.length} 則明文點名報導
-          {recent > 0 && (
-            <>
-              ，其中 {recent} 則在切點之後
-              <b className={s.afterCutoffTag}>〔未計入分數〕</b>
-            </>
-          )}
-          。{/* 這面板只放量化結果；逐則報導在「新聞輿情」分頁的證據鏈。 */}
+          {recent > 0 && <>，其中 {recent} 則在切點之後</>}。
+          {/* 這面板只放量化結果；逐則報導在「新聞輿情」分頁的證據鏈。 */}
           <button
             type="button"
             className={s.linkButton}
@@ -174,13 +172,7 @@ export function MediaPanel({
 }
 /** 證據鏈：日期／事件／立場／來源／標題。面板給的是量化結果，這裡給的是
  *  可以逐則點開查證的原始報導，所以一則都不摺疊。 */
-function MediaEvidence({
-  rows,
-  cutoff,
-}: {
-  rows: MediaCoverage[];
-  cutoff: string;
-}) {
+function MediaEvidence({ rows }: { rows: MediaCoverage[] }) {
   if (!rows.length)
     return (
       <p>
@@ -191,8 +183,7 @@ function MediaEvidence({
   return (
     <>
       <p className={s.note}>
-        由新到舊。報導由關鍵字比對掛回園所，僅供人工查證，不參與打分；
-        標示〔未計入分數〕者發生在切點（{cutoff}）之後，刻意保留給稽查人員看。
+        由新到舊。報導由關鍵字比對掛回園所，僅供人工查證。
       </p>
       <div className={s.tableWrap}>
         <table>
@@ -208,16 +199,8 @@ function MediaEvidence({
           <tbody>
             {rows.map((c, i) => (
               <tr key={i}>
-                <td className={s.num}>
-                  {c.date}
-                  {c.is_after_cutoff && (
-                    <b className={s.afterCutoffTag}>〔未計入分數〕</b>
-                  )}
-                </td>
-                <td>
-                  {c.event_type ?? "未分類"}
-                  {c.severity ? ` · 嚴重度 ${c.severity}` : ""}
-                </td>
+                <td className={s.num}>{c.date}</td>
+                <td>{c.event_type ?? "未分類"}</td>
                 <td>{c.stance ?? "未判讀"}</td>
                 <td>{c.outlet ?? "未提供"}</td>
                 <td>
@@ -512,10 +495,7 @@ function Content({ park, meta }: { park: Park; meta: Meta }) {
               </p>
             ))}
           {i === MEDIA_TAB && (
-            <MediaEvidence
-              rows={park.media_coverage ?? []}
-              cutoff={meta.cutoff}
-            />
+            <MediaEvidence rows={park.media_coverage ?? []} />
           )}
         </section>
       ))}

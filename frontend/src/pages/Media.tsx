@@ -17,10 +17,9 @@ import s from "../styles/App.module.css";
  *  舊案端上來當「近期輿情」。 */
 const MONTHS = 12;
 
-function MediaRow({ park, rank }: { park: MediaPark; rank: number }) {
+function MediaRow({ park }: { park: MediaPark }) {
   return (
     <article className={s.riskRow}>
-      <div className={s.rank}>{rank}</div>
       <div>
         <div className={s.rowTitle}>
           <h2>
@@ -37,17 +36,6 @@ function MediaRow({ park, rank }: { park: MediaPark; rank: number }) {
           <b className={s.num}>{park.article_count}</b> 則報導 · 最近{" "}
           {park.latest_date}
           {park.top_event_type ? ` · 主要事件 ${park.top_event_type}` : ""}
-          {park.max_severity ? ` · 最高嚴重度 ${park.max_severity}` : ""}
-        </p>
-        <p className={s.note}>
-          報導由關鍵字比對掛回園所，僅供人工查證。
-          {park.after_cutoff_count > 0 && (
-            <>
-              {" "}
-              其中 {park.after_cutoff_count} 則在切點之後，
-              <b className={s.afterCutoffTag}>未計入風險分數</b>。
-            </>
-          )}
         </p>
       </div>
     </article>
@@ -74,8 +62,8 @@ export default function Media() {
                 名單都一樣）。只列出報導明文點名的園所；沒被點名不代表沒有風險。
               </p>
               <section aria-label="輿情關注度排序">
-                {data.items.map((park, i) => (
-                  <MediaRow key={park.park_id} park={park} rank={i + 1} />
+                {data.items.map((park) => (
+                  <MediaRow key={park.park_id} park={park} />
                 ))}
               </section>
             </>
