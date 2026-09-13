@@ -1206,6 +1206,8 @@ ocr/*.pdf       ┘              │    └─> SageMaker                     �
 | 運算 | Lambda | `lambda` | ✅ |
 | 模型訓練 | SageMaker Training Job | `sagemaker` | ✅ |
 | LLM 摘要（離線） | Bedrock | `bedrock` | ✅ ≤1 RPS |
+| 稽查助手（即時，ADR-0005） | Bedrock Claude（`us.anthropic.claude-opus-4-6-v1`）＋ Knowledge Bases | `bedrock` | ✅ ≤1 RPS，節流見 §10.2 |
+| 法規向量庫 | S3 Vectors | `s3vectors` | ✅ |
 | 日誌 | CloudWatch Logs | `logs` | ✅ |
 | IaC | CloudFormation / SAM | `cloudformation` | ✅ |
 | 地圖底圖（備案） | Location Service | `geo`, `geo-maps` | ✅ |
@@ -1309,7 +1311,7 @@ aws cloudfront create-invalidation --distribution-id <id> --paths "/*"
 
 Base: `https://<cloudfront-domain>/api/v1`
 
-全部 `GET`、無認證、回應 `application/json; charset=utf-8`。
+§8.1–§8.9 全部 `GET`、無認證、回應 `application/json; charset=utf-8`。唯一例外是 §8.10 `POST /chat`（ADR-0005，凍結後新增，不改動前九支）。
 
 **契約凍結原則**：欄位只增不改不刪。前端依此開發，`mock/` 下放同 schema 的假資料。
 
@@ -1522,6 +1524,39 @@ GeoJSON FeatureCollection，`properties` 含 `park_id / name / tier / risk_score
 
 `week` 省略時回傳當週。`k` 預設 50（對應「高風險」級的稽查名額），上限 200。
 
+### 8.10 `POST /chat` 稽查 AI 助手（ADR-0005 新增）
+
+凍結契約之後新增的端點，不影響 §8.1–§8.9。由獨立的 `ChatFunction` 處理（timeout 29 秒、reserved concurrency 1）。`CHAT_ENABLED` 與 `KB_ID` 都沒設時回 `503 ASSISTANT_DISABLED`；只設 `CHAT_ENABLED` 為基礎模式，不檢索法規，回應 `laws_enabled: false`。
+
+```json
+// request
+{"message": "○○幼兒園最近狀況如何？", "park_id": "（可省略；前端在單園頁或地圖選取時帶入）"}
+
+// response
+{
+  "source": "llm",
+  "answer": "一句話總結…\n風險現況\n- …\n建議稽查重點\n- 核對各班幼兒人數《幼兒教育及照顧法》第16條",
+  "park": {"park_id": "...", "name": "○○幼兒園", "town": "板橋區", "institution_type": "私立", "is_active": 1, "tier": "高", "rank": 3},
+  "candidates": [],
+  "citations": [{"law": "幼兒教育及照顧法", "article": "第16條", "snippet": "…", "url": "https://edu.law.moe.gov.tw/..."}],
+  "unverified_refs": []
+}
+```
+
+| `source` | 意義 |
+|---|---|
+| `llm` | 正常回答：知識庫檢索 ＋ Claude 生成 |
+| `fallback` | Bedrock 限流或失敗，退回 §8.8 的模板摘要，`citations` 為空 |
+| `candidates` | 園名多筆相符，`candidates` 列出至多 5 家，前端點選後帶 `park_id` 重問；**未呼叫 Bedrock** |
+| `blocked` | 訊息疑似含自然人姓名，**未送出 Bedrock** |
+
+規則：
+
+1. **LLM 不參與打分**（同 §8.8）。`park` 與 prompt 裡的分級、名次、裁罰紀錄全部取自 serving 資料。
+2. `unverified_refs` 列出回答中引用、但不在 `citations` 內的法規或條號，前端顯示警示。
+3. 回應一律 `Cache-Control: no-store`；log 不記問題原文。
+4. 同時第二題會被 Lambda 以 429 拒絕（reserved concurrency 1），前端顯示「助理忙碌中」，**不自動重試**。
+
 ---
 
 ## 9. 前端規格
@@ -1591,7 +1626,7 @@ GeoJSON FeatureCollection，`properties` 含 `park_id / name / tier / risk_score
 | 規範 | 對本專案的影響 | 處置 |
 |---|---|---|
 | 禁止公開 S3 Bucket | 前端不能用 S3 Website Hosting | CloudFront + **OAC**，bucket Block Public Access 全開 |
-| Bedrock ≤ 1 RPS | 不能即時呼叫 LLM | 所有 LLM 產出離線批次預算，寫入 `serving/` |
+| Bedrock ≤ 1 RPS | ~~不能即時呼叫 LLM~~ 即時對答須節流 | 派工單白話文仍離線批次；§8.10 稽查助手改即時，每題恰好 2 個請求、間隔 ≥1.1 秒、reserved concurrency 1，知識庫逐份匯入。見 [ADR-0005](adr/0005-稽查助手即時對答與法規知識庫.md) |
 | 僅限 us-east-1 / us-west-2 | — | 全部資源建在 **us-west-2** |
 | 不建議大規模訓練 | — | 1,212 列 × ~35 特徵，XGBoost 訓練 <2 分鐘，符合 |
 | 禁止上傳憑證到 GitHub | AWS 金鑰不得進 repo | `.gitignore` 已含 `.env` / `*credentials*` / `aws-env.ps1`；CI 用 OIDC 或 GitHub Secrets |

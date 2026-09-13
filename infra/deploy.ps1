@@ -7,7 +7,11 @@
 
 param(
     [string]$StackName = "watchdog-infra",
-    [string]$Region    = "us-west-2"
+    [string]$Region    = "us-west-2",
+    # 稽查助手（ADR-0005）：infra/rag/setup_kb.py 印出的 KB_ID。留空＝不啟用助手
+    [string]$KnowledgeBaseId = "",
+    # 沒有 KB_ID 也要部署助手（基礎模式：只用園況回答、不附法規）
+    [switch]$EnableChat
 )
 
 $ErrorActionPreference = "Stop"
@@ -81,6 +85,7 @@ aws cloudformation deploy `
     --stack-name $StackName `
     --capabilities CAPABILITY_IAM `
     --region $Region `
+    --parameter-overrides "KnowledgeBaseId=$KnowledgeBaseId" "EnableChat=$(if ($EnableChat) { 'true' } else { 'false' })" `
     --no-fail-on-empty-changeset
 if ($LASTEXITCODE -ne 0) { throw "deploy 失敗" }
 

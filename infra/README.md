@@ -24,8 +24,10 @@ cp950 無法解析 UTF-8 中文，會讓 `validate-template` 與 `package` 直�
 | `SiteOAC` | CloudFront OAC | `SigningBehavior: always` |
 | `SiteBucketPolicy` | S3 Policy | 只允許本 distribution 讀取；拒絕非 HTTPS |
 | `ApiCachePolicy` | CloudFront | TTL 60s、query string 進 cache key、不轉發 cookie |
-| `Distribution` | CloudFront | 兩個 behavior：`/api/*` → HttpApi、預設 → SiteBucket |
-| `ApiFunction` | Lambda | Python 3.12 / 512 MB / 10s / 保留並行 10 |
+| `Distribution` | CloudFront | 三個 behavior：`/api/v1/chat`（POST、不快取）與 `/api/*` → HttpApi、預設 → SiteBucket |
+| `ApiFunction` | Lambda | Python 3.12 / 512 MB / 10s / 保留並行 9 |
+| `ChatFunction` | Lambda | 稽查助手（ADR-0005）。29s / 保留並行 1；`EnableChat=true` 或 `KnowledgeBaseId` 非空時建立 |
+| `ChatLogGroup` | CloudWatch Logs | 保留 7 天 |
 | `HttpApi` | API Gateway | `$default` stage、限流 20 rps |
 | `ApiLogGroup` | CloudWatch Logs | 保留 7 天 |
 
@@ -68,6 +70,26 @@ SPEC §8.0 的錯誤契約一樣失效。
 ```
 
 不需要 SAM CLI。`aws cloudformation package` 做同樣的打包工作，少一個相依。
+
+## 稽查助手的法規知識庫（ADR-0005）
+
+知識庫**不在** `template.yaml` 裡，由 `infra/rag/setup_kb.py` 建立：Bedrock Knowledge
+Base、S3 Vectors 向量桶與索引、給 KB 用的 IAM role。腳本可重跑，已存在的資源直接沿用。
+
+```bash
+brew install poppler                               # pdftotext
+python -m etl.laws                                 # 法規/ PDF → out/kb/laws.jsonl（核心 24 部）
+AWS_PROFILE=hackathon python infra/rag/setup_kb.py            # 建資源 + 逐份匯入，印出 KB_ID
+AWS_PROFILE=hackathon python infra/rag/setup_kb.py --eval     # 15 題檢索命中率（門檻 80%）
+AWS_PROFILE=hackathon python infra/rag/setup_kb.py --query 師生比
+./infra/deploy.ps1 -KnowledgeBaseId <KB_ID>        # 建 ChatFunction 與 /api/v1/chat
+./infra/deploy.ps1 -EnableChat                     # 知識庫還沒好時：基礎模式，只用園況回答、不附法規
+```
+
+- **匯入約 50 分鐘**（592 份，一份一份送、輪詢到 INDEXED 才送下一份，所有 Bedrock 呼叫間隔 ≥1.1 秒）。中斷後重跑會從 `out/kb/ingested.txt` 續傳。**匯入期間不要同時 Demo 助手**，兩者合計會超過每秒 1 次。
+- 模型 `us.anthropic.claude-opus-4-6-v1`：2026-09-13 實測競賽帳號裡 Opus 5／Sonnet 5／Opus 4.7／4.8 都回 403，Opus 4.6、Sonnet 4.6、Haiku 4.5 可用。
+- `ApiFunction` 保留並行由 10 降為 9：競賽帳號只剩 100 的未保留並行，`ChatFunction` 的 1 必須從這裡讓出來。
+- 刪除知識庫：`aws bedrock-agent delete-knowledge-base`、`aws s3vectors delete-index`／`delete-vector-bucket`、`aws iam delete-role-policy`／`delete-role`（名稱都以 `watchdog-laws`／`watchdog-kb-` 開頭）。
 
 ## 刪除
 
