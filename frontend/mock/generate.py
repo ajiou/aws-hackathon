@@ -107,6 +107,10 @@ for pid, (p, gm) in base.items():
     # 輿情權重為 None = 該維度不進分數（ADR-0001）。跟營運維度一樣，
     # 權重與覆蓋率都算 0，而不是拿 0 分去拉低均值。
     has_media = w["sentiment"] is not None
+    # 園級（L1）輿情訊號。真實資料只有 14 / 1,178 園有，note 也因此分兩種寫法
+    # （見 model/score.py 的 SENTIMENT_L1_NOTE）。mock 若一律 False，前端那條
+    # 分支就永遠沒被畫過——契約凍結後靠 mock 開發的東西一律要在 mock 出現。
+    has_l1_media = abs(hash(("l1", p["id"]))) % 84 == 0
     parts = [("violation", vio, w["violation"], 1.0),
              ("evaluation", eva, w["evaluation"], 0.0 if e["n"] == 0 else 1.0),
              ("sentiment", med, w["sentiment"] or 0.0, 1.0 if has_media else 0.0),
@@ -166,10 +170,15 @@ for pid, (p, gm) in base.items():
                            "validated": True,
                            "note": None if e["n"] else "查無切點前之評鑑紀錄，可能為新立案園所"},
             "sentiment": {"applicable": has_media, "score": med if has_media else None,
-                          "coverage": 0.4, "weight": w["sentiment"], "validated": True,
+                          "coverage": 1.0 if has_l1_media else 0.4,
+                          "weight": w["sentiment"], "validated": True,
                           "note": None if has_media else (
-                              "區級輿情熱度實測無鑑別力，依 ADR-0001 不計入風險分數；"
-                              "輿情資料仍供本頁與行政區熱力圖檢視")},
+                              "本園有切點前明文點名的報導，但全市僅 14 園有園級輿情訊號，"
+                              "樣本太小無法驗證預測力，依 ADR-0001 暫不計入風險分數；"
+                              "報導明細仍列於本頁下方" if has_l1_media else
+                              "本園無明文點名的報導，僅有所在行政區的輿情熱度；"
+                              "區級熱度實測無鑑別力（Precision@50 8.0%，低於隨機抽查的 10.9%），"
+                              "依 ADR-0001 不計入風險分數；輿情資料仍供本頁與行政區熱力圖檢視")},
             "operation": {"applicable": has_oper, "score": oper,
                           "coverage": 1.0 if has_oper else 0.0,
                           "weight": w["operation"] if has_oper else None,
@@ -183,8 +192,27 @@ for pid, (p, gm) in base.items():
                             "label": "人事費執行率 64%，同儕中位數 90%",
                             "severity": 3, "year": 112, "validated": False}]
                           if has_oper and oper and oper > 80 else []),
-        "media": {"sri": 0.0, "has_signal": False, "town_heat_per_park": round(med / 100, 3),
-                  "town_heat_rank": town_rank, "last_negative_at": None},
+        "media": {"sri": round(med, 2) if has_l1_media else 0.0,
+                  "has_signal": has_l1_media,
+                  "town_heat_per_park": round(med / 100, 3),
+                  "town_heat_rank": town_rank,
+                  "last_negative_at": "2024-08-27" if has_l1_media else None},
+        # 證據鏈（輿情分頁與詳情頁第 5 個分頁）。mock 用的是真實園名，所以
+        # 這裡的「報導」一律寫明是示範資料、來源寫「示範來源」、不給連結——
+        # 掛真實媒體名與像真的標題在真實園所底下，就算只在 demo 裡也是抹黑。
+        # 欄位形狀與 out/serving/media_coverage.json 相同，前端才測得到同一條路。
+        "media_coverage": ([
+            {"date": d, "outlet": "示範來源", "title": t, "url": None,
+             "event_type": ev, "severity": sev, "stance": st,
+             "is_after_cutoff": d >= CUTOFF}
+            for d, ev, sev, st, t in [
+                ("2026-04-11", "不當管教", 5, "家長指控",
+                 "〔示範資料〕家長投訴不當管教，非真實報導"),
+                ("2026-01-22", "食安衛生", 3, "官方回應",
+                 "〔示範資料〕教育局回應午餐衛生查核，非真實報導"),
+                ("2024-08-27", "超收", 2, "媒體報導",
+                 "〔示範資料〕招生人數查核，非真實報導"),
+            ]] if has_l1_media else []),
         "timeline": [
             {"date": r["日期"], "category": "超收" if "第8條" in r["條文"] else "師生比",
              "law": r["條文"][:12],

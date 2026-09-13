@@ -80,3 +80,30 @@ describe("frozen API contracts", () => {
     expect(result.finance?.[0].pdf_url).toBe("https://example.org/report.pdf");
   });
 });
+
+// 輿情維度一律不計分（ADR-0001），但「為什麼不計分」對兩種園是不同的事實：
+// 有園級訊號的 14 園是樣本太小無從驗證，其餘是區級熱度實測無鑑別力。
+// 對有訊號的園寫「區級熱度無鑑別力」，等於否認它自己頁面上那幾篇明文點名的
+// 報導——稽查人員看到會直接不信這張表。這裡兩邊都釘住。
+describe("sentiment dimension explains itself correctly", () => {
+  const items = read("scores").items as Array<{
+    media: { has_signal: boolean };
+    dimensions: { sentiment: { weight: number | null; note: string | null } };
+  }>;
+  it("never scores the dimension and never mixes up the two reasons", () => {
+    const signalled = items.filter((p) => p.media.has_signal);
+    expect(signalled.length).toBeGreaterThan(0);
+    expect(signalled.length).toBeLessThan(items.length);
+    for (const park of items) {
+      const { weight, note } = park.dimensions.sentiment;
+      expect(weight).toBeNull();
+      expect(note).toBeTruthy();
+      if (park.media.has_signal) {
+        expect(note).toContain("樣本太小");
+        expect(note).not.toContain("區級熱度實測無鑑別力");
+      } else {
+        expect(note).toContain("區級熱度實測無鑑別力");
+      }
+    }
+  });
+});
